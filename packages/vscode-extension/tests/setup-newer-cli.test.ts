@@ -91,6 +91,7 @@ let panel: {
     onDidReceiveMessage: (listener: typeof receive) => { dispose: () => void };
   };
   onDidDispose: (callback: () => void) => { dispose: () => void };
+  onDidChangeViewState: () => { dispose: () => void };
   dispose: () => void;
 };
 
@@ -180,6 +181,9 @@ beforeEach(() => {
       cleanups.push(callback);
       return { dispose() {} };
     },
+    onDidChangeViewState() {
+      return { dispose() {} };
+    },
     dispose() {
       for (const callback of cleanups) callback();
     },
@@ -236,9 +240,9 @@ describe("new-project setup with a newer machine CLI", () => {
       await openSetupPanel(context, root);
       if (route === "setup") {
         const { dom } = view();
-        expect((dom.window.document.getElementById("install") as HTMLButtonElement).disabled).toBe(
-          true,
-        );
+        // Only the CLI step is open until this machine's CLI is ready.
+        expect(dom.window.document.getElementById("install")).toBeNull();
+        expect(dom.window.document.getElementById("prepare-cli")).not.toBeNull();
         dom.window.close();
         await click("prepare-cli");
       }
@@ -251,9 +255,7 @@ describe("new-project setup with a newer machine CLI", () => {
       expect(mocks.pin).not.toHaveBeenCalled();
       expect(existsSync(path.join(root, ".aidlc-version"))).toBe(false);
       const { dom } = view();
-      expect((dom.window.document.getElementById("finish") as HTMLButtonElement).disabled).toBe(
-        true,
-      );
+      expect(dom.window.document.getElementById("finish")).toBeNull();
       expect((dom.window.document.getElementById("install") as HTMLButtonElement).disabled).toBe(
         false,
       );

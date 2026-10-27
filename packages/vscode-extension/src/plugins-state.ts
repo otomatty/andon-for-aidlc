@@ -223,7 +223,9 @@ export function pluginPrerequisites(facts: PrerequisiteFacts): PluginPrerequisit
       level: "required",
       met: facts.claude,
       label: "Claude Code（.claude）で AI-DLC を使っている",
-      detail: facts.claude ? "" : "「使うツールを追加」で Claude Code を追加してください。",
+      detail: facts.claude
+        ? ""
+        : "セットアップの「ツールを追加」で Claude Code を追加してください。",
       ...(facts.claude ? {} : { action: "open-workflows-install" as const }),
     },
     {

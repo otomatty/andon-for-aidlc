@@ -30,7 +30,13 @@ vi.mock("../src/native-setup.ts", async (original) => ({
 import { detectHarnesses } from "../src/harness-detect.ts";
 import { readNativeProjections } from "../src/native-projection.ts";
 import { SETUP_RELEASE } from "../src/native-setup.ts";
-import { inspectSetup, needsSetup, setupStateKey } from "../src/setup-state.ts";
+import { setupPhase } from "../src/setup-phase.ts";
+import {
+  inspectSetup,
+  needsSetup,
+  type SetupSnapshot,
+  setupStateKey,
+} from "../src/setup-state.ts";
 import { readWorkspaceAidlcVersion } from "../src/workflows-version.ts";
 
 const roots: string[] = [];
@@ -72,10 +78,13 @@ describe("first-run setup state", () => {
     const state = await inspectSetup(context, root);
     expect(state.configured).toBe(false);
     expect(state.runtimeIssue).toContain("信頼");
+    expect(state.runtimeIssueKind).toBe("trust");
     expect(state.runtimeIssue).not.toContain("git init");
     expect(mocks.git).not.toHaveBeenCalled();
     mocks.workspace.isTrusted = true;
-    expect((await inspectSetup(context, root)).configured).toBe(true);
+    const trusted = await inspectSetup(context, root);
+    expect(trusted.configured).toBe(true);
+    expect(trusted.runtimeIssueKind).toBeUndefined();
     expect(mocks.git).toHaveBeenCalledWith(root);
   });
   it("reports missing Git after completion without reopening setup", async () => {
@@ -86,6 +95,7 @@ describe("first-run setup state", () => {
     const state = await inspectSetup(context, root);
     expect(state.configured).toBe(false);
     expect(state.runtimeIssue).toContain("git init");
+    expect(state.runtimeIssueKind).toBe("git");
     expect(needsSetup(state)).toBe(false);
     mocks.git.mockResolvedValue(true);
     expect(needsSetup(await inspectSetup(context, root))).toBe(false);
@@ -124,6 +134,7 @@ describe("first-run setup state", () => {
     expect(mocks.native).toHaveBeenCalledWith(root);
     expect(state.configured).toBe(false);
     expect(state.runtimeIssue).toContain("aidlc config --pin");
+    expect(state.runtimeIssueKind).toBe("runtime-missing");
     expect(needsSetup(state)).toBe(false);
   });
   it("requires every native projection to match the selected runtime", async () => {
@@ -138,7 +149,9 @@ describe("first-run setup state", () => {
       version: "2.8.1",
       binDir: "/user/bin",
     });
-    expect((await inspectSetup(context, root)).configured).toBe(false);
+    const state = await inspectSetup(context, root);
+    expect(state.configured).toBe(false);
+    expect(state.runtimeIssueKind).toBe("mixed-versions");
   });
   it("opens for a new workspace without a completion preference", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "setup-empty-"));
@@ -157,7 +170,7 @@ describe("first-run setup state", () => {
     mocks.docs.mockResolvedValue({ complete: true });
     expect(needsSetup(await inspectSetup(context, await fixture(false)))).toBe(false);
   });
-  it("reopens unfinished setup and reads native metadata without TypeScript source files", async () => {
+  it("opens a configured folder without docs registration and reads native metadata only", async () => {
     const root = await fixture(true);
     mocks.native.mockReturnValue({
       executable: "/user/aidlc",
@@ -166,7 +179,8 @@ describe("first-run setup state", () => {
     });
     const state = await inspectSetup(context, root);
     expect(state.configured).toBe(true);
-    expect(needsSetup(state)).toBe(true);
+    expect(state.docsReady).toBe(false);
+    expect(needsSetup(state)).toBe(false);
     expect(detectHarnesses(root).harnesses.map((h) => h.id)).toContain("codex");
     expect(readWorkspaceAidlcVersion(root).version).toBe("2.8.1");
     await writeFile(
@@ -223,5 +237,106 @@ describe("first-run setup state", () => {
     expect(state.configured).toBe(false);
     expect(state.projectPresent).toBe(false);
     expect(needsSetup(state)).toBe(false);
+  });
+});
+
+describe("setup phase", () => {
+  const cli = {
+    machineVersion: SETUP_RELEASE,
+    projectPin: null,
+    projectVersion: null,
+    effectiveVersion: SETUP_RELEASE,
+    target: SETUP_RELEASE,
+    targetInstalled: true,
+    launcherReady: true,
+    setupReady: true,
+    canPrepare: false,
+    canUpdate: false,
+    confirmUpdate: false,
+    engineNewer: false,
+    status: "ready" as const,
+    message: "",
+    updateMessage: "",
+  };
+  const base: SetupSnapshot = {
+    root: "/project",
+    configured: false,
+    projectPresent: false,
+    native: null,
+    version: null,
+    harnesses: [],
+    docsReady: false,
+    preference: undefined,
+    cli,
+  };
+  const missing = { ...cli, setupReady: false, status: "missing" as const };
+
+  it("asks for trust before anything else", () => {
+    expect(setupPhase({ ...base, cli: missing }, false, [], false)).toEqual({ name: "trust" });
+  });
+  it.each([
+    ["the CLI can be prepared", { ...missing, canPrepare: true }],
+    ["an older pin needs a confirmed update", { ...missing, canUpdate: true, confirmUpdate: true }],
+  ])("opens the CLI step when %s", (_case, state) => {
+    expect(setupPhase({ ...base, cli: state }, true, [], false)).toEqual({ name: "cli" });
+  });
+  it("opens the CLI step for a legacy snapshot without CLI state until a runtime exists", () => {
+    expect(setupPhase({ ...base, cli: undefined }, true, [], false)).toEqual({ name: "cli" });
+    const native = { executable: "aidlc", version: SETUP_RELEASE, binDir: "bin" };
+    expect(setupPhase({ ...base, cli: undefined, native }, true, [], false)).toEqual({
+      name: "project",
+      retry: [],
+    });
+  });
+  it("blocks on a CLI this screen cannot prepare and keeps the reason", () => {
+    const blocked = { ...missing, status: "blocked" as const, blockedReason: "needs-other-cli" as const };
+    expect(setupPhase({ ...base, cli: blocked }, true, [], false)).toEqual({
+      name: "blocked",
+      step: "cli",
+      block: { kind: "cli", reason: "needs-other-cli" },
+    });
+  });
+  it("opens the project step for a new folder, or blocks when it cannot be installed", () => {
+    expect(setupPhase(base, true, ["claude"], false)).toEqual({ name: "project", retry: [] });
+    const workflows = {
+      root: "/project",
+      target: SETUP_RELEASE,
+      tools: [],
+      projectPin: null,
+      status: "blocked" as const,
+      message: "設定を確認してください。",
+      canInstall: false,
+      canUpdate: false,
+      engineBumpNeeded: false,
+      engineVersionDiffers: false,
+      updateRetryNeeded: false,
+    };
+    expect(setupPhase({ ...base, workflows }, true, ["claude"], false)).toEqual({
+      name: "blocked",
+      step: "project",
+      block: { kind: "workflows" },
+    });
+  });
+  it("retries only tools that failed while the project was being created", () => {
+    const partial = { ...base, configured: true, projectPresent: true, harnesses: ["cursor" as const] };
+    expect(setupPhase(partial, true, ["cursor", "claude"], true)).toEqual({
+      name: "project",
+      retry: ["claude"],
+    });
+    expect(setupPhase(partial, true, ["cursor"], true)).toEqual({ name: "ready" });
+    expect(setupPhase(partial, true, ["cursor", "claude"], false)).toEqual({ name: "ready" });
+  });
+  it("blocks a configured-looking project by its runtime issue, or as incomplete", () => {
+    const tools = { ...base, projectPresent: true, harnesses: ["codex" as const] };
+    expect(setupPhase({ ...tools, runtimeIssueKind: "git" }, true, [], false)).toEqual({
+      name: "blocked",
+      step: "project",
+      block: { kind: "runtime", issue: "git" },
+    });
+    expect(setupPhase(tools, true, [], false)).toEqual({
+      name: "blocked",
+      step: "project",
+      block: { kind: "incomplete" },
+    });
   });
 });

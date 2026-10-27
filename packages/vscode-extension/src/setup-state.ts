@@ -28,6 +28,7 @@ export type SetupPreference = {
   /** Older preferences retain the single harness field. */
   harnesses?: HarnessId[];
 };
+export type RuntimeIssueKind = "trust" | "git" | "mixed-versions" | "runtime-missing";
 export type SetupSnapshot = {
   root: string;
   configured: boolean;
@@ -38,6 +39,7 @@ export type SetupSnapshot = {
   docsReady: boolean;
   docsReason?: string;
   runtimeIssue?: string;
+  runtimeIssueKind?: RuntimeIssueKind;
   preference: SetupPreference | undefined;
   workflows?: WorkflowsManagementState;
   cli?: CliManagementState;
@@ -70,13 +72,23 @@ export async function inspectSetup(
         ? CODEX_GIT_REQUIRED
         : undefined
     : undefined;
-  const runtimeIssue = codexIssue
-    ? codexIssue
+  const runtimeIssueKind: RuntimeIssueKind | undefined = codexIssue
+    ? workspace.isTrusted
+      ? "git"
+      : "trust"
     : nativeVersions.size > 1
-      ? `ツール別の設定に異なるバージョン（${[...nativeVersions].join("、")}）があります。公式の手順で各ツールの設定を同じバージョンに揃えてください。`
+      ? "mixed-versions"
       : projections.length > 0 && projections[0]?.version !== native?.version && !useMachineForOlder
-        ? `プロジェクトのバージョン ${projections[0]?.version} に対応する本体を利用できません。本体の導入後、プロジェクトのフォルダで aidlc use ${projections[0]?.version} を実行してください。.aidlc-version がある場合は、その内容がプロジェクトのバージョンと一致することを確認し、aidlc config --pin ${projections[0]?.version} で固定バージョンの登録を修復してください。`
+        ? "runtime-missing"
         : undefined;
+  const runtimeIssue =
+    runtimeIssueKind === "trust" || runtimeIssueKind === "git"
+      ? codexIssue
+      : runtimeIssueKind === "mixed-versions"
+        ? `ツール別の設定に異なるバージョン（${[...nativeVersions].join("、")}）があります。公式の手順で各ツールの設定を同じバージョンに揃えてください。`
+        : runtimeIssueKind === "runtime-missing"
+          ? `プロジェクトのバージョン ${projections[0]?.version} に対応する本体を利用できません。本体の導入後、プロジェクトのフォルダで aidlc use ${projections[0]?.version} を実行してください。.aidlc-version がある場合は、その内容がプロジェクトのバージョンと一致することを確認し、aidlc config --pin ${projections[0]?.version} で固定バージョンの登録を修復してください。`
+          : undefined;
   const docs = await refreshDocsRegistration(
     root,
     mcpScriptPath(context.extensionPath),
@@ -96,6 +108,7 @@ export async function inspectSetup(
     harnesses,
     configured: projectPresent && version !== null && runtimeIssue === undefined,
     runtimeIssue,
+    ...(runtimeIssueKind ? { runtimeIssueKind } : {}),
     docsReady: docs.complete,
     docsReason: docs.reason,
     preference: context.workspaceState.get<SetupPreference>(setupStateKey(root)),
@@ -104,7 +117,7 @@ export async function inspectSetup(
 
 export function needsSetup(snapshot: SetupSnapshot): boolean {
   // Completion belongs to this user/workspace. Later breakage is handled by Updates,
-  // not by reopening onboarding. Keep legacy complete docs registrations recognized.
+  // not by reopening onboarding. Docs registration is not shown in setup, so it never opens it.
   if (snapshot.preference?.completed) return false;
-  return !(snapshot.configured && snapshot.docsReady);
+  return !snapshot.configured;
 }

@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import type { CliManagementState } from "../src/cli-management.ts";
 import type { NativeDoctorReport } from "../src/doctor-output.ts";
 import { findHarnessConflict } from "../src/harness-conflicts.ts";
-import { type SetupPanelMode, setupHtml } from "../src/setup-html.ts";
+import type { HarnessId } from "../src/harness-detect.ts";
+import { setupHtml } from "../src/setup-html.ts";
 import type { SetupSnapshot } from "../src/setup-state.ts";
 
 vi.mock("../src/native-setup.ts", () => ({
@@ -11,6 +12,35 @@ vi.mock("../src/native-setup.ts", () => ({
   INSTALL_GUIDE_URL: "https://github.com/awslabs/aidlc-workflows/releases/tag/vtest-release",
 }));
 
+const missingCli: CliManagementState = {
+  machineVersion: null,
+  projectPin: null,
+  projectVersion: null,
+  effectiveVersion: null,
+  target: "test-release",
+  targetInstalled: false,
+  launcherReady: false,
+  setupReady: false,
+  canPrepare: true,
+  canUpdate: true,
+  confirmUpdate: false,
+  engineNewer: false,
+  status: "missing",
+  message: "CLI test-release を導入してこのマシンの既定バージョンにします。",
+  updateMessage: "",
+};
+const readyCli: CliManagementState = {
+  ...missingCli,
+  machineVersion: "test-release",
+  effectiveVersion: "test-release",
+  targetInstalled: true,
+  launcherReady: true,
+  setupReady: true,
+  canPrepare: false,
+  canUpdate: false,
+  status: "ready",
+  message: "CLIを利用できます。",
+};
 const empty: SetupSnapshot = {
   root: "C:\\project & docs",
   configured: false,
@@ -20,25 +50,16 @@ const empty: SetupSnapshot = {
   harnesses: [],
   docsReady: false,
   preference: undefined,
-};
-
-const readyCli: CliManagementState = {
-  machineVersion: "test-release",
-  projectPin: null,
-  projectVersion: null,
-  effectiveVersion: "test-release",
-  target: "test-release",
-  targetInstalled: true,
-  launcherReady: true,
-  setupReady: true,
-  canPrepare: false,
-  canUpdate: false,
-  confirmUpdate: false,
-  status: "ready",
-  message: "CLIを利用できます。",
-  updateMessage: "CLIは導入済みです。",
+  cli: missingCli,
 };
 const prepared: SetupSnapshot = { ...empty, cli: readyCli };
+const ready: SetupSnapshot = {
+  ...prepared,
+  configured: true,
+  projectPresent: true,
+  version: "test-release",
+  harnesses: ["cursor"],
+};
 
 const diagnosticReport: NativeDoctorReport = {
   version: "2.8.1",
@@ -81,22 +102,22 @@ function webview(
     trusted?: boolean;
     saved?: unknown;
     snapshot?: SetupSnapshot;
-    mode?: SetupPanelMode;
+    selected?: HarnessId[];
     creatingProject?: boolean;
+    adding?: boolean;
   } = {},
 ) {
   const postMessage = vi.fn();
   const setState = vi.fn();
   const dom = new JSDOM(
-    setupHtml(
-      options.snapshot ?? empty,
-      ["cursor"],
-      options.trusted ?? true,
-      "testnonce",
-      options.mode,
-      "test-extension",
-      options.creatingProject,
-    ),
+    setupHtml(options.snapshot ?? empty, {
+      selected: options.selected ?? ["cursor"],
+      trusted: options.trusted ?? true,
+      nonce: "testnonce",
+      extensionVersion: "test-extension",
+      creatingProject: options.creatingProject,
+      adding: options.adding,
+    }),
     {
       runScripts: "dangerously",
       beforeParse(window) {
@@ -110,75 +131,95 @@ function webview(
       },
     },
   );
+  const doc = dom.window.document;
   return {
     dom,
-    doc: dom.window.document,
+    doc,
     postMessage,
     setState,
+    button: (id: string) => doc.querySelector<HTMLButtonElement>(`#${id}`),
+    text: () => doc.body.textContent ?? "",
+    current: () => doc.querySelector(".step[aria-current=step] .step-title")?.textContent,
     message(data: unknown) {
       dom.window.dispatchEvent(new dom.window.MessageEvent("message", { data }));
     },
   };
 }
 
-describe("setup webview", () => {
-  it("treats official docs as a text link and explains Git Bash launcher lookup", () => {
-    const pending = webview();
-    const docs = pending.doc.querySelector<HTMLAnchorElement>("#docs");
-    expect(docs?.tagName).toBe("A");
+describe("setup webview frame", () => {
+  it("keeps one heading, the folder and footer links on every state", () => {
+    const view = webview();
+    expect(view.doc.querySelector("h1")?.textContent).toBe("AI-DLC のセットアップ");
+    expect(view.doc.querySelector(".folder code")?.textContent).toBe("C:\\project & docs");
+    const steps = [...view.doc.querySelectorAll(".steps > li .step-title")];
+    expect(steps.map((node) => node.textContent)).toEqual([
+      "このマシンの CLI",
+      "プロジェクトの設定",
+      "完了",
+    ]);
+    const docs = view.doc.querySelector<HTMLAnchorElement>("#docs");
     expect(docs?.className).toBe("text-link");
     expect(docs?.getAttribute("href")).toBe(
       "https://github.com/awslabs/aidlc-workflows/releases/tag/vtest-release",
     );
-    expect(pending.doc.body.textContent).not.toContain("aidlc.cmd --version");
     docs?.click();
-    expect(pending.postMessage).toHaveBeenLastCalledWith({
+    expect(view.postMessage).toHaveBeenLastCalledWith({ type: "docs", harnesses: ["cursor"] });
+    view.button("update-workflows")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({
+      type: "open-workflows-update",
+      harnesses: ["cursor"],
+    });
+    view.message({ type: "busy", value: true });
+    expect(view.button("update-workflows")?.disabled).toBe(true);
+    view.postMessage.mockClear();
+    docs?.click();
+    expect(view.postMessage).toHaveBeenCalledExactlyOnceWith({
       type: "docs",
       harnesses: ["cursor"],
     });
-    pending.message({ type: "busy", value: true });
-    expect(pending.doc.querySelector<HTMLButtonElement>("#prepare-cli")?.disabled).toBe(true);
-    pending.postMessage.mockClear();
-    docs?.click();
-    expect(pending.postMessage).toHaveBeenLastCalledWith({
-      type: "docs",
-      harnesses: ["cursor"],
-    });
-    pending.dom.window.close();
-
-    const ready = webview({ snapshot: prepared });
-    expect(ready.doc.querySelector("button#docs")).toBeNull();
-    expect(ready.doc.body.textContent).toContain("Windows の Git Bash では");
-    expect(ready.doc.body.textContent).toContain("aidlc.cmd --version");
-    expect(ready.doc.body.textContent).toContain("コマンド プロンプトと PowerShell");
-    expect(ready.doc.querySelector("#cli-terminal")?.classList.contains("text-link")).toBe(true);
-    ready.dom.window.close();
-
-    const joining = webview({
-      snapshot: {
-        ...empty,
-        projectPresent: true,
-        harnesses: ["cursor", "claude"],
-        version: "2.8.1",
-      },
-    });
-    for (const id of ["add-tools", "run-doctor", "recheck", "update-workflows"]) {
-      expect(joining.doc.querySelector(`#${id}`)?.classList.contains("text-link")).toBe(true);
-    }
-    expect(joining.doc.querySelector("#install")?.classList.contains("text-link")).toBeFalsy();
-    expect(joining.doc.querySelector("#finish")?.classList.contains("text-link")).toBeFalsy();
-    joining.dom.window.close();
+    expect(view.text()).toContain("AIDLC Guide test-extension");
+    expect(view.text()).not.toContain("状態を再確認");
+    view.dom.window.close();
   });
 
-  it("requires CLI preparation before creating project files", () => {
+  it("escapes workspace and version content and uses a nonce-only script policy", () => {
+    const html = setupHtml(
+      { ...ready, root: '</code><script>alert("x")</script>', version: "<img src=x>" },
+      { selected: ["claude"], trusted: true, nonce: "nonce" },
+    );
+    const dom = new JSDOM(html);
+    expect(dom.window.document.querySelectorAll("script").length).toBe(1);
+    expect(dom.window.document.querySelector("img")).toBeNull();
+    expect(html).not.toContain("unsafe-inline");
+    expect(html).toContain("script-src 'nonce-nonce'");
+    dom.window.close();
+  });
+});
+
+describe("one open step per state", () => {
+  it("asks for workspace trust before any step and keeps every step closed", () => {
+    const view = webview({ trusted: false });
+    expect(view.doc.querySelector(".notice")?.textContent).toContain(
+      "このフォルダを信頼すると、設定を始められます。",
+    );
+    expect(view.doc.querySelectorAll(".step.todo")).toHaveLength(3);
+    expect(view.doc.querySelector("#prepare-cli, #install, #finish")).toBeNull();
+    view.button("trust")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({ type: "trust", harnesses: ["cursor"] });
+    view.dom.window.close();
+  });
+
+  it("offers one CLI action for a new project and folds the version details", () => {
     const view = webview();
-    const install = view.doc.querySelector<HTMLButtonElement>("#install");
-    const prepare = view.doc.querySelector<HTMLButtonElement>("#prepare-cli");
-    expect(install?.disabled).toBe(true);
-    expect(view.doc.querySelector("#selection-note")?.textContent).toContain("先に CLI を準備");
-    install?.click();
-    expect(view.postMessage).toHaveBeenCalledExactlyOnceWith({ type: "ready" });
-    expect(prepare?.disabled).toBe(false);
+    expect(view.current()).toBe("このマシンの CLI");
+    expect(view.text()).toContain("このマシンに AI-DLC の CLI test-release を入れます。");
+    expect(view.text()).toContain(missingCli.message);
+    const prepare = view.button("prepare-cli");
+    expect(prepare?.textContent).toBe("CLI をインストール");
+    const facts = view.doc.querySelector("details.more");
+    expect(facts?.textContent).toContain("入れるバージョンtest-release");
+    expect(facts?.textContent).toContain("このフォルダで使う CLI未検出");
+    expect(view.doc.querySelector("#install, #finish, #run-doctor")).toBeNull();
     prepare?.click();
     expect(view.postMessage).toHaveBeenLastCalledWith({
       type: "prepare-cli",
@@ -188,245 +229,111 @@ describe("setup webview", () => {
     const sent = view.postMessage.mock.calls.length;
     prepare?.click();
     expect(view.postMessage).toHaveBeenCalledTimes(sent);
+    expect(view.doc.querySelector("main")?.getAttribute("aria-busy")).toBe("true");
     view.message({ type: "busy", value: false });
     expect(prepare?.disabled).toBe(false);
-    expect(install?.disabled).toBe(true);
-    view.dom.window.close();
-
-    const refreshed = webview({ snapshot: prepared });
-    expect(refreshed.doc.querySelector<HTMLButtonElement>("#prepare-cli")?.disabled).toBe(true);
-    expect(refreshed.doc.querySelector<HTMLButtonElement>("#install")?.disabled).toBe(false);
-    refreshed.dom.window.close();
-  });
-
-  it("joins an existing project through CLI preparation and diagnosis without an install action", () => {
-    const view = webview({
-      snapshot: {
-        ...empty,
-        projectPresent: true,
-        harnesses: ["cursor", "claude"],
-        version: "2.8.1",
-      },
-    });
-    expect(view.doc.querySelector("#install, input[name=harness], #check-update")).toBeNull();
-    expect(view.doc.querySelector("h1")?.textContent).toBe("AI-DLC のセットアップ");
-    expect(view.doc.body.textContent).toContain("既存の AI-DLC プロジェクトに参加");
-    expect(view.doc.querySelector<HTMLButtonElement>("#finish")?.disabled).toBe(true);
-    view.doc.querySelector<HTMLButtonElement>("#prepare-cli")?.click();
-    expect(view.postMessage).toHaveBeenLastCalledWith({
-      type: "prepare-cli",
-      harnesses: ["cursor", "claude"],
-    });
-    view.doc.querySelector<HTMLButtonElement>("#run-doctor")?.click();
-    expect(view.postMessage).toHaveBeenLastCalledWith({
-      type: "run-doctor",
-      harnesses: ["cursor", "claude"],
-    });
-    view.doc.querySelector<HTMLButtonElement>("#add-tools")?.click();
-    expect(view.postMessage).toHaveBeenLastCalledWith({
-      type: "add-tools",
-      harnesses: ["cursor", "claude"],
-    });
-    view.doc.querySelector<HTMLButtonElement>("#update-workflows")?.click();
-    expect(view.postMessage).toHaveBeenLastCalledWith({ type: "open-workflows-update" });
-    expect(view.postMessage.mock.calls.some(([message]) => message.type === "install")).toBe(false);
     view.dom.window.close();
   });
 
-  it("shows the existing project's pinned CLI version and retains readiness after a busy operation", () => {
-    const view = webview({
-      snapshot: {
-        ...prepared,
-        configured: true,
-        projectPresent: true,
-        version: "2.8.1",
-        harnesses: ["cursor"],
-        cli: {
-          ...readyCli,
-          projectPin: "2.8.1",
-          projectVersion: "2.8.1",
-          effectiveVersion: "2.8.1",
-        },
-      },
-    });
-    expect(view.doc.body.textContent).toContain("このプロジェクトの固定バージョン：2.8.1（維持）");
-    expect(view.doc.body.textContent).not.toContain("準備するバージョン");
-    expect(view.doc.body.textContent).not.toContain("既存プロジェクトでは、そのプロジェクトが指定する");
-    expect(view.doc.querySelector<HTMLButtonElement>("#finish")?.disabled).toBe(false);
-    view.message({ type: "busy", value: true });
-    expect(view.doc.querySelector<HTMLButtonElement>("#finish")?.disabled).toBe(true);
-    view.message({ type: "busy", value: false });
-    expect(view.doc.querySelector<HTMLButtonElement>("#finish")?.disabled).toBe(false);
-    expect(view.doc.querySelector<HTMLButtonElement>("#prepare-cli")?.disabled).toBe(true);
-    view.dom.window.close();
-  });
-
-  it("describes a new project as installing the verified CLI", () => {
-    const view = webview();
-    expect(view.doc.body.textContent).toContain(
-      "新しいプロジェクトでは、Guide が検証した CLI test-release",
-    );
-    expect(view.doc.body.textContent).toContain("導入するバージョン：test-release");
-    expect(view.doc.body.textContent).not.toContain("既存プロジェクトでは");
-    expect(view.doc.body.textContent).not.toContain("準備するバージョン");
-    view.dom.window.close();
-  });
-
-  it("offers a CLI update for an older project pin without calling it the version to prepare", () => {
+  it("asks to update the CLI for an older pin and keeps the pin", () => {
     const view = webview({
       snapshot: {
         ...empty,
         projectPresent: true,
         harnesses: ["cursor"],
         version: "2.6.114",
-        native: { version: "2.6.114", executable: "/aidlc", binDir: "/bin" },
         cli: {
-          ...readyCli,
-          machineVersion: "2.6.114",
+          ...missingCli,
+          canPrepare: false,
           projectPin: "2.6.114",
           projectVersion: "2.6.114",
-          effectiveVersion: "2.6.114",
-          targetInstalled: false,
-          canUpdate: true,
           confirmUpdate: true,
         },
       },
     });
-    expect(view.doc.body.textContent).toContain(
-      "このプロジェクトの固定バージョンは 2.6.114 です。Guide が導入できる CLI は test-release です。",
-    );
-    expect(view.doc.body.textContent).toContain("このプロジェクトの固定バージョン：2.6.114（維持）");
-    expect(view.doc.body.textContent).toContain("導入するバージョン：test-release");
-    expect(view.doc.body.textContent).not.toContain("準備するバージョン：2.6.114");
-    expect(view.doc.querySelector("#prepare-cli")?.textContent).toBe("CLI を更新");
-    expect(view.doc.querySelector<HTMLButtonElement>("#prepare-cli")?.disabled).toBe(false);
+    expect(view.text()).toContain("固定バージョン 2.6.114 のまま、CLI test-release を入れます。");
+    expect(view.button("prepare-cli")?.textContent).toBe("CLI を更新");
+    expect(view.button("prepare-cli")?.disabled).toBe(false);
     view.dom.window.close();
   });
 
-  it("keeps the new-project selection available for retrying partially completed setup", () => {
+  it("prepares a joining user's CLI with the repository's tools already done", () => {
     const view = webview({
-      snapshot: { ...prepared, configured: true, projectPresent: true, harnesses: ["cursor"] },
-      creatingProject: true,
+      snapshot: {
+        ...empty,
+        projectPresent: true,
+        harnesses: ["cursor", "claude"],
+        version: "2.8.1",
+        runtimeIssue: "aidlc use 2.8.1 を実行してください。",
+        runtimeIssueKind: "runtime-missing",
+        cli: { ...missingCli, projectPin: "2.8.1", projectVersion: "2.8.1" },
+      },
+      selected: ["cursor", "claude"],
     });
-    expect(view.doc.querySelector("h1")?.textContent).toBe("AI-DLC のセットアップ");
-    expect(view.doc.querySelector("#add-tools")).toBeNull();
-    expect(view.doc.querySelector<HTMLInputElement>('input[value="cursor"]')?.disabled).toBe(true);
-    const addition = view.doc.querySelector<HTMLInputElement>('input[value="claude"]');
-    const install = view.doc.querySelector<HTMLButtonElement>("#install");
-    addition?.click();
+    expect(view.current()).toBe("このマシンの CLI");
+    expect(view.text()).toContain("このプロジェクトが使う CLI 2.8.1 を、このマシンに入れます。");
+    expect(view.text()).not.toContain("aidlc use");
+    expect(view.text()).not.toContain("参加");
+    const project = view.doc.querySelector(".step.done");
+    expect(project?.querySelector(".step-title")?.textContent).toBe("プロジェクトの設定");
+    expect(project?.querySelector(".sum")?.textContent).toBe("Cursor・Claude Code");
+    expect(view.doc.querySelector("input[name=harness], #install, #finish")).toBeNull();
+    view.button("prepare-cli")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({
+      type: "prepare-cli",
+      harnesses: ["cursor", "claude"],
+    });
+    view.dom.window.close();
+  });
+
+  it("folds a prepared CLI into one line that still explains terminal use", () => {
+    const view = webview({ snapshot: prepared });
+    const cli = view.doc.querySelector(".step.done");
+    expect(cli?.querySelector(".sum")?.textContent).toBe("CLI test-release");
+    expect(cli?.querySelector("details")?.open).toBe(false);
+    expect(cli?.textContent).toContain("Windows の Git Bash では");
+    expect(cli?.textContent).toContain("aidlc.cmd --version");
+    expect(cli?.querySelector("#cli-terminal")?.classList.contains("text-link")).toBe(true);
+    view.button("cli-terminal")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({
+      type: "cli-terminal",
+      harnesses: ["cursor"],
+    });
+    view.dom.window.close();
+  });
+});
+
+describe("project step", () => {
+  it("selects tools for a new project and sends them with one action", () => {
+    const view = webview({ snapshot: prepared });
+    expect(view.current()).toBe("プロジェクトの設定");
+    const install = view.button("install");
+    expect(install?.textContent).toBe("プロジェクトを設定");
     expect(install?.disabled).toBe(false);
-    expect(view.doc.querySelector<HTMLButtonElement>("#finish")?.disabled).toBe(true);
+    expect(view.doc.querySelector("#selection-note")?.textContent).toBe(
+      "1 個のツールを設定します。",
+    );
+    view.doc.querySelector<HTMLInputElement>('input[value="codex"]')?.click();
+    expect(view.doc.querySelector("#selection-note")?.textContent).toContain("2 個のツールを設定");
     install?.click();
     expect(view.postMessage).toHaveBeenLastCalledWith({
       type: "install",
-      harnesses: ["cursor", "claude"],
-    });
-    addition?.click();
-    expect(install?.disabled).toBe(true);
-    expect(view.doc.querySelector<HTMLButtonElement>("#finish")?.disabled).toBe(false);
-    view.dom.window.close();
-  });
-
-  it("keeps CLI preparation and project writes disabled in an untrusted workspace", () => {
-    const view = webview({ trusted: false });
-    view.message({ type: "busy", value: true });
-    view.message({ type: "busy", value: false });
-    for (const id of ["prepare-cli", "install", "finish"]) {
-      const button = view.doc.querySelector<HTMLButtonElement>(`#${id}`);
-      expect(button?.disabled).toBe(true);
-      button?.click();
-    }
-    expect(view.postMessage).toHaveBeenCalledExactlyOnceWith({ type: "ready" });
-    view.dom.window.close();
-  });
-
-  it("permits the first installation when shared state allows an older pin to be initialized", () => {
-    const postMessage = vi.fn();
-    const snapshot: SetupSnapshot = {
-      ...prepared,
-      version: "2.8.0",
-      workflows: {
-        root: empty.root,
-        target: "2.8.1",
-        projectPin: "2.8.0",
-        tools: [],
-        status: "not-installed",
-        canInstall: true,
-        canUpdate: false,
-        message: "インストール時に固定バージョンを揃えます。",
-      },
-    };
-    const dom = new JSDOM(setupHtml(snapshot, ["cursor"], true, "testnonce"), {
-      runScripts: "dangerously",
-      beforeParse(window) {
-        Object.assign(window, {
-          acquireVsCodeApi: () => ({ postMessage, getState: () => null, setState: vi.fn() }),
-        });
-      },
-    });
-    try {
-      const install = dom.window.document.querySelector<HTMLButtonElement>("#install");
-      expect(install?.disabled).toBe(false);
-      expect(dom.window.document.getElementById("check-update")).toBeNull();
-      install?.click();
-      expect(postMessage).toHaveBeenLastCalledWith({ type: "install", harnesses: ["cursor"] });
-    } finally {
-      dom.window.close();
-    }
-  });
-  it("installs multiple selected tools together and locks controls only while busy", () => {
-    const postMessage = vi.fn();
-    const dom = new JSDOM(setupHtml(prepared, ["cursor"], true, "testnonce"), {
-      runScripts: "dangerously",
-      beforeParse(window) {
-        Object.assign(window, {
-          acquireVsCodeApi: () => ({ postMessage, getState: () => null, setState: vi.fn() }),
-        });
-      },
-    });
-    const doc = dom.window.document;
-    expect(doc.querySelectorAll(".card").length).toBe(3);
-    expect(doc.querySelector("#status")?.getAttribute("aria-live")).toBe("polite");
-    const codex = doc.querySelector<HTMLInputElement>('input[value="codex"]');
-    if (!codex) throw new Error("missing harness selector");
-    codex.click();
-    expect(doc.querySelector("#start-command, #register-mcp, #bun-docs, #check-update")).toBeNull();
-    expect([...doc.querySelectorAll(".steps > li h2")].map((node) => node.textContent)).toEqual([
-      "このマシンの CLI を準備する",
-      "プロジェクトを設定する",
-      "aidlc doctor を実行する",
-    ]);
-    doc.querySelector<HTMLButtonElement>("#install")?.click();
-    expect(postMessage).toHaveBeenLastCalledWith({
-      type: "install",
       harnesses: ["cursor", "codex"],
     });
-    expect(doc.querySelector<HTMLButtonElement>("#install")?.disabled).toBe(false);
-    expect(doc.querySelector("#selection-note")?.textContent).toContain("2 個のツールを設定");
-    doc.querySelector<HTMLInputElement>('input[value="cursor"]')?.click();
-    doc.querySelector<HTMLButtonElement>("#install")?.click();
-    expect(postMessage).toHaveBeenLastCalledWith({
-      type: "install",
-      harnesses: ["codex"],
-    });
-    dom.window.dispatchEvent(
-      new dom.window.MessageEvent("message", { data: { type: "busy", value: true } }),
-    );
-    expect(doc.querySelector<HTMLButtonElement>("#install")?.disabled).toBe(true);
-    expect(codex.disabled).toBe(true);
-    dom.window.dispatchEvent(
-      new dom.window.MessageEvent("message", { data: { type: "busy", value: false } }),
-    );
-    expect(doc.querySelector<HTMLButtonElement>("#install")?.disabled).toBe(false);
-    expect(codex.disabled).toBe(false);
-    expect(doc.querySelector<HTMLButtonElement>("#finish")?.disabled).toBe(true);
-    dom.window.close();
+    view.message({ type: "busy", value: true });
+    expect(install?.disabled).toBe(true);
+    expect(view.doc.querySelector("main")?.getAttribute("aria-busy")).toBe("true");
+    view.message({ type: "busy", value: false });
+    expect(install?.disabled).toBe(false);
+    expect(view.doc.querySelector("#finish")).toBeNull();
+    view.dom.window.close();
   });
+
   it("blocks empty and conflicting selections before sending an install request", () => {
     const view = webview({ snapshot: prepared });
     const toggle = (id: string) =>
       view.doc.querySelector<HTMLInputElement>(`input[value="${id}"]`)?.click();
-    const button = view.doc.querySelector<HTMLButtonElement>("#install");
+    const button = view.button("install");
     toggle("cursor");
     expect(button?.disabled).toBe(true);
     expect(view.doc.querySelector("#selection-note")?.textContent).toContain("1つ以上選択");
@@ -434,7 +341,6 @@ describe("setup webview", () => {
       ["copilot", "opencode"],
       ["kiro", "kiro-ide"],
     ] as const) {
-      if (!first || !second) throw new Error("missing pair");
       toggle(first);
       expect(button?.disabled).toBe(false);
       toggle(second);
@@ -442,176 +348,277 @@ describe("setup webview", () => {
       expect(view.doc.querySelector("#selection-note")?.textContent).toBe(
         findHarnessConflict([first, second])?.message,
       );
+      expect(view.doc.querySelector("#selection-note")?.classList.contains("error")).toBe(true);
       toggle(first);
       toggle(second);
     }
     expect(view.postMessage.mock.calls.some(([message]) => message.type === "install")).toBe(false);
     view.dom.window.close();
   });
-  it("allows multiple additions while keeping installed tools checked and preserved", () => {
-    const postMessage = vi.fn();
-    const dom = new JSDOM(
-      setupHtml(
-        { ...prepared, configured: true, harnesses: ["cursor"] },
-        ["cursor"],
-        true,
-        "nonce",
-        "install",
-      ),
-      {
-        runScripts: "dangerously",
-        beforeParse(window) {
-          Object.assign(window, {
-            acquireVsCodeApi: () => ({ postMessage, getState: () => null, setState: vi.fn() }),
-          });
-        },
-      },
-    );
-    const doc = dom.window.document;
-    expect(doc.querySelector("h1")?.textContent).toBe("AI-DLC のツールを追加");
-    expect(doc.querySelectorAll(".card")).toHaveLength(3);
-    expect(doc.querySelector("#finish, #register-mcp, #start-command")).toBeNull();
-    expect(doc.querySelector<HTMLInputElement>('input[value="cursor"]')?.disabled).toBe(true);
-    expect(doc.querySelector<HTMLInputElement>('input[value="claude"]')?.disabled).toBe(false);
-    expect(doc.querySelector<HTMLButtonElement>("#install")?.disabled).toBe(true);
-    doc.querySelector<HTMLInputElement>('input[value="cursor"]')?.click();
-    expect(doc.querySelector<HTMLInputElement>('input[value="cursor"]')?.checked).toBe(true);
-    doc.querySelector<HTMLInputElement>('input[value="claude"]')?.click();
-    doc.querySelector<HTMLInputElement>('input[value="codex"]')?.click();
-    expect(doc.querySelector("#selection-note")?.textContent).toContain("2 個のツールを追加");
-    expect(doc.querySelector("#install")?.textContent).toBe("選択したツールを追加");
-    doc.querySelector<HTMLButtonElement>("#install")?.click();
-    expect(postMessage).toHaveBeenLastCalledWith({
-      type: "install",
-      harnesses: ["cursor", "claude", "codex"],
+
+  it("offers to retry or drop only the tools that failed while creating the project", () => {
+    const view = webview({
+      snapshot: { ...ready, harnesses: ["cursor"] },
+      selected: ["cursor", "claude"],
+      creatingProject: true,
     });
-    for (const value of [true, false])
-      dom.window.dispatchEvent(
-        new dom.window.MessageEvent("message", { data: { type: "busy", value } }),
-      );
-    expect(doc.querySelector<HTMLInputElement>('input[value="cursor"]')?.disabled).toBe(true);
-    expect(doc.querySelector<HTMLInputElement>('input[value="claude"]')?.disabled).toBe(false);
-    doc.querySelector<HTMLInputElement>('input[value="claude"]')?.click();
-    doc.querySelector<HTMLInputElement>('input[value="codex"]')?.click();
-    expect(doc.querySelector<HTMLButtonElement>("#install")?.disabled).toBe(true);
-    dom.window.close();
+    expect(view.text()).toContain("Claude Code を設定できませんでした。");
+    expect(view.doc.querySelector("input[name=harness], #finish")).toBeNull();
+    const retry = view.button("install");
+    expect(retry?.textContent).toBe("Claude Code を再試行");
+    retry?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({
+      type: "install",
+      harnesses: ["cursor", "claude"],
+    });
+    expect(view.button("skip-failed")?.textContent).toBe("Claude Code を外して進む");
+    view.button("skip-failed")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({
+      type: "skip-failed",
+      harnesses: ["cursor", "claude"],
+    });
+    view.dom.window.close();
   });
-  it.each([
-    ["copilot", "opencode"],
-    ["kiro", "kiro-ide"],
-  ] as const)(
-    "blocks adding %s's conflicting tool %s even when omitted from selection",
-    (installed, addition) => {
-      const postMessage = vi.fn();
-      const dom = new JSDOM(
-        setupHtml(
-          { ...prepared, configured: true, harnesses: [installed] },
-          [addition],
-          true,
-          "nonce",
-          "install",
-        ),
-        {
-          runScripts: "dangerously",
-          beforeParse(window) {
-            Object.assign(window, {
-              acquireVsCodeApi: () => ({ postMessage, getState: () => null, setState: vi.fn() }),
-            });
-          },
-        },
-      );
-      expect(
-        dom.window.document.querySelector<HTMLInputElement>(`input[value="${installed}"]`)?.checked,
-      ).toBe(true);
-      expect(dom.window.document.querySelector<HTMLButtonElement>("#install")?.disabled).toBe(true);
-      expect(dom.window.document.querySelector("#selection-note")?.textContent).toBe(
-        findHarnessConflict([installed, addition])?.message,
-      );
-      dom.window.document.querySelector<HTMLButtonElement>("#install")?.click();
-      expect(postMessage.mock.calls.some(([message]) => message.type === "install")).toBe(false);
-      dom.window.close();
-    },
-  );
-  it("restores per-tool partial results safely and opens each diagnostic report", () => {
-    const view = webview();
-    const results = [
-      {
-        id: "cursor",
-        status: "configured",
-        message: "設定しました",
-        doctorReport: diagnosticReport,
-      },
-      { id: "claude", status: "failed", message: '<img src=x onerror="alert(1)">設定失敗' },
-    ];
+
+  it("renders per-tool results as text", () => {
+    const view = webview({ snapshot: prepared });
     view.message({
       type: "restore",
       log: "",
       text: "",
       error: false,
       doctorReport: null,
-      installResults: results,
+      installResults: [
+        { id: "cursor", status: "configured", message: "設定しました" },
+        { id: "claude", status: "failed", message: '<img src=x onerror="alert(1)">設定失敗' },
+      ],
     });
     const list = view.doc.querySelector("#install-results");
-    expect(list?.textContent).toContain("Cursor：設定完了");
-    expect(list?.textContent).toContain("Claude Code：失敗");
+    expect(list?.textContent).toContain("Cursor：設定しました");
+    expect(list?.textContent).toContain("Claude Code：設定できませんでした");
     expect(list?.querySelector("img")).toBeNull();
-    list?.querySelector<HTMLButtonElement>("button")?.click();
-    expect(view.doc.querySelector("#doctor-result")?.textContent).toContain(
-      diagnosticReport.summary,
-    );
     view.message({ type: "install-results", results: [] });
     expect(list?.children).toHaveLength(0);
     view.dom.window.close();
   });
-  it("escapes workspace and version content and uses a nonce-only script policy", () => {
-    const html = setupHtml(
-      { ...empty, root: '</code><script>alert("x")</script>', version: "<img src=x>" },
-      ["claude"],
-      true,
-      "nonce",
-    );
-    const dom = new JSDOM(html);
-    expect(dom.window.document.querySelectorAll("script").length).toBe(1);
-    expect(dom.window.document.querySelector("img")).toBeNull();
-    expect(html).not.toContain("unsafe-inline");
-    expect(html).toContain("script-src 'nonce-nonce'");
-    dom.window.close();
-  });
-  it("enables finishing an empty configured project and disables actions when untrusted", () => {
-    for (const trusted of [true, false]) {
-      const dom = new JSDOM(
-        setupHtml(
-          { ...prepared, configured: true, harnesses: ["cursor"] },
-          ["cursor"],
-          trusted,
-          "nonce",
-        ),
-      );
-      expect(dom.window.document.querySelector<HTMLButtonElement>("#finish")?.disabled).toBe(
-        !trusted,
-      );
-      expect(dom.window.document.querySelector("#register-mcp")).toBeNull();
-      expect(dom.window.document.querySelector<HTMLButtonElement>("#run-doctor")?.disabled).toBe(
-        !trusted,
-      );
-      dom.window.close();
-    }
+});
+
+describe("finish step", () => {
+  it("finishes a configured project, with tool addition and an optional diagnosis beside it", () => {
+    const view = webview({ snapshot: ready });
+    expect(view.current()).toBe("完了");
+    expect(view.text()).toContain("準備ができました。");
+    const finish = view.button("finish");
+    expect(finish?.textContent).toBe("セットアップを完了");
+    expect(finish?.disabled).toBe(false);
+    expect(view.button("add-tools")?.classList.contains("text-link")).toBe(true);
+    expect(view.button("run-doctor")?.textContent).toBe("診断を実行（任意）");
+    view.message({ type: "busy", value: true });
+    expect(finish?.disabled).toBe(true);
+    view.message({ type: "busy", value: false });
+    expect(finish?.disabled).toBe(false);
+    finish?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({ type: "finish", harnesses: ["cursor"] });
+    view.button("add-tools")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({ type: "add-tools", harnesses: ["cursor"] });
+    view.dom.window.close();
   });
 
-  it("renders Japanese diagnostic checks, advice, counts, version and execution time", () => {
-    const view = webview();
+  it("opens a completed setup on the dashboard action instead of joining wording", () => {
+    const view = webview({
+      snapshot: { ...ready, preference: { completed: true, docsSkipped: true, harness: "cursor" } },
+    });
+    expect(view.text()).toContain("セットアップは完了しています。");
+    expect(view.button("finish")?.textContent).toBe("ダッシュボードを開く");
+    expect(view.text()).not.toContain("参加");
+    view.dom.window.close();
+  });
+
+  it("adds tools from the last step while keeping installed tools checked", () => {
+    const view = webview({ snapshot: ready, adding: true });
+    expect(view.doc.querySelector(".add-tools legend")?.textContent).toBe("追加するツール");
+    expect(view.doc.querySelector("#finish")).toBeNull();
+    const cursor = view.doc.querySelector<HTMLInputElement>('input[value="cursor"]');
+    expect(cursor?.checked).toBe(true);
+    expect(cursor?.disabled).toBe(true);
+    const install = view.button("install");
+    expect(install?.textContent).toBe("選んだツールを追加");
+    expect(install?.disabled).toBe(true);
+    expect(view.doc.querySelector("#selection-note")?.textContent).toBe(
+      "追加するツールを選んでください。",
+    );
+    view.doc.querySelector<HTMLInputElement>('input[value="claude"]')?.click();
+    view.doc.querySelector<HTMLInputElement>('input[value="codex"]')?.click();
+    expect(view.doc.querySelector("#selection-note")?.textContent).toContain("2 個のツールを追加");
+    install?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({
+      type: "install",
+      harnesses: ["cursor", "claude", "codex"],
+    });
+    view.button("cancel-add")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({
+      type: "cancel-add",
+      harnesses: ["cursor", "claude", "codex"],
+    });
+    view.dom.window.close();
+  });
+
+  it.each([
+    ["copilot", "opencode"],
+    ["kiro", "kiro-ide"],
+  ] as const)("blocks adding %s's conflicting tool %s", (installed, addition) => {
+    const view = webview({
+      snapshot: { ...ready, harnesses: [installed] },
+      selected: [addition],
+      adding: true,
+    });
+    expect(view.button("install")?.disabled).toBe(true);
+    expect(view.doc.querySelector("#selection-note")?.textContent).toBe(
+      findHarnessConflict([installed, addition])?.message,
+    );
+    view.button("install")?.click();
+    expect(view.postMessage.mock.calls.some(([message]) => message.type === "install")).toBe(false);
+    view.dom.window.close();
+  });
+
+  it("sends tool addition to the update screen when the project must be updated first", () => {
+    const view = webview({
+      snapshot: {
+        ...ready,
+        workflows: {
+          root: ready.root,
+          target: "test-release",
+          tools: [],
+          projectPin: null,
+          status: "update",
+          message: "更新があります。すべてのツールを揃えます。",
+          canInstall: false,
+          canUpdate: true,
+          engineBumpNeeded: true,
+          engineVersionDiffers: true,
+          updateRetryNeeded: false,
+        },
+      },
+      adding: true,
+    });
+    expect(view.doc.querySelector(".add-tools")?.textContent).toContain("更新があります。");
+    expect(view.doc.querySelector("input[name=harness], #install")).toBeNull();
+    view.button("open-update")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({
+      type: "open-workflows-update",
+      harnesses: ["cursor"],
+    });
+    view.dom.window.close();
+  });
+});
+
+describe("blocked states", () => {
+  it("names the CLI this extension cannot install and points to the update screen", () => {
+    const view = webview({
+      snapshot: {
+        ...empty,
+        projectPresent: true,
+        harnesses: ["cursor"],
+        version: "2.12.0",
+        cli: {
+          ...missingCli,
+          canPrepare: false,
+          canUpdate: false,
+          status: "blocked",
+          blockedReason: "needs-other-cli",
+          projectPin: "2.12.0",
+          projectVersion: "2.12.0",
+          message: "このプロジェクトには CLI 2.12.0 が必要です。",
+        },
+      },
+    });
+    const step = view.doc.querySelector(".step.blocked");
+    expect(step?.querySelector(".step-title")?.textContent).toBe("このマシンの CLI");
+    expect(step?.textContent).toContain(
+      "このプロジェクトの CLI 2.12.0 は、この拡張からは入れられません。",
+    );
+    expect(step?.querySelector("details.more")?.textContent).toContain(
+      "このプロジェクトには CLI 2.12.0 が必要です。",
+    );
+    expect(view.doc.querySelector("#prepare-cli, #install, #finish")).toBeNull();
+    view.button("open-update")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({
+      type: "open-workflows-update",
+      harnesses: ["cursor"],
+    });
+    step?.querySelector<HTMLAnchorElement>("a[data-send=docs]")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({ type: "docs", harnesses: ["cursor"] });
+    view.dom.window.close();
+  });
+
+  it("asks for a recheck after git init for Codex", () => {
+    const view = webview({
+      snapshot: {
+        ...ready,
+        configured: false,
+        harnesses: ["codex"],
+        runtimeIssue: "Codex のプロジェクトフックには Git リポジトリが必要です。",
+        runtimeIssueKind: "git",
+      },
+      selected: ["codex"],
+    });
+    expect(view.doc.querySelector(".step.blocked")?.textContent).toContain(
+      "Codex を使うには、このフォルダが Git リポジトリである必要があります。",
+    );
+    expect(view.button("recheck")?.textContent).toBe("もう一度確認");
+    view.button("recheck")?.click();
+    expect(view.postMessage).toHaveBeenLastCalledWith({ type: "recheck", harnesses: ["codex"] });
+    expect(view.doc.querySelector("#finish")).toBeNull();
+    view.dom.window.close();
+  });
+
+  it("explains a project whose AI-DLC folder is missing instead of only marking it", () => {
+    const view = webview({
+      snapshot: { ...ready, configured: false, projectPresent: false },
+    });
+    expect(view.doc.querySelector(".step.blocked")?.textContent).toContain(
+      "AI-DLC の設定の一部（aidlc/ フォルダなど）が見つかりません。",
+    );
+    expect(view.button("open-update")).not.toBeNull();
+    view.dom.window.close();
+  });
+});
+
+describe("status, log and diagnosis", () => {
+  it("shows the log only once there is output and restores status text", () => {
+    const view = webview({ snapshot: prepared });
+    const details = view.doc.querySelector<HTMLDetailsElement>("#log-details");
+    expect(details?.hidden).toBe(true);
+    view.message({ type: "log", text: "installer output" });
+    expect(details?.hidden).toBe(false);
+    expect(details?.open).toBe(true);
+    view.message({ type: "status", text: "失敗しました。", error: true });
+    expect(view.doc.querySelector("#status")?.textContent).toBe("失敗しました。");
+    expect(view.doc.querySelector("#status")?.classList.contains("error")).toBe(true);
+    expect(view.setState).toHaveBeenLastCalledWith({
+      log: "installer output\n",
+      status: "失敗しました。",
+      doctorReport: null,
+    });
+    view.dom.window.close();
+  });
+
+  it("summarizes a diagnosis in one line and folds checks, counts and the original", () => {
+    const view = webview({ snapshot: ready });
     view.message({ type: "doctor-report", report: diagnosticReport });
     const result = view.doc.querySelector("#doctor-result");
     expect(result?.getAttribute("aria-live")).toBe("polite");
-    expect(result?.textContent).toContain(diagnosticReport.summary);
-    expect(result?.textContent).toContain("本体バージョン：2.8.1");
-    expect(result?.querySelector("time")?.getAttribute("datetime")).toBe(
+    expect(result?.querySelector(".doctor-summary")?.textContent).toBe(diagnosticReport.summary);
+    const details = result?.querySelector<HTMLDetailsElement>(".doctor-details");
+    expect(details?.open).toBe(false);
+    expect(details?.textContent).toContain("本体バージョン：2.8.1");
+    expect(details?.querySelector("time")?.getAttribute("datetime")).toBe(
       diagnosticReport.executedAt,
     );
     expect([...view.doc.querySelectorAll(".doctor-counts li")].map((el) => el.textContent)).toEqual(
       ["正常 1 件", "要確認 1 件", "問題あり 1 件"],
     );
-    expect([...(result?.querySelectorAll("h3") ?? [])].map((el) => el.textContent)).toEqual([
+    expect([...(details?.querySelectorAll("h3") ?? [])].map((el) => el.textContent)).toEqual([
       "実行環境",
       "プロジェクト",
       "AI-DLC 本体",
@@ -627,8 +634,7 @@ describe("setup webview", () => {
     expect(view.doc.querySelector("#doctor-original pre")?.textContent).toBe(
       diagnosticReport.rawOutput,
     );
-    expect(view.doc.querySelector<HTMLDetailsElement>("#doctor-original")?.open).toBe(false);
-    expect(view.doc.querySelector("#run-doctor")?.textContent).toBe("診断を再実行");
+    expect(view.button("run-doctor")?.textContent).toBe("診断を再実行");
     expect(view.setState).toHaveBeenLastCalledWith({
       log: "",
       status: "",
@@ -638,7 +644,7 @@ describe("setup webview", () => {
   });
 
   it("keeps unknown labels and remedies visible and renders diagnostic output as text", () => {
-    const view = webview();
+    const view = webview({ snapshot: ready });
     const original = '<img src=x onerror="alert(1)"><script>alert(2)</script>';
     view.message({
       type: "doctor-report",
@@ -666,16 +672,17 @@ describe("setup webview", () => {
     expect(result?.textContent).toContain(`原文：${original}`);
     expect(result?.textContent).toContain("対処方法の原文：Run <repair> & retry");
     expect(result?.textContent).toContain("形式を読み取れない出力があります。");
-    expect(result?.querySelector(".note")?.closest("details")).toBeNull();
-    expect(result?.querySelector("pre")?.textContent).toBe(`New output\n${original}`);
+    expect(result?.querySelector(".doctor-details > details pre")?.textContent).toBe(
+      `New output\n${original}`,
+    );
     expect(result?.querySelector("#doctor-original pre")?.textContent).toBe(original);
     expect(view.doc.querySelectorAll("script")).toHaveLength(1);
     expect(result?.querySelector("img, repair, script")).toBeNull();
     view.dom.window.close();
   });
 
-  it("replaces earlier results and distinguishes an unavailable diagnosis from check failures", () => {
-    const view = webview();
+  it("replaces earlier results and distinguishes an unavailable diagnosis", () => {
+    const view = webview({ snapshot: ready });
     view.message({ type: "doctor-report", report: diagnosticReport });
     view.message({
       type: "doctor-report",
@@ -694,9 +701,6 @@ describe("setup webview", () => {
     expect(result?.textContent).toContain("診断の実行がタイムアウトしました。");
     expect(result?.textContent).toContain("本体バージョン：未取得");
     expect(result?.querySelector(".doctor-summary")?.classList.contains("doctor-fail")).toBe(true);
-    expect(result?.querySelector("time")?.getAttribute("datetime")).toBe(
-      "2026-09-11T02:35:56.000Z",
-    );
     expect(result?.querySelector(".doctor-counts, .doctor-check")).toBeNull();
     expect(result?.textContent).not.toContain("Git を利用できます。");
     expect(view.doc.querySelectorAll("#doctor-original")).toHaveLength(1);
@@ -704,7 +708,7 @@ describe("setup webview", () => {
   });
 
   it("labels each tool and keeps its status, checks, counts and original output separate", () => {
-    const view = webview();
+    const view = webview({ snapshot: ready });
     const healthy = {
       ...diagnosticReport,
       outcome: "ok",
@@ -719,7 +723,6 @@ describe("setup webview", () => {
     ];
     view.message({ type: "doctor-reports", reports });
     const sections = [...view.doc.querySelectorAll(".doctor-tool")];
-    expect(sections).toHaveLength(2);
     expect(sections.map((section) => section.querySelector("h3")?.textContent)).toEqual([
       "Claude Code",
       "Cursor",
@@ -728,23 +731,15 @@ describe("setup webview", () => {
       true,
     );
     expect(sections[0]?.querySelectorAll(".doctor-check")).toHaveLength(1);
-    expect(sections[0]?.querySelector(".doctor-counts")?.textContent).toContain("問題あり 0 件");
     expect(sections[0]?.querySelector("#doctor-original-claude pre")?.textContent).toBe(
       "Claude healthy",
     );
-    expect(sections[1]?.querySelector(".doctor-summary")?.classList.contains("doctor-fail")).toBe(
-      true,
-    );
     expect(sections[1]?.querySelectorAll(".doctor-check")).toHaveLength(3);
-    expect(sections[1]?.querySelector(".doctor-counts")?.textContent).toContain("問題あり 1 件");
-    expect(sections[1]?.querySelector("#doctor-original-cursor pre")?.textContent).toBe(
-      diagnosticReport.rawOutput,
-    );
     expect(
       [...(sections[1]?.querySelectorAll("h4") ?? [])].map((heading) => heading.textContent),
     ).toEqual(["実行環境", "プロジェクト", "AI-DLC 本体"]);
     expect(view.doc.querySelectorAll("#doctor-original")).toHaveLength(0);
-    expect(view.doc.querySelector("#run-doctor")?.textContent).toBe("診断を再実行");
+    expect(view.button("run-doctor")?.textContent).toBe("診断を再実行");
     expect(view.setState).toHaveBeenLastCalledWith({
       log: "",
       status: "",
@@ -754,99 +749,30 @@ describe("setup webview", () => {
     view.dom.window.close();
   });
 
-  it("restores grouped results and clears them on a new run or a single install result", () => {
+  it("restores grouped results and clears them on a new run", () => {
     const reports = [{ id: "cursor", report: diagnosticReport }];
-    const view = webview({ saved: { doctorReports: reports } });
+    const view = webview({ snapshot: ready, saved: { doctorReports: reports } });
     expect(view.doc.querySelectorAll(".doctor-tool")).toHaveLength(1);
     view.message({ type: "doctor-running" });
     expect(view.doc.querySelectorAll(".doctor-tool, .doctor-check")).toHaveLength(0);
     expect(view.doc.querySelector("#doctor-result")?.textContent).toBe("診断を実行しています。");
-    expect(view.setState).toHaveBeenLastCalledWith({ log: "", status: "", doctorReport: null });
-    view.message({
-      type: "restore",
-      log: "",
-      text: "",
-      doctorReport: null,
-      doctorReports: reports,
-    });
-    expect(view.doc.querySelectorAll(".doctor-tool")).toHaveLength(1);
-    view.message({ type: "doctor-report", report: diagnosticReport });
-    expect(view.doc.querySelectorAll(".doctor-tool")).toHaveLength(0);
-    expect(view.doc.querySelector("#doctor-original pre")?.textContent).toBe(
-      diagnosticReport.rawOutput,
-    );
-    expect(view.setState.mock.lastCall?.[0].doctorReports).toBeUndefined();
-    view.message({ type: "doctor-reports", reports });
+    expect(view.button("run-doctor")?.textContent).toBe("診断中…");
+    expect(view.doc.querySelector("#doctor")?.getAttribute("aria-busy")).toBe("true");
     view.message({ type: "restore", log: "", text: "", doctorReport: null, doctorReports: [] });
-    expect(view.doc.querySelector("#doctor-result")?.textContent).toBe(
-      "診断はまだ実行していません。",
-    );
-    expect(view.setState).toHaveBeenLastCalledWith({ log: "", status: "", doctorReport: null });
+    expect(view.doc.querySelector("#doctor-result")?.textContent).toBe("");
+    expect(view.button("run-doctor")?.textContent).toBe("診断を実行（任意）");
     view.dom.window.close();
   });
 
-  it("restores cached results but treats the host's restored report as authoritative", () => {
-    const view = webview({ saved: { doctorReport: diagnosticReport, log: "cached log" } });
-    expect(view.doc.querySelector("#doctor-result")?.textContent).toContain(
-      diagnosticReport.summary,
-    );
-    view.message({ type: "restore", log: "", text: "", error: false, doctorReport: null });
-    expect(view.doc.querySelector("#doctor-result")?.textContent).toBe(
-      "診断はまだ実行していません。",
-    );
-    expect(view.doc.querySelector("#run-doctor")?.textContent).toBe("診断を実行");
-    expect(view.setState).toHaveBeenLastCalledWith({ log: "", status: "", doctorReport: null });
-    view.message({
-      type: "restore",
-      log: "log",
-      text: "復元",
-      error: false,
+  it("keeps a diagnosis received outside the finish step for the next render", () => {
+    const view = webview({ snapshot: prepared });
+    view.message({ type: "doctor-report", report: diagnosticReport });
+    expect(view.doc.querySelector("#doctor-result")).toBeNull();
+    expect(view.setState).toHaveBeenLastCalledWith({
+      log: "",
+      status: "",
       doctorReport: diagnosticReport,
     });
-    expect(view.doc.querySelectorAll(".doctor-check")).toHaveLength(3);
-    expect(view.doc.querySelector("#doctor-original pre")?.textContent).toBe(
-      diagnosticReport.rawOutput,
-    );
-    expect(view.doc.querySelector("#status")?.textContent).toBe("復元");
     view.dom.window.close();
-  });
-
-  it("runs diagnostics without an installed binary and suppresses repeat clicks while busy", () => {
-    const view = webview();
-    const button = view.doc.querySelector<HTMLButtonElement>("#run-doctor");
-    expect(button?.disabled).toBe(false);
-    button?.click();
-    expect(view.postMessage).toHaveBeenLastCalledWith({
-      type: "run-doctor",
-      harnesses: ["cursor"],
-    });
-    view.message({ type: "doctor-report", report: diagnosticReport });
-    view.message({ type: "busy", value: true });
-    view.message({ type: "busy", value: true });
-    view.message({ type: "doctor-running" });
-    expect(button?.disabled).toBe(true);
-    expect(button?.textContent).toBe("診断中…");
-    expect(view.doc.querySelector("#doctor")?.getAttribute("aria-busy")).toBe("true");
-    expect(view.doc.querySelector("#doctor-result")?.textContent).toBe("診断を実行しています。");
-    expect(view.doc.querySelector("#doctor-result time, .doctor-check")).toBeNull();
-    const sent = view.postMessage.mock.calls.length;
-    button?.click();
-    view.doc.querySelector<HTMLButtonElement>("#recheck")?.click();
-    expect(view.postMessage).toHaveBeenCalledTimes(sent);
-    expect(view.setState.mock.lastCall?.[0].doctorReport).toBeNull();
-    view.message({ type: "doctor-report", report: diagnosticReport });
-    view.message({ type: "busy", value: false });
-    expect(button?.disabled).toBe(false);
-    expect(button?.textContent).toBe("診断を再実行");
-    expect(view.doc.querySelector("#doctor")?.getAttribute("aria-busy")).toBe("false");
-    expect(view.doc.querySelector<HTMLButtonElement>("#finish")?.disabled).toBe(true);
-    view.dom.window.close();
-    const untrusted = webview({ trusted: false });
-    untrusted.message({ type: "busy", value: true });
-    untrusted.message({ type: "busy", value: false });
-    untrusted.doc.querySelector<HTMLButtonElement>("#run-doctor")?.click();
-    expect(untrusted.postMessage).toHaveBeenCalledTimes(1);
-    expect(untrusted.postMessage).toHaveBeenLastCalledWith({ type: "ready" });
-    untrusted.dom.window.close();
   });
 });

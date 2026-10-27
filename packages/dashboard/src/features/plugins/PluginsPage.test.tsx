@@ -321,7 +321,7 @@ describe("PluginsPanel in the IDE", () => {
             level: "required",
             met: false,
             label: "Claude Code（.claude）で AI-DLC を使っている",
-            detail: "「使うツールを追加」で Claude Code を追加してください。",
+            detail: "セットアップの「ツールを追加」で Claude Code を追加してください。",
             action: "open-workflows-install",
           },
         ],

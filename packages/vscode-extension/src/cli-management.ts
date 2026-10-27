@@ -52,9 +52,19 @@ export type CliManagementState = {
    */
   engineNewer: boolean;
   status: "ready" | "missing" | "blocked";
+  /** Why a blocked CLI cannot be prepared from setup; absent when it can. */
+  blockedReason?: CliBlockedReason;
   message: string;
   updateMessage: string;
 };
+
+export type CliBlockedReason =
+  | "pin-unreadable"
+  | "version-unknown"
+  | "version-mismatch"
+  | "needs-other-cli"
+  | "engine-newer"
+  | "default-newer";
 
 export const CLI_UPDATE_CONFIRM_ACTION = "更新する";
 export const CLI_PIN_CONFIRM_ACTION = "固定する";
@@ -225,17 +235,20 @@ export function inspectCliManagement(
   if (inputs.pin.exists && inputs.pin.version === null)
     return {
       ...state,
+      blockedReason: "pin-unreadable",
       message: ".aidlc-version を読めません。ファイルの内容と権限を確認してください。",
     };
   if (versions.some((version) => version === null || !parseSemver(version)))
     return {
       ...state,
+      blockedReason: "version-unknown",
       message:
         "リポジトリ内のエンジンのバージョンを確認できません。更新画面で設定を確認してください。",
     };
   if (versions.length > 1 || versions.some((version) => version !== requested))
     return {
       ...state,
+      blockedReason: "version-mismatch",
       message:
         "リポジトリ内のバージョンが一致していません。更新画面でエンジンと固定バージョンを確認してください。",
     };
@@ -280,16 +293,19 @@ export function inspectCliManagement(
   if (requested !== SETUP_RELEASE)
     return {
       ...state,
+      blockedReason: "needs-other-cli",
       message: `このプロジェクトには CLI ${requested} が必要です。拡張から導入できるのは検証済みの ${SETUP_RELEASE} です。既存の固定バージョンを変更せず、公式手順で必要なCLIを用意してください。`,
     };
   if (engineNewer)
     return {
       ...state,
+      blockedReason: "engine-newer",
       message: `このマシンの既定CLI ${machine?.version} はプロジェクトの ${SETUP_RELEASE} より新しく、このプロジェクトはバージョンを固定していないため ${machine?.version} で動きます。「このプロジェクトを ${SETUP_RELEASE} に固定」で揃えてください。既定CLIを ${SETUP_RELEASE} に戻すこともできます。`,
     };
   if (!inputs.pin.exists && newer)
     return {
       ...state,
+      blockedReason: "default-newer",
       message:
         "既定CLIがプロジェクトより新しいため、自動では切り替えません。プロジェクトの固定バージョンを確認してください。",
     };

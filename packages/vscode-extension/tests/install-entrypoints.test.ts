@@ -125,6 +125,7 @@ function panelFixture(viewType: string) {
       cleanups.push(callback);
       return { dispose: vi.fn() };
     },
+    onDidChangeViewState: () => ({ dispose: vi.fn() }),
     dispose: () => {
       for (const cleanup of cleanups) cleanup();
     },
@@ -270,14 +271,13 @@ describe.each(["dashboard", "command palette", "onboarding"])(
             entry === "onboarding" ? "aidlc-guide.setup" : "aidlc-guide.installWorkflows",
           )?.();
         }
-        const viewType =
-          entry === "onboarding" ? "aidlcGuide.setup" : "aidlcGuide.workflowsInstall";
+        // Every entry point opens the one setup tab of the folder.
         await vi.waitFor(() =>
-          expect(panels.find((panel) => panel.viewType === viewType)?.webview.html).toContain(
-            "AI-DLC",
-          ),
+          expect(
+            panels.find((panel) => panel.viewType === "aidlcGuide.setup")?.webview.html,
+          ).toContain("AI-DLC"),
         );
-        let panel = panels.find((panel) => panel.viewType === viewType);
+        const panel = panels.find((panel) => panel.viewType === "aidlcGuide.setup");
         if (!panel) throw new Error("installer panel missing");
         await panel.receive({ type: "install", harnesses: selected as HarnessId[] });
         expect(mocks.configure).not.toHaveBeenCalled();
@@ -285,7 +285,7 @@ describe.each(["dashboard", "command palette", "onboarding"])(
           expect.objectContaining({
             type: "status",
             error: true,
-            text: expect.stringContaining("先に「このマシンの CLI を準備する」"),
+            text: expect.stringContaining("先に「このマシンの CLI」の手順で"),
           }),
         );
         await panel.receive({ type: "prepare-cli" });
@@ -307,15 +307,10 @@ describe.each(["dashboard", "command palette", "onboarding"])(
               text: expect.stringContaining("ツールを追加する場合"),
             }),
           );
+          // "Add tools" opens the selection in the same tab instead of another one.
           await panel.receive({ type: "add-tools" });
-          await vi.waitFor(() =>
-            expect(
-              panels.find((candidate) => candidate.viewType === "aidlcGuide.workflowsInstall")
-                ?.webview.html,
-            ).toContain("AI-DLC"),
-          );
-          panel = panels.find((candidate) => candidate.viewType === "aidlcGuide.workflowsInstall");
-          if (!panel) throw new Error("tool-addition panel missing");
+          expect(panel.webview.html).toContain("<legend>追加するツール</legend>");
+          expect(panels).toHaveLength(1);
         }
         // Every entry point uses the service's real selection checks, including stale UI messages.
         await panel.receive({ type: "install", harnesses: selected as HarnessId[] });

@@ -160,9 +160,8 @@ flowchart LR
   vsix["VSIX を<br/>インストール"] --> setup
   subgraph setup["AIDLC Guide: Setup"]
     direction TB
-    s1["CLI をインストール・設定"] --> s2["プロジェクトを設定<br/>（新規プロジェクト）"]
-    s2 --> s3["aidlc doctor で診断"]
-    s3 --> s4["セットアップを完了"]
+    s1["このマシンの CLI<br/>（CLI をインストール）"] --> s2["プロジェクトの設定<br/>（新規プロジェクト）"]
+    s2 --> s3["完了<br/>（診断は任意）"]
   end
   setup --> open["AIDLC Guide: Open"]
   open --> dash["Dashboard"]

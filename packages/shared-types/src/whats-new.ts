@@ -13,6 +13,12 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "setup-three-steps",
+    date: "2026-10-27",
+    title: "セットアップ画面を 3 つの手順に整理しました",
+    body: "「このマシンの CLI」「プロジェクトの設定」「完了」の順に、いまの手順と押すボタンを 1 つだけ示します。この画面で進めないときは、理由と行き先のボタンを表示します。使うツールの追加は、「完了」の手順の「ツールを追加」から行います。",
+  },
+  {
     id: "manual-engine-update",
     date: "2026-10-22",
     title: "aidlc を手動で新しくしたときの案内を改善しました",
