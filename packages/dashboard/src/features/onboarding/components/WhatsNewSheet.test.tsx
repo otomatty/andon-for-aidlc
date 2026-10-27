@@ -1,5 +1,5 @@
 import { type OnboardingRecord, WHATS_NEW } from "@aidlc-guide/shared-types";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -61,6 +61,13 @@ const record = (seenNews: string[]): OnboardingRecord => ({
   dismissedTips: [],
 });
 
+/** The text of every badge in a region (Mantine puts it in an inner label span). */
+function badgeTexts(region: HTMLElement): string[] {
+  return [...region.querySelectorAll('[data-slot="badge"]')].map(
+    (badge) => badge.textContent ?? "",
+  );
+}
+
 describe("更新情報 sheet", () => {
   it("lists new changes first, marked in text, and records them as seen", async () => {
     const posted = webview();
@@ -73,17 +80,17 @@ describe("更新情報 sheet", () => {
     expect(within(sheet).getByText("AIDLC Guide 0.35.0 の新機能と変更点です。")).toBeDefined();
     const fresh = within(sheet).getByRole("region", { name: "新着" });
     expect(within(fresh).getByRole("heading", { name: FIRST.title })).toBeDefined();
-    expect(within(fresh).getByText("新着", { selector: "[data-slot=badge]" })).toBeDefined();
+    expect(badgeTexts(fresh)).toContain("新着");
     const past = within(sheet).getByRole("region", { name: "これまでの更新" });
     expect(within(past).getAllByRole("listitem")).toHaveLength(WHATS_NEW.length - 1);
-    expect(within(past).queryByText("新着", { selector: "[data-slot=badge]" })).toBeNull();
+    expect(badgeTexts(past)).not.toContain("新着");
     expect(posted).toContainEqual({
       type: "onboarding-event",
       event: { kind: "news-seen", ids: [FIRST.id] },
     });
     expect(probe()).toMatchObject({ seen: ALL_IDS.slice(1).concat(FIRST.id) });
     // Seen now, still badged while this sheet stays open.
-    expect(within(fresh).getByText("新着", { selector: "[data-slot=badge]" })).toBeDefined();
+    expect(badgeTexts(fresh)).toContain("新着");
   });
 
   it("opens the changed screen from an entry and closes itself", async () => {

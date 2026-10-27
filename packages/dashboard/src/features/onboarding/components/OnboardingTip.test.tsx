@@ -1,5 +1,5 @@
 import { type OnboardingRecord, WHATS_NEW } from "@aidlc-guide/shared-types";
-import { render, screen } from "@testing-library/react";
+import { render, screen } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";

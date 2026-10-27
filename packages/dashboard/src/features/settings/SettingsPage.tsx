@@ -1,5 +1,7 @@
 import { WORKFLOWS_TARGET_VERSION, type WorkflowsManagementState } from "@aidlc-guide/shared-types";
+import { DownloadIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { IconTile } from "@/components/ui/icon-tile";
 import { inVsCodeWebview, vsCodeApi } from "@/services/vscode-api.ts";
 
 /** 初回の環境構築と、利用開始後の更新・ツール追加を分ける設定ページ。 */
@@ -48,13 +51,16 @@ export function SettingsPage(): ReactNode {
       aria-labelledby="settings-heading"
       data-testid="settings-page"
     >
-      <h1 id="settings-heading" className="text-xl font-medium" ref={heading} tabIndex={-1}>
+      <h1 id="settings-heading" className="text-page-title font-bold" ref={heading} tabIndex={-1}>
         設定
       </h1>
       <section aria-labelledby="settings-setup-title">
-        <Card>
+        <Card size="lg">
           <CardHeader>
-            <CardTitle>
+            <CardTitle className="flex items-center gap-3">
+              <IconTile>
+                <DownloadIcon />
+              </IconTile>
               <h2 id="settings-setup-title">セットアップ</h2>
             </CardTitle>
             <CardDescription>
@@ -79,9 +85,12 @@ export function SettingsPage(): ReactNode {
         </Card>
       </section>
       <section aria-labelledby="settings-workflows-update-title">
-        <Card>
+        <Card size="lg">
           <CardHeader>
-            <CardTitle>
+            <CardTitle className="flex items-center gap-3">
+              <IconTile>
+                <RefreshCwIcon />
+              </IconTile>
               <h2 id="settings-workflows-update-title">更新・修復</h2>
             </CardTitle>
             <CardDescription>
@@ -92,18 +101,35 @@ export function SettingsPage(): ReactNode {
           </CardHeader>
           {inIde ? (
             <CardContent className="flex flex-col gap-3">
-              <p>更新先バージョン：{workflows?.target ?? WORKFLOWS_TARGET_VERSION}</p>
+              <dl className="grid overflow-hidden rounded-md border sm:grid-cols-2">
+                <div className="flex flex-col gap-0.5 px-4 py-3">
+                  <dt className="text-xs font-semibold text-muted-foreground">更新先バージョン</dt>
+                  <dd className="text-base font-bold">
+                    {workflows?.target ?? WORKFLOWS_TARGET_VERSION}
+                  </dd>
+                </div>
+                {workflows ? (
+                  <div className="flex flex-col gap-0.5 border-t px-4 py-3 sm:border-t-0 sm:border-l">
+                    <dt className="text-xs font-semibold text-muted-foreground">
+                      対象プロジェクト
+                    </dt>
+                    <dd className="font-mono text-sm break-all">{workflows.root}</dd>
+                  </div>
+                ) : null}
+              </dl>
               {workflows ? (
-                <>
-                  <p className="break-all">対象プロジェクト：{workflows.root}</p>
-                  <ul aria-label="設定済みツール">
-                    {workflows.tools.map((tool) => (
-                      <li key={tool.id}>
+                <ul
+                  aria-label="設定済みツール"
+                  className="m-0 flex list-none flex-wrap gap-1.5 p-0"
+                >
+                  {workflows.tools.map((tool) => (
+                    <li key={tool.id}>
+                      <Badge variant="secondary">
                         {tool.label}：{tool.version ?? "確認が必要"}
-                      </li>
-                    ))}
-                  </ul>
-                </>
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
               ) : null}
               <p role="status">{error ?? workflows?.message ?? "設定状態を確認しています…"}</p>
               <p>リポジトリの更新は、このプロジェクトに設定済みのすべてのツールが対象です。</p>
@@ -129,9 +155,12 @@ export function SettingsPage(): ReactNode {
         </Card>
       </section>
       <section aria-labelledby="settings-workflows-tools-title">
-        <Card>
+        <Card size="lg">
           <CardHeader>
-            <CardTitle>
+            <CardTitle className="flex items-center gap-3">
+              <IconTile>
+                <PlusIcon />
+              </IconTile>
               <h2 id="settings-workflows-tools-title">ツール追加</h2>
             </CardTitle>
             <CardDescription>

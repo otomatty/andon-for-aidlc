@@ -1,164 +1,174 @@
-"use client";
-
-import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { cva, type VariantProps } from "class-variance-authority";
-import { XIcon } from "lucide-react";
-import type * as React from "react";
-import { Button } from "@/components/ui/button";
+import { CloseButton, Drawer, Modal } from "@mantine/core";
+import { useUncontrolled } from "@mantine/hooks";
+import { createContext, useContext, type ComponentPropsWithRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { Slot, type SlotProps } from "./slot.tsx";
 
-function Dialog({ ...props }: DialogPrimitive.Root.Props) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
+type DialogState = { open: boolean; setOpen: (open: boolean) => void };
+
+const DialogContext = createContext<DialogState | null>(null);
+/** Whether the open popup is a Modal or a right-hand Drawer, so the title uses the matching part. */
+const DialogKindContext = createContext<"modal" | "drawer">("modal");
+
+function useDialog(): DialogState {
+  const state = useContext(DialogContext);
+  if (state === null) throw new Error("Dialog parts must be inside <Dialog>.");
+  return state;
 }
 
-const dialogTriggerVariants = cva("", {
-  variants: {
-    variant: {
-      default: "",
-      screenshot:
-        "group relative block w-full cursor-zoom-in overflow-hidden rounded-lg border bg-muted text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-    },
-  },
-  defaultVariants: { variant: "default" },
-});
+/**
+ * Open state shared by the trigger, the popup and its close buttons; Mantine's
+ * Modal (or Drawer, for `size="drawer"`) draws the popup.
+ */
+function Dialog({
+  open,
+  defaultOpen = false,
+  onOpenChange,
+  children,
+}: {
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children?: ReactNode;
+}) {
+  const [value, setOpen] = useUncontrolled({
+    value: open,
+    defaultValue: defaultOpen,
+    finalValue: false,
+    onChange: onOpenChange,
+  });
+  return (
+    <DialogContext.Provider value={{ open: value, setOpen }}>{children}</DialogContext.Provider>
+  );
+}
+
+const TRIGGER_VARIANTS = {
+  default: "",
+  screenshot:
+    "group relative block w-full cursor-zoom-in overflow-hidden rounded-lg border bg-muted text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+} as const;
 
 function DialogTrigger({
   className,
-  variant,
+  variant = "default",
   ...props
-}: DialogPrimitive.Trigger.Props & VariantProps<typeof dialogTriggerVariants>) {
+}: SlotProps & { className?: string; variant?: keyof typeof TRIGGER_VARIANTS }) {
+  const { open, setOpen } = useDialog();
+  const look = TRIGGER_VARIANTS[variant];
   return (
-    <DialogPrimitive.Trigger
+    <Slot
       data-slot="dialog-trigger"
-      className={
-        typeof className === "function"
-          ? (state) => cn(dialogTriggerVariants({ variant }), className(state))
-          : cn(dialogTriggerVariants({ variant }), className)
-      }
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      className={cn(look, className)}
+      onClick={() => setOpen(true)}
       {...props}
     />
   );
 }
 
-function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
+function DialogClose(props: SlotProps) {
+  const { setOpen } = useDialog();
+  return <Slot data-slot="dialog-close" onClick={() => setOpen(false)} {...props} />;
 }
 
-function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
-}
+/** Centered sizes as Mantine's `--modal-size`; the popup scrolls when taller than the viewport. */
+const MODAL_SIZES = { default: "sm", scroll: "sm", lg: "32rem", xl: "48rem" } as const;
 
-function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) {
-  return (
-    <DialogPrimitive.Backdrop
-      data-slot="dialog-overlay"
-      className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+const DRAWER_CLASSES =
+  "relative flex flex-col overflow-hidden **:data-[slot=dialog-header]:shrink-0 **:data-[slot=dialog-header]:border-b **:data-[slot=dialog-header]:p-4 **:data-[slot=dialog-header]:pr-12";
 
-const dialogContentVariants = cva(
-  "fixed z-50 grid w-full max-w-[calc(100%-2rem)] bg-popover text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-  {
-    variants: {
-      size: {
-        default:
-          "top-1/2 left-1/2 gap-4 rounded-xl p-4 -translate-x-1/2 -translate-y-1/2 sm:max-w-sm",
-        scroll:
-          "top-1/2 left-1/2 max-h-[calc(100dvh-2rem)] gap-4 overflow-y-auto rounded-xl p-4 -translate-x-1/2 -translate-y-1/2 sm:max-w-sm",
-        lg: "top-1/2 left-1/2 max-h-[90dvh] gap-4 overflow-y-auto rounded-xl p-4 -translate-x-1/2 -translate-y-1/2 sm:max-w-lg",
-        xl: "top-1/2 left-1/2 max-h-[85dvh] gap-4 overflow-y-auto rounded-xl p-4 -translate-x-1/2 -translate-y-1/2 sm:max-w-3xl",
-        drawer:
-          "top-0 right-0 bottom-0 left-auto flex h-dvh max-h-dvh w-full max-w-full translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none p-0 min-[760px]:w-[42rem] sm:max-w-full **:data-[slot=dialog-header]:shrink-0 **:data-[slot=dialog-header]:border-b **:data-[slot=dialog-header]:p-4 **:data-[slot=dialog-header]:pr-12",
-      },
-    },
-    defaultVariants: {
-      size: "default",
-    },
-  },
-);
-
+// Mantine puts a Modal or Drawer content's `className` on its fixed wrapper as
+// well, so the popup's own classes go through `classNames.content`.
 function DialogContent({
   className,
   children,
   showCloseButton = true,
   size = "default",
   ...props
-}: DialogPrimitive.Popup.Props &
-  VariantProps<typeof dialogContentVariants> & {
-    showCloseButton?: boolean;
-  }) {
+}: Omit<ComponentPropsWithRef<"div">, "color"> & {
+  showCloseButton?: boolean;
+  size?: keyof typeof MODAL_SIZES | "drawer";
+}) {
+  const { open, setOpen } = useDialog();
+  const onClose = () => setOpen(false);
+  const close = showCloseButton ? (
+    <CloseButton
+      data-slot="dialog-close"
+      aria-label="閉じる"
+      className="absolute top-2 right-2"
+      onClick={onClose}
+    />
+  ) : null;
+
+  if (size === "drawer") {
+    return (
+      <Drawer.Root opened={open} onClose={onClose} position="right" size="min(100%, 42rem)">
+        <Drawer.Overlay backgroundOpacity={0.4} />
+        <Drawer.Content
+          data-slot="dialog-content"
+          data-size={size}
+          classNames={{ content: cn(DRAWER_CLASSES, className) }}
+          {...props}
+        >
+          <DialogKindContext.Provider value="drawer">{children}</DialogKindContext.Provider>
+          {close}
+        </Drawer.Content>
+      </Drawer.Root>
+    );
+  }
+
   return (
-    <DialogPortal>
-      <DialogOverlay />
-      <DialogPrimitive.Popup
+    <Modal.Root opened={open} onClose={onClose} centered radius="md" size={MODAL_SIZES[size]}>
+      <Modal.Overlay backgroundOpacity={0.4} />
+      <Modal.Content
         data-slot="dialog-content"
-        className={cn(dialogContentVariants({ size }), className)}
+        data-size={size}
+        classNames={{ content: className }}
         {...props}
       >
-        {children}
-        {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            render={<Button variant="ghost" className="absolute top-2 right-2" size="icon-sm" />}
-          >
-            <XIcon />
-            <span className="sr-only">閉じる</span>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Popup>
-    </DialogPortal>
+        <Modal.Body className="relative grid gap-4 text-sm">
+          {children}
+          {close}
+        </Modal.Body>
+      </Modal.Content>
+    </Modal.Root>
   );
 }
 
-function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+function DialogHeader({ className, ...props }: ComponentPropsWithRef<"div">) {
   return (
     <div data-slot="dialog-header" className={cn("flex flex-col gap-2", className)} {...props} />
   );
 }
 
-function DialogFooter({
-  className,
-  showCloseButton = false,
-  children,
-  ...props
-}: React.ComponentProps<"div"> & {
-  showCloseButton?: boolean;
-}) {
+function DialogFooter({ className, ...props }: ComponentPropsWithRef<"div">) {
   return (
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        "-mx-4 -mb-4 flex flex-col-reverse gap-2 border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
         className,
       )}
-      {...props}
-    >
-      {children}
-      {showCloseButton && (
-        <DialogPrimitive.Close render={<Button variant="outline" />}>閉じる</DialogPrimitive.Close>
-      )}
-    </div>
-  );
-}
-
-function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
-  return (
-    <DialogPrimitive.Title
-      data-slot="dialog-title"
-      className={cn("font-heading text-base leading-none font-medium", className)}
       {...props}
     />
   );
 }
 
-function DialogDescription({ className, ...props }: DialogPrimitive.Description.Props) {
+function DialogTitle({ className, ...props }: Omit<ComponentPropsWithRef<"h2">, "color">) {
+  const Title = useContext(DialogKindContext) === "drawer" ? Drawer.Title : Modal.Title;
   return (
-    <DialogPrimitive.Description
+    <Title
+      data-slot="dialog-title"
+      className={cn("text-base leading-none font-semibold", className)}
+      {...props}
+    />
+  );
+}
+
+function DialogDescription({ className, ...props }: ComponentPropsWithRef<"p">) {
+  return (
+    <p
       data-slot="dialog-description"
       className={cn(
         "text-sm text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
@@ -176,8 +186,6 @@ export {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogOverlay,
-  DialogPortal,
   DialogTitle,
   DialogTrigger,
 };

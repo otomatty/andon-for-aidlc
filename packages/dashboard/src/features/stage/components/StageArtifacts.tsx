@@ -47,13 +47,14 @@ export function StageArtifacts({
     <div className="mt-5 border-t pt-4" data-testid="stage-artifacts">
       {cells.length > 1 ? (
         <Tabs
+          variant="segmented"
           value={unit}
           onValueChange={(value) => {
             if (typeof value === "string") onUnitChange(value);
           }}
           className="mb-3"
         >
-          <TabsList aria-label="ユニット" data-testid="unit-tabs" size="mono">
+          <TabsList aria-label="ユニット" data-testid="unit-tabs">
             {cells.map((each) => (
               <TabsTrigger key={each.unit} value={each.unit}>
                 {each.unit}

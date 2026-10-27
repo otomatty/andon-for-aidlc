@@ -34,6 +34,7 @@ export const useCallback = React.useCallback;
 export const useContext = React.useContext;
 export const useDebugValue = React.useDebugValue;
 export const useDeferredValue = React.useDeferredValue;
+export const useEffectEvent = React.useEffectEvent;
 export const useEffect = React.useEffect;
 export const useId = React.useId;
 export const useImperativeHandle = React.useImperativeHandle;

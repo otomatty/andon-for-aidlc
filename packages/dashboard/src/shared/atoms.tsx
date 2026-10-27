@@ -13,7 +13,7 @@ import {
 import { STATUS_PRESENTATION } from "@/shared/ui/StatusChip.tsx";
 
 /**
- * Cross-cutting feedback pieces built on stock shadcn/ui primitives.
+ * Cross-cutting feedback pieces built on the shared/ui parts.
  */
 
 /** R-UI-2: degradation always shows up as an element. */

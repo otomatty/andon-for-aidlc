@@ -6,7 +6,7 @@ import type {
   UnitWalk,
   WorkflowModel,
 } from "@aidlc-guide/shared-types";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { StageRail } from "@/features/home/components/StageRail.tsx";

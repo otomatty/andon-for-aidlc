@@ -4,6 +4,38 @@ import { createBrowserTransport, setTransport } from "@/services/transport/index
 
 setTransport(createBrowserTransport());
 
+/*
+ * jsdom lacks what Mantine's components measure with (docs: guides/vitest).
+ * Each stub is installed only when jsdom does not already provide it.
+ */
+const { getComputedStyle } = window;
+window.getComputedStyle = (element: Element) => getComputedStyle(element);
+// On Element, not HTMLElement: tests that spy on Element.prototype must still win.
+Element.prototype.scrollIntoView ??= () => {};
+if (typeof window.matchMedia !== "function") {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: (query: string): MediaQueryList =>
+      ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }) as MediaQueryList,
+  });
+}
+if (typeof window.ResizeObserver !== "function") {
+  window.ResizeObserver = class {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  };
+}
+
 // Vitest runs without globals, so RTL's own auto-cleanup never registers.
 afterEach(cleanup);
 

@@ -68,15 +68,12 @@ export function OnboardingTip({ area }: { area: OnboardingArea }): ReactNode {
       role="note"
       aria-label={isNew ? "新機能のお知らせ" : "この画面のヒント"}
       data-testid={`onboarding-tip-${area}`}
-      className="flex items-start gap-3 rounded-lg border bg-muted/40 p-3 text-sm"
+      className="flex items-start gap-3 rounded-lg bg-muted px-4 py-3 text-sm"
     >
       {isNew ? (
         <SparklesIcon aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
       ) : (
-        <LightbulbIcon
-          aria-hidden="true"
-          className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-        />
+        <LightbulbIcon aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-status-gate" />
       )}
       <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5">
         {isNew ? <Badge variant="secondary">新機能</Badge> : null}

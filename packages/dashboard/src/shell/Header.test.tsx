@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Header } from "@/shell/Header.tsx";
@@ -68,7 +68,7 @@ describe("Header (BLM step 7)", () => {
     ).toBe("page");
     await userEvent.click(await screen.findByRole("menuitem", { name: "ステージ一覧" }));
     await waitFor(() => expect(screen.queryByRole("main", { name: "設定" })).toBeNull());
-    expect(document.activeElement).toBe(trigger);
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
   });
 
   it("keeps project links in a labelled list below the destination grid", async () => {

@@ -1,3 +1,4 @@
+import { ChevronDownIcon } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,7 +70,8 @@ export function IntentPicker(): ReactNode {
           setOpen(true);
         }}
       >
-        <span className="truncate">{label}</span>
+        <span className="truncate font-mono font-medium">{label}</span>
+        <ChevronDownIcon data-icon="inline-end" className="text-muted-foreground" />
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

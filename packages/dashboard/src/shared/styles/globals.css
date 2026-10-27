@@ -1,8 +1,8 @@
+/* Mantine sits between Tailwind's preflight and its utilities: it overrides the
+   reset, and a utility class still overrides a Mantine component. */
+@layer theme, base, mantine, components, utilities;
 @import "tailwindcss";
-@import "tw-animate-css";
-/* Locked copy of shadcn 4.21.0 dist/tailwind.css. docs/maintenance/dependency-quality.md */
-@import "./vendor/shadcn-4.21.0/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@mantine/core/styles.layer.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -35,6 +35,9 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-light-foreground: var(--primary-light-foreground);
+  --color-track: var(--track);
   --color-customization-owned: var(--customization-owned);
   --color-customization-changed: var(--customization-changed);
   --color-popover-foreground: var(--popover-foreground);
@@ -61,6 +64,11 @@
   --shadow-panel: var(--panel-shadow);
   --font-mono: var(--font-mono);
   --tracking-caps: 0.08em;
+  /* Page and section headings: 26px and 20px, bold, as in the Mantine screens. */
+  --text-page-title: 1.625rem;
+  --text-page-title--line-height: 1.35;
+  --text-section-title: 1.25rem;
+  --text-section-title--line-height: 1.4;
   --max-height-viewport-gutter: calc(100dvh - 2rem);
   --max-height-dialog: 85dvh;
   --max-height-dialog-tall: 90dvh;
@@ -68,7 +76,7 @@
   --max-width-viewport-gutter: calc(100vw - 2rem);
   --width-drawer: 42rem;
   --grid-template-columns-metrics: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
-  --grid-template-columns-cards: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  --grid-template-columns-cards: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
   --grid-template-columns-phase: 7rem minmax(0, 1fr);
   --grid-template-columns-label-value: minmax(0, 1fr) auto;
   --grid-template-columns-title-actions: 1fr auto;
@@ -77,128 +85,121 @@
 }
 
 :root {
-  --font-sans: "Geist Variable", sans-serif;
+  /* Mantine's system stack, with the Japanese system fonts before the fallback. */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Hiragino Sans",
+    "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --font-mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace;
   --customization-owned: #2563eb;
   --customization-changed: #b45309;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  /*
+   * Semantic tokens read Mantine's variables, so Tailwind utilities and
+   * Mantine components share one palette. MantineRoot sets the scheme on
+   * <html>; the dark values come from Mantine's own [data-mantine-color-scheme].
+   */
+  --background: var(--mantine-color-body);
+  --foreground: var(--mantine-color-text);
+  --card: var(--mantine-color-white);
+  --card-foreground: var(--mantine-color-text);
+  --popover: var(--mantine-color-body);
+  --popover-foreground: var(--mantine-color-text);
+  --primary: var(--mantine-primary-color-filled);
+  --primary-foreground: var(--mantine-primary-color-contrast);
+  /* The selected row, the open Unit and the new entry: Mantine's light variant. */
+  --primary-light: var(--mantine-primary-color-light);
+  --primary-light-foreground: var(--mantine-primary-color-light-color);
+  /* Progress tracks and the timeline's unfinished line. */
+  --track: var(--mantine-color-gray-2);
+  --secondary: var(--mantine-color-default-hover);
+  --secondary-foreground: var(--mantine-color-text);
+  --muted: var(--mantine-color-default-hover);
+  --muted-foreground: var(--mantine-color-dimmed);
+  --accent: var(--mantine-color-default-hover);
+  --accent-foreground: var(--mantine-color-text);
+  --destructive: var(--mantine-color-error);
+  --border: var(--mantine-color-default-border);
+  --input: var(--mantine-color-default-border);
+  --ring: var(--mantine-primary-color-filled);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.5rem;
+  --sidebar: var(--mantine-color-body);
+  --sidebar-foreground: var(--mantine-color-text);
+  --sidebar-primary: var(--mantine-primary-color-filled);
+  --sidebar-primary-foreground: var(--mantine-primary-color-contrast);
+  --sidebar-accent: var(--mantine-color-default-hover);
+  --sidebar-accent-foreground: var(--mantine-color-text);
+  --sidebar-border: var(--mantine-color-default-border);
+  --sidebar-ring: var(--mantine-primary-color-filled);
+  /* Status text colours read at 4.5:1 on the 10% tint Mantine's light Badge lays under them. */
   --status-done: #1e7d34;
-  --status-progress: #1966c2;
-  --status-gate: #9a6700;
-  --status-revising: #7b3fb5;
-  --status-idle: #6b7280;
-  --status-skip: #9aa0aa;
+  --status-progress: #1864ab;
+  --status-gate: #8a5a00;
+  --status-revising: #5f3dc4;
+  --status-idle: #495057;
+  --status-skip: #5c636a;
   --panel-shadow: 0 8px 32px rgb(0 0 0 / 18%);
 }
 
 .dark {
+  --track: var(--mantine-color-dark-4);
   --customization-owned: #93c5fd;
   --customization-changed: #fbbf24;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-  --status-done: #4caf6a;
-  --status-progress: #5b9bf0;
-  --status-gate: #e0b341;
-  --status-revising: #b98ae8;
-  --status-idle: #8b93a1;
-  --status-skip: #6a7280;
+  /* Mantine cards sit one step above the body in the dark scheme. */
+  --card: var(--mantine-color-dark-6);
+  --status-done: #69db7c;
+  --status-progress: #74c0fc;
+  --status-gate: #ffd43b;
+  --status-revising: #b197fc;
+  --status-idle: #ced4da;
+  --status-skip: #a1a1a1;
   --panel-shadow: 0 8px 32px rgb(0 0 0 / 55%);
 }
 
 /*
- * VS Code webview: map shadcn semantic tokens to the active editor theme.
- * `data-host="vscode"` is set by theme/host.ts when acquireVsCodeApi exists.
- * Status colours stay custom (not part of the workbench theme).
+ * VS Code webview: the editor fonts, and in high contrast themes the editor's
+ * own colours in place of Mantine's palette. theme/host.ts sets data-host and
+ * data-contrast. The selector outranks Mantine's :root[data-mantine-color-scheme].
  */
 html[data-host="vscode"] {
-  --background: var(--vscode-editor-background);
-  --foreground: var(--vscode-editor-foreground);
-  --card: var(--vscode-sideBar-background, var(--vscode-editor-background));
-  --card-foreground: var(--vscode-sideBar-foreground, var(--vscode-editor-foreground));
-  --popover: var(--vscode-editorWidget-background, var(--vscode-editor-background));
-  --popover-foreground: var(--vscode-editorWidget-foreground, var(--vscode-editor-foreground));
-  --primary: var(--vscode-button-background);
-  --primary-foreground: var(--vscode-button-foreground);
-  --secondary: var(--vscode-button-secondaryBackground, var(--vscode-input-background));
-  --secondary-foreground: var(--vscode-button-secondaryForeground, var(--vscode-input-foreground));
-  --muted: var(--vscode-input-background);
-  --muted-foreground: var(--vscode-descriptionForeground, var(--vscode-foreground));
-  --accent: var(--vscode-list-hoverBackground, var(--vscode-input-background));
-  --accent-foreground: var(--vscode-list-hoverForeground, var(--vscode-editor-foreground));
-  --destructive: var(--vscode-errorForeground);
-  --border: var(--vscode-panel-border, var(--vscode-widget-border, var(--vscode-input-border)));
-  --input: var(--vscode-input-border, var(--vscode-panel-border, var(--vscode-widget-border)));
-  --ring: var(--vscode-focusBorder);
-  --sidebar: var(--vscode-sideBar-background, var(--vscode-editor-background));
-  --sidebar-foreground: var(--vscode-sideBar-foreground, var(--vscode-editor-foreground));
-  --sidebar-primary: var(--vscode-button-background);
-  --sidebar-primary-foreground: var(--vscode-button-foreground);
-  --sidebar-accent: var(--vscode-list-hoverBackground, var(--vscode-input-background));
-  --sidebar-accent-foreground: var(--vscode-list-hoverForeground, var(--vscode-editor-foreground));
-  --sidebar-border: var(--vscode-sideBar-border, var(--vscode-panel-border));
-  --sidebar-ring: var(--vscode-focusBorder);
   --font-sans: var(--vscode-font-family);
   --font-mono: var(--vscode-editor-font-family, var(--vscode-font-family));
+}
+
+html[data-host="vscode"][data-contrast="high"] {
+  --mantine-color-body: var(--vscode-editor-background);
+  --mantine-color-text: var(--vscode-editor-foreground);
+  --mantine-color-dimmed: var(--vscode-descriptionForeground, var(--vscode-editor-foreground));
+  --mantine-color-default: var(--vscode-input-background, var(--vscode-editor-background));
+  --mantine-color-default-hover: var(
+    --vscode-list-hoverBackground,
+    var(--vscode-editor-background)
+  );
+  --mantine-color-default-color: var(--vscode-foreground);
+  --mantine-color-default-border: var(--vscode-contrastBorder, var(--vscode-input-border));
+  --mantine-color-anchor: var(--vscode-textLink-foreground);
+  --mantine-color-error: var(--vscode-errorForeground);
+  --mantine-color-placeholder: var(
+    --vscode-input-placeholderForeground,
+    var(--vscode-descriptionForeground)
+  );
+  --mantine-primary-color-filled: var(--vscode-button-background);
+  --mantine-primary-color-filled-hover: var(
+    --vscode-button-hoverBackground,
+    var(--vscode-button-background)
+  );
+  --mantine-primary-color-contrast: var(--vscode-button-foreground);
+  --mantine-primary-color-light: var(--vscode-editor-background);
+  --mantine-primary-color-light-hover: var(
+    --vscode-list-hoverBackground,
+    var(--vscode-editor-background)
+  );
+  --mantine-primary-color-light-color: var(--vscode-textLink-foreground);
+  --card: var(--vscode-editor-background);
+  --track: var(--mantine-color-default-border);
 }
 
 @layer base {

@@ -1,24 +1,52 @@
-import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
-
+import { Tabs as MantineTabs } from "@mantine/core";
+import type { ComponentPropsWithRef, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-type ClassNameProp<S> = string | ((state: S) => string | undefined) | undefined;
+const LOOKS = {
+  underline: undefined,
+  /** A segmented control: the chosen tab raised on a grey track. */
+  segmented: {
+    list: "w-fit gap-1 rounded-sm bg-muted p-1",
+    tab: "h-8 rounded-sm px-3 font-semibold text-muted-foreground hover:bg-transparent hover:text-foreground data-active:bg-background data-active:text-foreground data-active:shadow-xs",
+  },
+};
 
-/** Merge static classes with Base UI's string | state-callback className. */
-function withClassName<S>(base: string, className: ClassNameProp<S>): ClassNameProp<S> {
-  if (typeof className === "function") {
-    return (state) => cn(base, className(state));
-  }
-  return cn(base, className);
-}
-
-function Tabs({ className, ...props }: TabsPrimitive.Root.Props) {
+/**
+ * Mantine's Tabs: underlined, or `segmented` for a switch between a few views
+ * of one thing. Only the selected panel is mounted, and `onValueChange`
+ * reports the newly selected tab's value.
+ */
+function Tabs({
+  value,
+  defaultValue,
+  onValueChange,
+  variant = "underline",
+  className,
+  children,
+}: {
+  variant?: keyof typeof LOOKS;
+  /** `null` selects no tab. */
+  value?: string | null;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+  className?: string;
+  children?: ReactNode;
+}) {
   return (
-    <TabsPrimitive.Root
+    <MantineTabs
       data-slot="tabs"
-      className={withClassName("flex flex-col gap-2", className)}
-      {...props}
-    />
+      value={value}
+      defaultValue={defaultValue}
+      onChange={(next) => {
+        if (next !== null) onValueChange?.(next);
+      }}
+      keepMounted={false}
+      variant={variant === "segmented" ? "pills" : "default"}
+      classNames={LOOKS[variant]}
+      className={cn("flex flex-col gap-2", className)}
+    >
+      {children}
+    </MantineTabs>
   );
 }
 
@@ -26,15 +54,17 @@ function TabsList({
   className,
   size = "default",
   ...props
-}: TabsPrimitive.List.Props & { size?: "default" | "mono" }) {
+}: Omit<ComponentPropsWithRef<"div">, "color"> & {
+  size?: "default" | "mono";
+  children: ReactNode;
+}) {
   return (
-    <TabsPrimitive.List
+    <MantineTabs.List
       data-slot="tabs-list"
       data-size={size}
-      className={withClassName(
-        size === "mono"
-          ? "inline-flex w-fit max-w-full items-center justify-start gap-0.5 overflow-x-auto rounded-lg bg-muted p-0.5 font-mono text-muted-foreground **:data-[slot=tabs-trigger]:font-mono **:data-[slot=tabs-trigger]:text-xs"
-          : "inline-flex w-fit max-w-full items-center justify-start gap-0.5 overflow-x-auto rounded-lg bg-muted p-0.5 text-muted-foreground",
+      className={cn(
+        "max-w-full flex-nowrap overflow-x-auto",
+        size === "mono" && "font-mono **:data-[slot=tabs-trigger]:text-xs",
         className,
       )}
       {...props}
@@ -42,24 +72,31 @@ function TabsList({
   );
 }
 
-function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
+function TabsTrigger({
+  className,
+  value,
+  ...props
+}: Omit<ComponentPropsWithRef<"button">, "color" | "value"> & { value: string }) {
   return (
-    <TabsPrimitive.Tab
+    <MantineTabs.Tab
       data-slot="tabs-trigger"
-      className={withClassName(
-        "inline-flex h-7 shrink-0 items-center justify-center rounded-md px-2.5 text-sm font-medium whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-active:bg-background data-active:text-foreground data-active:shadow-sm",
-        className,
-      )}
+      value={value}
+      className={cn("shrink-0 whitespace-nowrap", className)}
       {...props}
     />
   );
 }
 
-function TabsPanel({ className, ...props }: TabsPrimitive.Panel.Props) {
+function TabsPanel({
+  className,
+  value,
+  ...props
+}: Omit<ComponentPropsWithRef<"div">, "color"> & { value: string; children: ReactNode }) {
   return (
-    <TabsPrimitive.Panel
+    <MantineTabs.Panel
       data-slot="tabs-panel"
-      className={withClassName("outline-none", className)}
+      value={value}
+      className={cn("outline-none", className)}
       {...props}
     />
   );

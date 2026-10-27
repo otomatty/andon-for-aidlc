@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook } from "@tests/render.tsx";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BACKOFF_MS, backoffFor, useLiveConnection, wsUrl } from "@/services/live.ts";
 import type { Action } from "@/store/reducer.ts";

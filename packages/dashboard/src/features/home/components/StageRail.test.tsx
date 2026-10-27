@@ -1,21 +1,51 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { StageRail } from "@/features/home/components/StageRail.tsx";
-import { workflow } from "@tests/fixtures.ts";
+import { stage, workflow } from "@tests/fixtures.ts";
 
 const noop = (): void => {};
 
 describe("StageRail (FR-4.2 / FR-4.5)", () => {
   const state = { kind: "success", value: workflow() } as const;
 
-  it("keeps SKIP stages inline in server order with stage numbers", () => {
+  it("starts a finished phase closed to its summary and opens it on request", async () => {
+    render(<StageRail state={state} onSelect={noop} onRetry={noop} />);
+    const toggle = screen.getByTestId("stage-rail-phase-IDEATION");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(toggle.textContent).toContain("完了 1 / 1");
+    expect(toggle.textContent).toContain("スキップ 2");
+    expect(screen.queryByTestId("stage-rail-item-intent-capture")).toBeNull();
+
+    await userEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByTestId("stage-rail-item-intent-capture")).toBeDefined();
+  });
+
+  it("counts a run stage that was skipped as done in the phase summary", () => {
+    const value = workflow({
+      currentStage: "code-generation",
+      stages: [
+        stage("intent-capture", { phase: "IDEATION", status: "completed" }),
+        stage("feasibility", { phase: "IDEATION", status: "skipped" }),
+        stage("code-generation", { status: "awaiting-approval" }),
+      ],
+    });
+    render(<StageRail state={{ kind: "success", value }} onSelect={noop} onRetry={noop} />);
+    const toggle = screen.getByTestId("stage-rail-phase-IDEATION");
+    expect(toggle.textContent).toContain("完了 2 / 2");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("keeps SKIP stages inline in server order with stage numbers", async () => {
     render(<StageRail state={state} onSelect={noop} onRetry={noop} />);
     expect(screen.queryByTestId("skip-group")).toBeNull();
+    await userEvent.click(screen.getByTestId("stage-rail-phase-IDEATION"));
 
     const ideation = screen.getByLabelText("IDEATION");
     const labels = within(ideation)
       .getAllByRole("button")
+      .filter((el) => el.getAttribute("data-testid")?.startsWith("stage-rail-item-") === true)
       .map((el) => el.textContent ?? "");
     expect(labels[0]).toContain("1.1 intent-capture");
     expect(labels[1]).toContain("1.2 market-research");
@@ -27,6 +57,7 @@ describe("StageRail (FR-4.2 / FR-4.5)", () => {
 
   it("keeps exactly one item in the tab order and moves focus with the arrows", async () => {
     render(<StageRail state={state} onSelect={noop} onRetry={noop} />);
+    await userEvent.click(screen.getByTestId("stage-rail-phase-IDEATION"));
     const items = screen
       .getAllByRole("button")
       .filter((el) => el.getAttribute("data-testid")?.startsWith("stage-rail-item-") === true);
@@ -45,6 +76,7 @@ describe("StageRail (FR-4.2 / FR-4.5)", () => {
 
   it("does not move past the ends of the rail", async () => {
     render(<StageRail state={state} onSelect={noop} onRetry={noop} />);
+    await userEvent.click(screen.getByTestId("stage-rail-phase-IDEATION"));
     const first = screen.getByTestId("stage-rail-item-intent-capture");
     first.focus();
     await userEvent.keyboard("{ArrowUp}");

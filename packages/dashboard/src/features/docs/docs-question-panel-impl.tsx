@@ -83,7 +83,7 @@ export function DocsQuestionPanel({
       aria-labelledby="docs-question-title"
       data-testid="docs-question-panel"
     >
-      <Card>
+      <Card size="lg">
         <CardHeader>
           <CardTitle>
             <h2 id="docs-question-title">
@@ -230,7 +230,13 @@ export function DocsQuestionPanel({
         </p>
       ) : null}
       {qa.turns.map((turn, index) => (
-        <Card key={turn.id} id={`docs-answer-${turn.id}`} data-testid="docs-answer" tabIndex={-1}>
+        <Card
+          key={turn.id}
+          size="lg"
+          id={`docs-answer-${turn.id}`}
+          data-testid="docs-answer"
+          tabIndex={-1}
+        >
           <CardHeader>
             <CardDescription>
               {"\u8cea\u554f"} {index + 1} · {TOOL_LABELS[turn.tool]}
@@ -253,10 +259,10 @@ export function DocsQuestionPanel({
             ) : null}
             {turn.citations.length > 0 ? (
               <section
-                className="flex flex-col gap-2"
+                className="flex flex-col gap-2 border-t pt-4"
                 aria-label={"\u53c2\u7167\u3057\u305f\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8"}
               >
-                <h4 className="text-sm font-medium">
+                <h4 className="text-sm font-bold">
                   {turn.sourcesKind === "related"
                     ? "\u95a2\u9023\u3059\u308b\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8"
                     : "\u53c2\u7167\u3057\u305f\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8"}
@@ -274,7 +280,7 @@ export function DocsQuestionPanel({
                       >
                         <BookOpenIcon data-icon="inline-start" />
                         <span className="flex min-w-0 flex-col gap-1">
-                          <span>
+                          <span className="font-bold">
                             [{citation.id}] {citation.title}
                           </span>
                           <span className="text-xs text-muted-foreground">

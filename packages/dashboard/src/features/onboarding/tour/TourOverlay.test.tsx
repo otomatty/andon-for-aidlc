@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "@/app/App.tsx";
@@ -92,7 +92,9 @@ describe("guided tour", () => {
     await user.click(within(menu).getByRole("button", { name: "完了" }));
     await waitFor(() => expect(screen.queryByTestId("tour-spotlight")).toBeNull());
     expect(screen.queryByTestId("detail-panel")).toBeNull();
-    await waitFor(() => expect(document.activeElement?.id).toBe("header-menu-trigger"));
+    await waitFor(() =>
+      expect(document.activeElement?.getAttribute("data-testid")).toBe("header-menu-trigger"),
+    );
   });
 
   it("ends with Escape at any step", async () => {

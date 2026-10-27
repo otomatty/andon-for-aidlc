@@ -1,68 +1,119 @@
-import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
-import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { Accordion as MantineAccordion } from "@mantine/core";
+import type { ComponentPropsWithRef, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
+const LOOKS = {
+  /** Rows divided by rules, flush with the text around them. */
+  default: {
+    item: "last:border-b-0",
+    control: "px-0 py-2.5 text-sm font-semibold",
+    label: "p-0 font-semibold",
+    content: "px-0 pt-0 pb-2.5 text-sm",
+    chevron: "text-muted-foreground",
+  },
+  /** One bordered box, the rows inset. */
+  contained: {
+    item: "bg-card data-active:bg-card",
+    control: "px-4 py-3 text-sm font-semibold data-active:bg-transparent",
+    label: "p-0 font-semibold",
+    content: "px-4 pt-0 pb-3 text-sm",
+    chevron: "text-muted-foreground",
+  },
+};
+
+/**
+ * Mantine's Accordion with the open items always as an array, one item at a
+ * time unless `multiple`. A closed panel's content is unmounted.
+ */
+function Accordion({
+  variant = "default",
+  multiple = false,
+  value,
+  defaultValue,
+  onValueChange,
+  className,
+  children,
+}: {
+  variant?: keyof typeof LOOKS;
+  multiple?: boolean;
+  value?: string[];
+  defaultValue?: string[];
+  onValueChange?: (value: string[]) => void;
+  className?: string;
+  children?: ReactNode;
+}) {
+  const shared = {
+    "data-slot": "accordion",
+    keepMounted: false,
+    chevronPosition: "right" as const,
+    variant,
+    radius: "md" as const,
+    className: cn("flex w-full flex-col", className),
+    classNames: LOOKS[variant],
+    children,
+  };
+  if (multiple) {
+    return (
+      <MantineAccordion
+        {...shared}
+        multiple
+        value={value}
+        defaultValue={defaultValue}
+        onChange={(next) => onValueChange?.(next)}
+      />
+    );
+  }
   return (
-    <AccordionPrimitive.Root
-      data-slot="accordion"
-      className={cn("flex w-full flex-col", className)}
-      {...props}
+    <MantineAccordion
+      {...shared}
+      value={value === undefined ? undefined : (value[0] ?? null)}
+      defaultValue={defaultValue?.[0] ?? null}
+      onChange={(next) => onValueChange?.(next === null ? [] : [next])}
     />
   );
 }
 
-function AccordionItem({ className, ...props }: AccordionPrimitive.Item.Props) {
+function AccordionItem({
+  className,
+  value,
+  ...props
+}: Omit<ComponentPropsWithRef<"div">, "color"> & { value: string }) {
   return (
-    <AccordionPrimitive.Item
+    <MantineAccordion.Item
       data-slot="accordion-item"
-      className={cn("not-last:border-b", className)}
+      value={value}
+      className={className}
       {...props}
     />
   );
 }
 
-function AccordionTrigger({ className, children, ...props }: AccordionPrimitive.Trigger.Props) {
+function AccordionTrigger({ className, ...props }: Omit<ComponentPropsWithRef<"button">, "color">) {
   return (
-    <AccordionPrimitive.Header className="flex">
-      <AccordionPrimitive.Trigger
-        data-slot="accordion-trigger"
-        className={cn(
-          "group/accordion-trigger relative flex flex-1 items-start justify-between rounded-lg border border-transparent py-2.5 text-left text-sm font-medium transition-all outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:after:border-ring aria-disabled:pointer-events-none aria-disabled:opacity-50 **:data-[slot=accordion-trigger-icon]:ml-auto **:data-[slot=accordion-trigger-icon]:size-4 **:data-[slot=accordion-trigger-icon]:text-muted-foreground",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-        <ChevronDownIcon
-          data-slot="accordion-trigger-icon"
-          className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"
-        />
-        <ChevronUpIcon
-          data-slot="accordion-trigger-icon"
-          className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline"
-        />
-      </AccordionPrimitive.Trigger>
-    </AccordionPrimitive.Header>
+    <MantineAccordion.Control
+      data-slot="accordion-trigger"
+      className={cn("text-left", className)}
+      {...props}
+    />
   );
 }
 
-function AccordionContent({ className, children, ...props }: AccordionPrimitive.Panel.Props) {
+function AccordionContent({
+  className,
+  children,
+  ...props
+}: Omit<ComponentPropsWithRef<"div">, "onTransitionEnd" | "onTransitionStart">) {
   return (
-    <AccordionPrimitive.Panel
-      data-slot="accordion-content"
-      className="overflow-hidden text-sm data-open:animate-accordion-down data-closed:animate-accordion-up"
-      {...props}
-    >
+    <MantineAccordion.Panel data-slot="accordion-content" {...props}>
       <div
         className={cn(
-          "h-(--accordion-panel-height) pt-0 pb-2.5 data-ending-style:h-0 data-starting-style:h-0 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
+          "[&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
           className,
         )}
       >
         {children}
       </div>
-    </AccordionPrimitive.Panel>
+    </MantineAccordion.Panel>
   );
 }
 

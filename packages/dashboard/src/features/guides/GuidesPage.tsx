@@ -9,7 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip } from "@/components/ui/tooltip";
 import { useFetchView } from "@/hooks/useFetchView.ts";
 import { fetchGuide, fetchGuides } from "@/services/api.ts";
 import { useAppState, useDispatch } from "@/store/context.tsx";
@@ -94,35 +94,22 @@ export function GuidesPanel(): ReactNode {
       title={title}
       closeTestId="guides-close"
       onClose={onClose}
-      onEscapeKeyDown={(event) => {
-        if (drawerOpen) {
-          event.preventDefault();
-          setDrawerOpen(false);
-          return;
-        }
-        onClose();
-      }}
       leading={
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                data-testid="guides-menu"
-                aria-label="ガイド一覧"
-                aria-expanded={drawerOpen}
-                aria-haspopup="dialog"
-                onClick={() => {
-                  setDrawerOpen(true);
-                }}
-              />
-            }
+        <Tooltip label="ガイド一覧">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            data-testid="guides-menu"
+            aria-label="ガイド一覧"
+            aria-expanded={drawerOpen}
+            aria-haspopup="dialog"
+            onClick={() => {
+              setDrawerOpen(true);
+            }}
           >
             <MenuIcon />
-          </TooltipTrigger>
-          <TooltipContent>ガイド一覧</TooltipContent>
+          </Button>
         </Tooltip>
       }
     >
@@ -143,7 +130,7 @@ export function GuidesPanel(): ReactNode {
       </LoadingSequence>
 
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent side="left" data-testid="guides-drawer" className="w-80 max-w-full">
+        <SheetContent side="left" data-testid="guides-drawer" size="min(100%, 20rem)">
           <SheetHeader>
             <SheetTitle>使い方ガイド</SheetTitle>
             <SheetDescription>読みたいガイドを選んでください。</SheetDescription>

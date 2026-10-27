@@ -1,6 +1,7 @@
 import { WHATS_NEW, type WhatsNewEntry } from "@aidlc-guide/shared-types";
 import { type ReactNode, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -29,12 +30,17 @@ function Entry({
   onAction: (entry: WhatsNewEntry) => void;
 }): ReactNode {
   return (
-    <li className="flex flex-col gap-1.5 border-b py-4 last:border-b-0">
+    <li
+      className={cn(
+        "flex flex-col gap-1.5",
+        fresh ? "mb-2 rounded-md bg-primary-light p-4" : "border-b py-4 last:border-b-0",
+      )}
+    >
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <time dateTime={entry.date}>{formatEntryDate(entry.date)}</time>
-        {fresh ? <Badge>新着</Badge> : null}
+        {fresh ? <Badge variant="info">新着</Badge> : null}
       </div>
-      <h4 className="text-sm font-medium">{entry.title}</h4>
+      <h4 className="text-base font-bold">{entry.title}</h4>
       <p className="text-sm leading-relaxed text-muted-foreground">{entry.body}</p>
       {entry.action === undefined ? null : (
         <div className="pt-1">
@@ -80,11 +86,7 @@ export function WhatsNewSheet(): ReactNode {
         if (!next) close();
       }}
     >
-      <SheetContent
-        side="right"
-        data-testid="whats-new-sheet"
-        className="data-[side=right]:w-full data-[side=right]:sm:max-w-md"
-      >
+      <SheetContent side="right" data-testid="whats-new-sheet" size="min(100%, 28rem)">
         <SheetHeader>
           <SheetTitle>更新情報</SheetTitle>
           <SheetDescription>
@@ -96,7 +98,7 @@ export function WhatsNewSheet(): ReactNode {
         <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 pb-6">
           {newer.length === 0 ? null : (
             <section aria-labelledby="whats-new-fresh">
-              <h3 id="whats-new-fresh" className="text-sm font-medium">
+              <h3 id="whats-new-fresh" className="mb-2 text-xs font-bold text-muted-foreground">
                 新着
               </h3>
               <ul className="m-0 list-none p-0">
@@ -107,7 +109,7 @@ export function WhatsNewSheet(): ReactNode {
             </section>
           )}
           <section aria-labelledby="whats-new-past">
-            <h3 id="whats-new-past" className="text-sm font-medium">
+            <h3 id="whats-new-past" className="text-xs font-bold text-muted-foreground">
               {newer.length === 0 ? "最近の更新" : "これまでの更新"}
             </h3>
             <ul className="m-0 list-none p-0">

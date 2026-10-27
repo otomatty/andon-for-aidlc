@@ -3,7 +3,7 @@ import type {
   OfficialDocsPage,
   OfficialDocsToc,
 } from "@aidlc-guide/shared-types";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

@@ -1,14 +1,9 @@
 import type { IntentEffectiveness } from "@aidlc-guide/shared-types";
 import { type ReactNode, useId } from "react";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAppState } from "@/store/context.tsx";
+import { viewValue } from "@/store/state.ts";
 import { EFFECTIVENESS_METRIC_GRID } from "@/features/effectiveness/utils/layout.ts";
 import { formatEffectivenessDuration as formatDuration } from "@/features/effectiveness/utils/summary.ts";
 
@@ -38,7 +33,7 @@ function Evidence({ row }: { row: IntentEffectiveness }): ReactNode {
       : MISSING);
   return (
     <details className="w-full min-w-0 whitespace-normal text-sm">
-      <summary className="cursor-pointer text-muted-foreground">
+      <summary className="w-fit cursor-pointer text-sm font-medium text-primary-light-foreground hover:underline">
         記録の内訳{row.warnings.length > 0 ? `・注意 ${row.warnings.length} 件` : ""}
       </summary>
       <div className="mt-2 flex flex-col gap-2 text-muted-foreground wrap-anywhere">
@@ -82,7 +77,7 @@ function Metric({ label, children }: { label: string; children: ReactNode }): Re
   return (
     <div className="grid min-w-0 content-start gap-1">
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="m-0 text-sm tabular-nums">{children}</dd>
+      <dd className="m-0 text-lg leading-snug font-bold tabular-nums">{children}</dd>
     </div>
   );
 }
@@ -91,16 +86,22 @@ export function EffectivenessCard({ row }: { row: IntentEffectiveness }): ReactN
   const { approvalWait: wait, sensors } = row;
   const finished = row.completedAt !== null || row.status?.toLowerCase() === "completed";
   const headingId = useId();
+  // The intent the header shows: framed in the primary colour and named, so
+  // the reader finds their own work among the others.
+  const shown = viewValue(useAppState().intents)?.selected === row.dirName;
   return (
     <Card
       role="article"
       aria-labelledby={headingId}
       data-testid={`effectiveness-card-${row.dirName}`}
+      variant={shown ? "selected" : "default"}
       className="min-w-0 wrap-anywhere"
     >
       <CardHeader>
         <CardTitle>
-          <h3 id={headingId}>{row.dirName}</h3>
+          <h3 id={headingId} className="font-mono">
+            {row.dirName}
+          </h3>
         </CardTitle>
         <CardDescription className="line-clamp-2" title={row.name}>
           {row.name}
@@ -115,6 +116,7 @@ export function EffectivenessCard({ row }: { row: IntentEffectiveness }): ReactN
           <Badge variant="secondary" className="max-w-full whitespace-normal">
             {statusLabel(row.status)}
           </Badge>
+          {shown ? <Badge variant="info">表示中</Badge> : null}
         </div>
       </CardHeader>
       <CardContent>
@@ -123,12 +125,12 @@ export function EffectivenessCard({ row }: { row: IntentEffectiveness }): ReactN
             {row.completionMs !== null ? (
               <>
                 {formatDuration(row.completionMs)}
-                <div className="text-xs text-muted-foreground">完了まで</div>
+                <div className="text-xs font-normal text-muted-foreground">完了まで</div>
               </>
             ) : !finished && row.elapsedMs !== null ? (
               <>
                 {formatDuration(row.elapsedMs)}
-                <div className="text-xs text-muted-foreground">進行中の経過</div>
+                <div className="text-xs font-normal text-muted-foreground">進行中の経過</div>
               </>
             ) : (
               MISSING
@@ -142,13 +144,13 @@ export function EffectivenessCard({ row }: { row: IntentEffectiveness }): ReactN
                 {wait.completedMs !== null ? (
                   <>
                     {formatDuration(wait.completedMs)}
-                    <div className="text-xs text-muted-foreground">確定分</div>
+                    <div className="text-xs font-normal text-muted-foreground">確定分</div>
                   </>
                 ) : (
-                  <div className="text-xs text-muted-foreground">確定分は未記録</div>
+                  <div className="text-xs font-normal text-muted-foreground">確定分は未記録</div>
                 )}
                 {wait.pendingMs !== null ? (
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs font-normal text-muted-foreground">
                     待機中 {formatDuration(wait.pendingMs)}
                   </div>
                 ) : null}
@@ -164,7 +166,7 @@ export function EffectivenessCard({ row }: { row: IntentEffectiveness }): ReactN
             ) : (
               <>
                 {sensors.verifiedPassed} 件 合格
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs font-normal text-muted-foreground">
                   失敗 {sensors.failed} / 省略 {sensors.skipped}
                   <br />
                   証跡不足 {sensors.incomplete}
@@ -174,9 +176,9 @@ export function EffectivenessCard({ row }: { row: IntentEffectiveness }): ReactN
           </Metric>
         </dl>
       </CardContent>
-      <CardFooter>
+      <CardContent className="mt-auto">
         <Evidence row={row} />
-      </CardFooter>
+      </CardContent>
     </Card>
   );
 }

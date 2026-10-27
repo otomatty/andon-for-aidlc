@@ -1,5 +1,5 @@
 import type { EffectivenessPayload, ReadResult } from "@aidlc-guide/shared-types";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@tests/render.tsx";
 import { lazy, StrictMode, type ComponentType } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import EffectivenessPanel from "@/features/effectiveness/EffectivenessPage.tsx";

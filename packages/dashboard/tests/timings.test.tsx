@@ -1,6 +1,6 @@
 import type { NextGateEstimate, ReadResult, TimingsPayload } from "@aidlc-guide/shared-types";
 import { formatDuration } from "@aidlc-guide/shared-types";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "@/app/App.tsx";

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen } from "@tests/render.tsx";
 import { describe, expect, it } from "vitest";
 import { Dialog, DialogTrigger } from "./dialog.tsx";
 import { HoverCard, HoverCardTrigger } from "./hover-card.tsx";
@@ -50,17 +50,15 @@ describe("trigger style ownership", () => {
     expect(trigger.className.split(" ")).toEqual(
       expect.arrayContaining([
         "cursor-help",
-        "rounded-sm",
-        "border-dashed",
-        "border-transparent",
-        "px-1",
-        "py-0.5",
+        "rounded-md",
+        "border",
+        "bg-card",
+        "px-4",
+        "py-3",
         "text-left",
         "wrap-anywhere",
-        "hover:border-border",
-        "hover:bg-muted",
-        "focus-visible:border-border",
-        "focus-visible:bg-muted",
+        "hover:border-(--mantine-color-dimmed)",
+        "focus-visible:border-primary",
         "focus-visible:outline-none",
       ]),
     );
@@ -71,7 +69,10 @@ describe("trigger style ownership", () => {
   it("keeps the default hover trigger unstyled and forwards its className", () => {
     render(
       <HoverCard>
-        <HoverCardTrigger className="w-full" href="#field">
+        <HoverCardTrigger
+          className="w-full"
+          render={<a href="#field" aria-label="Default preview" />}
+        >
           Default preview
         </HoverCardTrigger>
       </HoverCard>,

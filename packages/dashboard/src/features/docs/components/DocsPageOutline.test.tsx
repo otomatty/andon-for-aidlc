@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { type ReactNode, useRef } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

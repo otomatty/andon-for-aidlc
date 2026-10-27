@@ -1,7 +1,5 @@
-import { DismissableLayer } from "@radix-ui/react-dismissable-layer";
-import { FocusScope } from "@radix-ui/react-focus-scope";
 import { XIcon } from "lucide-react";
-import { type ComponentProps, type ReactNode, useEffect, useRef } from "react";
+import { type ComponentProps, type ReactNode, useEffect, useEffectEvent, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -15,9 +13,23 @@ export function PanelBody({ className, ...props }: ComponentProps<"div">): React
   return <div className={cn("flex flex-none flex-col gap-4", className)} {...props} />;
 }
 
-const preventDefault = (event: Event): void => {
-  event.preventDefault();
-};
+/**
+ * An open popup (dialog, drawer, menu, listbox) closes on Escape itself; the
+ * page responds only to an Escape nothing else has taken.
+ */
+const POPUP = [
+  '[role="dialog"]',
+  '[role="menu"]',
+  '[role="listbox"]',
+  '[aria-haspopup="menu"][aria-expanded="true"]',
+  '[aria-haspopup="listbox"][aria-expanded="true"]',
+].join(", ");
+
+function escapeBelongsToPopup(event: KeyboardEvent): boolean {
+  const target = event.target;
+  if (target instanceof Element && target.closest(POPUP) !== null) return true;
+  return document.querySelector('[role="dialog"][aria-modal="true"]') !== null;
+}
 
 export interface PanelShellProps {
   /** `aria-labelledby` target id for the heading. */
@@ -35,8 +47,6 @@ export interface PanelShellProps {
   /** Omit when the page uses navigation instead of a close button. */
   closeTestId?: string;
   onClose: () => void;
-  /** Escape handling when plain close is not enough (nested dialog first). */
-  onEscapeKeyDown?: ComponentProps<typeof DismissableLayer>["onEscapeKeyDown"];
   /**
    * Re-runs the focus save/heading-focus cycle when it changes (DetailPanel
    * re-focuses per stage). Mount/unmount alone covers open/close panels.
@@ -48,10 +58,10 @@ export interface PanelShellProps {
 }
 
 /**
- * The frame every side panel shares: focus scope, dismissable layer, the
- * panel `aside` with its bar/heading/close button, and the focus save-and-
- * restore cycle. Panels own only their bar extras and body — this existed as
- * three near-identical copies (Detail/Agent/Guides) before being extracted.
+ * The frame every side panel shares: Escape to close, the panel `aside` with
+ * its bar/heading/close button, and the focus save-and-restore cycle. Panels
+ * own only their bar extras and body — this existed as three near-identical
+ * copies (Detail/Agent/Guides) before being extracted.
  *
  * The page stays in normal flow after the shared progress region.
  */
@@ -65,7 +75,6 @@ export function PanelShell({
   actions,
   closeTestId,
   onClose,
-  onEscapeKeyDown,
   focusKey,
   returnFocusSelector,
   children,
@@ -98,68 +107,55 @@ export function PanelShell({
     };
   }, [focusKey, returnFocusSelector]);
 
+  const onEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key !== "Escape" || event.defaultPrevented || escapeBelongsToPopup(event)) return;
+    onClose();
+  });
+  useEffect(() => {
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
+  }, []);
+
   return (
-    <FocusScope asChild trapped={false} onUnmountAutoFocus={preventDefault}>
-      <DismissableLayer
-        asChild
-        onEscapeKeyDown={(event) => {
-          const target = event.target;
-          // Base UI menus handle Escape separately from this Radix layer.
-          // Let the menu close before the page responds to another Escape.
-          if (
-            target instanceof Element &&
-            target.closest('[role="menu"], [aria-haspopup="menu"][aria-expanded="true"]') !== null
-          ) {
-            return;
-          }
-          if (onEscapeKeyDown) onEscapeKeyDown(event);
-          else onClose();
-        }}
-        onFocusOutside={(event) => {
-          event.preventDefault();
-        }}
-      >
-        <aside
-          ref={panel}
-          className="flex w-full flex-col bg-background p-4 text-foreground"
-          aria-labelledby={headingId}
-          data-testid={testId}
+    <aside
+      ref={panel}
+      className="flex w-full flex-col bg-background p-4 text-foreground"
+      aria-labelledby={headingId}
+      data-testid={testId}
+    >
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        {leading}
+        <h2
+          id={headingId}
+          className={cn(
+            hideHeading
+              ? "sr-only"
+              : "m-0 flex min-w-0 flex-1 basis-48 flex-wrap items-center gap-2 text-page-title font-bold wrap-anywhere",
+            headingFont === "mono" ? "font-mono" : "font-sans",
+          )}
+          ref={heading}
+          tabIndex={-1}
         >
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            {leading}
-            <h2
-              id={headingId}
-              className={cn(
-                hideHeading
-                  ? "sr-only"
-                  : "m-0 flex min-w-0 flex-1 basis-48 flex-wrap items-center gap-2 text-xl font-medium wrap-anywhere",
-                headingFont === "mono" ? "font-mono" : "font-sans",
-              )}
-              ref={heading}
-              tabIndex={-1}
+          {title}
+        </h2>
+        <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">
+          {actions}
+          {closeTestId === undefined ? null : (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={onClose}
+              data-testid={closeTestId}
+              aria-label="閉じる"
+              title="閉じる"
             >
-              {title}
-            </h2>
-            <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">
-              {actions}
-              {closeTestId === undefined ? null : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={onClose}
-                  data-testid={closeTestId}
-                  aria-label="閉じる"
-                  title="閉じる"
-                >
-                  <XIcon />
-                </Button>
-              )}
-            </div>
-          </div>
-          {children}
-        </aside>
-      </DismissableLayer>
-    </FocusScope>
+              <XIcon />
+            </Button>
+          )}
+        </div>
+      </div>
+      {children}
+    </aside>
   );
 }

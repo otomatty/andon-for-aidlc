@@ -1,5 +1,5 @@
 import type { ArtifactDoc } from "@aidlc-guide/shared-types";
-import { render, screen } from "@testing-library/react";
+import { render, screen } from "@tests/render.tsx";
 import { describe, expect, it } from "vitest";
 import { StageCard } from "@/features/stage/components/StageCard.tsx";
 import { StoreProvider } from "@/store/context.tsx";

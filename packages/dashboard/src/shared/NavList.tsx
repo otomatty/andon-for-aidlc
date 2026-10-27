@@ -12,15 +12,16 @@ export function NavList({ className, ...props }: ComponentProps<"ul">): ReactNod
 
 /**
  * A row in a `NavList`. Pass `data-active="true"` to mark the open entry —
- * border plus weight, so the marking never rests on colour alone.
+ * Mantine's light primary plus weight, so the marking never rests on colour
+ * alone.
  */
 export function NavListButton({ className, ...props }: ComponentProps<"button">): ReactNode {
   return (
     <button
       type="button"
       className={cn(
-        "block w-full cursor-pointer rounded-lg border border-transparent px-3 py-2 text-left text-sm hover:bg-muted",
-        "data-[active=true]:border-primary data-[active=true]:bg-muted data-[active=true]:font-semibold",
+        "block w-full cursor-pointer rounded-sm px-3 py-2 text-left text-sm hover:bg-muted",
+        "data-[active=true]:bg-primary-light data-[active=true]:font-semibold data-[active=true]:text-primary-light-foreground",
         className,
       )}
       {...props}

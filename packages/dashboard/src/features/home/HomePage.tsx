@@ -22,7 +22,7 @@ export function HomePage({
   const state = useAppState();
   return (
     <main className="grid grid-cols-1 items-start gap-5 p-4" aria-labelledby="stage-list-heading">
-      <h1 id="stage-list-heading" className="text-xl font-medium">
+      <h1 id="stage-list-heading" className="text-page-title font-bold">
         ステージ一覧
       </h1>
       <OnboardingTip area="home" />

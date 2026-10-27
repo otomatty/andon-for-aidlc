@@ -22,18 +22,19 @@ export const repairHtml = `
 
 export const repairStyles = `
 [hidden] { display: none !important; }
-.muted { color: var(--vscode-descriptionForeground); font-size: .9em; }
-section.repair-card { margin: 16px 0 0; padding: 20px; background: var(--vscode-editor-background); }
+.muted { color: var(--m-dimmed); font-size: .9em; }
+section.repair-card { margin: 16px 0 0; padding: 20px; border-color: var(--m-warning); background: var(--m-card); box-shadow: none; }
 .repair-heading, .repair-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .repair-heading h2 { margin: 0; font-size: 18px; }
-.repair-badge { padding: 2px 9px; border: 1px solid var(--vscode-panel-border, #8885); border-radius: 12px; font-size: 12px; }
-#problem-summary { font-weight: 600; margin-bottom: 8px; }
+.repair-badge { padding: 0 8px; border-radius: 1000px; background: var(--m-warning-light); color: var(--m-warning); font-size: 11px; font-weight: 700; line-height: 20px; }
+#problem-summary { font-weight: 700; margin-bottom: 8px; }
 .repair-provider { margin-top: 20px; }
 #repair-tool-field { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; margin-top: 8px; }
-select { box-sizing: border-box; min-width: 0; max-width: 100%; font: inherit; padding: 8px 10px; border-radius: 4px; border: 1px solid var(--vscode-dropdown-border, #8888); color: var(--vscode-dropdown-foreground); background: var(--vscode-dropdown-background); }
-select:focus-visible, summary:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 3px; }
+select { box-sizing: border-box; min-width: 0; max-width: 100%; min-height: 36px; font: inherit; padding: 0 10px; border-radius: 4px; border: 1px solid var(--m-input-border); color: var(--m-text); background: var(--m-card); }
+select:focus-visible, summary:focus-visible { outline: 2px solid var(--m-focus); outline-offset: 2px; }
 .repair-actions button { margin: 0; }
-.repair-diagnostics { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--vscode-panel-border, #8885); }
+.repair-diagnostics { margin-top: 20px; padding: 0 16px; border: 1px solid var(--m-border); border-radius: 8px; }
+.repair-diagnostics > summary { padding: 12px 0; }
 summary { cursor: pointer; overflow-wrap: anywhere; }
 #problems details { margin: 12px 0; }
 #problems p { margin: 8px 0; }

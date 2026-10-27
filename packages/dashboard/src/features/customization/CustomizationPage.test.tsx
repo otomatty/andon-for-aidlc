@@ -1,5 +1,5 @@
 import type { CustomizationCatalog, CustomizationItem } from "@aidlc-guide/shared-types";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CustomizationPage from "@/features/customization/CustomizationPage";

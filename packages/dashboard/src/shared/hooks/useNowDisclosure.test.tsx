@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook } from "@tests/render.tsx";
 import { type ReactNode, StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useNowDisclosure } from "@/hooks/useNowDisclosure.ts";

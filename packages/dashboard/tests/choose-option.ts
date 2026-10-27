@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 
 export async function chooseOption(label: string | RegExp, option: string | RegExp): Promise<void> {

@@ -54,6 +54,7 @@ import {
 } from "./workflows-repair.ts";
 import { repairPath } from "./workflows-repair-files.ts";
 import { repairHtml, repairScript, repairStyles } from "./workflows-repair-html.ts";
+import { webviewThemeStyles } from "./webview-theme.ts";
 import { updateInstalledWorkflows } from "./workflows-update.ts";
 import { UPDATE_WORKFLOWS_COMMAND } from "./workflows-version.ts";
 
@@ -89,21 +90,41 @@ export function workflowsUpdateHtml(
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';">
 <title>AI-DLC の更新</title>
 <style nonce="${nonce}">
-body { font-family: var(--vscode-font-family, system-ui); color: var(--vscode-foreground); background: var(--vscode-editor-background); line-height: 1.7; padding: 24px; }
-main { max-width: 860px; margin: auto; } h1 { font-size: 26px; }
-section { margin: 20px 0; padding: 20px; border: 1px solid var(--vscode-panel-border, #8885); border-radius: 8px; }
-h2 { margin-top: 0; font-size: 20px; }
-a.text-link, button.text-link { background: transparent; color: var(--vscode-textLink-foreground); border: 0; padding: 0; border-radius: 0; text-decoration: none; }
-a.text-link:hover, button.text-link:hover { background: transparent; color: var(--vscode-textLink-activeForeground); text-decoration: underline; }
+${webviewThemeStyles}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--vscode-font-family, system-ui); font-size: 14px; color: var(--m-text); background: var(--m-body); line-height: 1.7; padding: 24px; }
+main { max-width: 860px; margin: auto; }
+h1 { margin: 8px 0 4px; color: var(--m-bright); font-size: 30px; font-weight: 700; line-height: 1.35; }
+section { margin: 20px 0; padding: 20px 24px; border: 1px solid var(--m-border); border-radius: 8px; background: var(--m-card); box-shadow: var(--m-shadow); }
+section#gate { border: 0; background: var(--m-warning-light); box-shadow: none; }
+section#gate h2 { color: var(--m-warning); font-size: 16px; }
+h2 { margin-top: 0; color: var(--m-bright); font-size: 20px; font-weight: 700; }
+h3 { color: var(--m-bright); font-size: 15px; font-weight: 700; }
+a.text-link, button.text-link { min-height: 0; background: transparent; color: var(--m-primary-light-color); font-weight: 500; border: 0; padding: 0; border-radius: 0; text-decoration: none; }
+a.text-link, button.text-link { display: inline-block; margin: 12px 16px 0 0; }
+a.text-link:hover, button.text-link:hover { background: transparent; text-decoration: underline; }
 button.text-link:disabled { text-decoration: none; }
-table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--vscode-panel-border, #8885); }
-button { font: inherit; margin: 12px 8px 0 0; padding: 8px 14px; cursor: pointer; color: var(--vscode-button-foreground); background: var(--vscode-button-background); border: 0; border-radius: 4px; }
-button:disabled { opacity: .55; cursor: default; } button:focus-visible, a:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 3px; }
+table { width: 100%; border: 1px solid var(--m-border); border-radius: 8px; border-collapse: separate; border-spacing: 0; overflow: hidden; }
+caption { padding: 0 0 6px; color: var(--m-dimmed); font-size: 12px; text-align: left; }
+th, td { text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--m-border); }
+thead th { color: var(--m-bright); font-weight: 700; }
+tbody tr:nth-child(odd) { background: var(--m-hover); }
+tbody tr:last-child td { border-bottom: 0; }
+tbody td:first-child { font-weight: 600; }
+tbody td + td { font-family: var(--vscode-editor-font-family, monospace); font-size: 13px; }
+button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; font: inherit; font-weight: 600; margin: 12px 8px 0 0; padding: 0 18px; cursor: pointer; color: var(--m-primary-contrast); background: var(--m-primary); border: 0; border-radius: 4px; }
+button:hover { background: var(--m-primary-hover); }
+button:disabled { opacity: .55; cursor: default; } button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--m-focus); outline-offset: 2px; }
 .cli-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; }
 .cli-actions button { margin-right: 0; }
 .cli-actions #cli-result { margin: 12px 0 0; flex: 1 1 16rem; }
-pre { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--vscode-textCodeBlock-background); padding: 12px; }
-code { overflow-wrap: anywhere; } #results { padding-left: 20px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; border-radius: 4px; background: var(--m-code); padding: 12px; }
+code { overflow-wrap: anywhere; padding: 1px 6px; border-radius: 4px; background: var(--m-code); font-family: var(--vscode-editor-font-family, monospace); font-size: 13px; }
+pre code { padding: 0; background: transparent; }
+#results { padding-left: 20px; }
+main > details { margin-top: 20px; border: 1px solid var(--m-border); border-radius: 8px; background: var(--m-card); }
+main > details > summary { padding: 12px 16px; }
+main > details > pre { margin: 0 16px 16px; }
 ${repairStyles}
 </style></head><body><main>
 <h1>AI-DLC の更新</h1>

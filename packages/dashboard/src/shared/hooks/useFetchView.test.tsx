@@ -1,5 +1,5 @@
 import type { ReadResult } from "@aidlc-guide/shared-types";
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook } from "@tests/render.tsx";
 import { describe, expect, it } from "vitest";
 import { useFetchView } from "@/hooks/useFetchView.ts";
 

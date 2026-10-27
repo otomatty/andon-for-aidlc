@@ -15,20 +15,9 @@
 
 /* ---- status chip ---- */
 
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0 0.5rem;
-  border: 1px solid var(--chip-color, var(--foreground));
-  border-radius: 9999px;
-  color: var(--chip-color, var(--foreground));
-  font-size: 0.8125rem;
-  white-space: nowrap;
-}
-
+/* The chip itself is Mantine's Badge (shared/ui/StatusChip.tsx). */
 .chip__symbol {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   line-height: 1;
 }
 
@@ -96,34 +85,47 @@
 
 /* ---- matrix ---- */
 
+/* Mantine's Table look: rules between rows, striped body, bold header. */
 .matrix__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
 }
 
 .matrix__table th,
 .matrix__table td {
-  border: 1px solid var(--border);
-  padding: 0.375rem 0.5rem;
-  text-align: center;
+  border-bottom: 1px solid var(--border);
+  padding: 0.375rem 1rem;
+  text-align: left;
   vertical-align: middle;
   white-space: nowrap;
 }
 
+.matrix__table thead th {
+  padding-block: 0.625rem;
+  font-weight: 700;
+}
+
+.matrix__table thead th + th,
 .matrix__table th[scope="row"] {
-  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+.matrix__table th[scope="row"] {
+  font-weight: 400;
+}
+
+.matrix__table tbody tr:nth-child(odd) {
+  background: color-mix(in oklch, var(--muted) 60%, transparent);
+}
+
+.matrix__table tbody tr:last-child > * {
+  border-bottom: 0;
 }
 
 .cell--absent {
   color: var(--muted-foreground);
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 4px,
-    color-mix(in oklch, var(--muted) 55%, transparent) 4px,
-    color-mix(in oklch, var(--muted) 55%, transparent) 8px
-  );
 }
 
 .cell__error {
@@ -131,14 +133,25 @@
   font-size: 0.75rem;
 }
 
+/* The verdict as a small light badge, the status colour on a 10% tint. */
+.cell__verdict {
+  display: inline-flex;
+  align-items: center;
+  height: 1.125rem;
+  padding: 0 0.5rem;
+  border-radius: 1000px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 .cell__verdict[data-verdict="READY"] {
   color: var(--color-status-done);
-  font-size: 0.6875rem;
 }
 
 .cell__verdict[data-verdict="NOT-READY"] {
   color: var(--color-status-gate);
-  font-size: 0.6875rem;
 }
 
 /* ---- artifact viewer / highlight.js ---- */
@@ -264,6 +277,13 @@
 /* A task item's checkbox is its marker; a bullet beside it would double up. */
 .viewer__surface .viewer__task-item {
   list-style: none;
+}
+
+/* The checkbox in the primary colour, a step from its text, like Mantine's. */
+.viewer__surface .viewer__task-item input[type="checkbox"] {
+  margin-inline-end: 0.5rem;
+  accent-color: var(--primary);
+  vertical-align: -0.125em;
 }
 
 .viewer__surface li::marker {

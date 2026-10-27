@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen } from "@tests/render.tsx";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NowStripSkeleton } from "@/shell/now-strip/NowStripSkeleton.tsx";

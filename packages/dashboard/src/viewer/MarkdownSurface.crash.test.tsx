@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen } from "@tests/render.tsx";
 import { describe, expect, it, vi } from "vitest";
 import { MarkdownSurface } from "@/viewer/MarkdownSurface.tsx";
 

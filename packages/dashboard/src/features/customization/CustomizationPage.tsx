@@ -426,11 +426,11 @@ export default function CustomizationPage({
       onCompositionStart={() => setComposing(true)}
       onCompositionEnd={() => setComposing(false)}
     >
-      <header className="grid grid-cols-title-actions items-center gap-x-5 gap-y-3 min-[820px]:flex">
-        <h1 className="text-xl font-semibold">カスタマイズ</h1>
+      <header className="grid grid-cols-title-actions items-end gap-x-5 gap-y-3 min-[820px]:flex">
+        <h1 className="text-page-title font-bold">カスタマイズ</h1>
         {view.catalog ? (
-          <div className="order-3 col-span-2 flex min-w-0 flex-wrap items-center gap-x-5 gap-y-3 min-[820px]:order-0">
-            <Field orientation="horizontal" className="w-auto">
+          <div className="order-3 col-span-2 flex min-w-0 flex-wrap items-end gap-x-4 gap-y-3 min-[820px]:order-0">
+            <Field className="w-auto">
               <FieldLabel htmlFor="customization-space" className="shrink-0 whitespace-nowrap">
                 対象スペース
               </FieldLabel>
@@ -451,7 +451,7 @@ export default function CustomizationPage({
                 options={view.catalog.spaces.map((space) => ({ value: space, label: space }))}
               />
             </Field>
-            <Field orientation="horizontal" className="w-auto">
+            <Field className="w-auto">
               <FieldLabel htmlFor="customization-plugin" className="shrink-0 whitespace-nowrap">
                 プラグイン
               </FieldLabel>
@@ -482,13 +482,13 @@ export default function CustomizationPage({
                 ? "未保存"
                 : STATUS[view.status]}
           </Badge>
-          <DropdownMenu>
+          <DropdownMenu position="bottom-end" width={224}>
             <DropdownMenuTrigger
               render={<Button variant="ghost" size="icon" aria-label="その他の操作" />}
             >
               <Ellipsis className="size-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent>
               <DropdownMenuItem
                 onClick={() => {
                   setCategory("plugins");

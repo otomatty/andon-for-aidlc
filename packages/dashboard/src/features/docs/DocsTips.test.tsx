@@ -1,10 +1,9 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DocsDeepLink } from "@/app/routes.ts";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { DocsShell } from "@/features/docs/DocsPage.tsx";
 import { StoreProvider } from "@/store/context.tsx";
 
@@ -56,9 +55,7 @@ function showTips(deepLink?: DocsDeepLink, tocError = false): void {
   );
   render(
     <StoreProvider preloaded={{ route: { name: "docs", ...(deepLink ? { deepLink } : {}) } }}>
-      <TooltipProvider>
-        <DocsShell />
-      </TooltipProvider>
+      <DocsShell />
     </StoreProvider>,
   );
 }

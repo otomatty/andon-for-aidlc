@@ -28,7 +28,6 @@
     "docs/reference/",
     "docs/harness-engineering/",
     "bun.lock",
-    "packages/dashboard/src/shared/styles/vendor/shadcn-4.21.0/tailwind.css",
     "packages/docs-bridge/data/artifact-map.json",
     "docs/official-docs.index.json",
     "**/*.md",

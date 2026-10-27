@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen } from "@tests/render.tsx";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { IoArtifactPreview } from "@/features/stage/components/IoArtifactPreview.tsx";

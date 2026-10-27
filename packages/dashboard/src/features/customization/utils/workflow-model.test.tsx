@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSyn
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { CustomizationItem } from "@aidlc-guide/shared-types";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@tests/render.tsx";
 import { describe, expect, it, vi } from "vitest";
 import graph from "../../../../../../.claude/tools/data/stage-graph.json";
 import { CustomizationExplorer } from "@/features/customization/components/explorer/CustomizationExplorer";
@@ -358,8 +358,8 @@ it("fixes all initialization checkboxes and does not open a drawer when checking
   fireEvent.click(screen.getByRole("tab", { name: "実行するステージ" }));
   for (const slug of ["workspace-scaffold", "workspace-detection", "state-init"])
     expect(
-      screen.getByRole("checkbox", { name: `${slug} を実行` }).getAttribute("aria-disabled"),
-    ).toBe("true");
+      (screen.getByRole("checkbox", { name: `${slug} を実行` }) as HTMLInputElement).disabled,
+    ).toBe(true);
   fireEvent.click(screen.getByRole("checkbox", { name: "code-generation を実行" }));
   expect(onItems).toHaveBeenCalled();
   expect(screen.queryByRole("dialog")).toBeNull();

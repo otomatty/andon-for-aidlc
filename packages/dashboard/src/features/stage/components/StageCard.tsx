@@ -49,11 +49,11 @@ function List({
   const locale = useAppState().officialDocsLocale;
   return (
     <div data-onboarding={onboardingAnchor}>
-      <CardDescription>{label}</CardDescription>
+      <SectionLabel>{label}</SectionLabel>
       {items.length === 0 ? (
-        <p>（なし）</p>
+        <p className="text-muted-foreground">（なし）</p>
       ) : (
-        <ul className="list-disc pl-5">
+        <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {items.map((item) => {
             const path = paths?.[item];
             const description = describeArtifact(docs[item], locale);
@@ -68,10 +68,10 @@ function List({
                       onPreviewIo(path);
                     }}
                   >
-                    {item}
+                    <span className="font-mono">{item}</span>
                   </Button>
                 ) : (
-                  <span className="text-muted-foreground">{item}</span>
+                  <span className="font-mono text-muted-foreground">{item}</span>
                 )}
                 {description === null ? null : (
                   <p
@@ -88,6 +88,11 @@ function List({
       )}
     </div>
   );
+}
+
+/** A part's name inside the card: bold, a step below the card title. */
+function SectionLabel({ children }: { children: ReactNode }): ReactNode {
+  return <h4 className="mb-1.5 text-sm font-bold">{children}</h4>;
 }
 
 function DocsLink({ doc }: { doc: StageDoc }): ReactNode {
@@ -138,36 +143,42 @@ function AgentLink({ agentId, label }: { agentId: string; label: string }): Reac
 
 export function StageCard({ doc, ioPaths = null, onPreviewIo }: StageCardProps): ReactNode {
   return (
-    <Card className="overflow-visible" data-testid={`stage-card-${doc.slug}`}>
+    <Card size="lg" className="overflow-visible" data-testid={`stage-card-${doc.slug}`}>
       <CardHeader>
         <CardTitle>目的</CardTitle>
         <CardDescription>{doc.purpose}</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <List
-          label="入力"
-          items={doc.inputs}
-          paths={ioPaths?.inputs ?? null}
-          docs={doc.artifactDocs}
-          onPreviewIo={onPreviewIo}
-        />
-        <List
-          label="出力"
-          items={doc.outputs}
-          paths={ioPaths?.outputs ?? null}
-          docs={doc.artifactDocs}
-          onPreviewIo={onPreviewIo}
-          onboardingAnchor="stage-outputs"
-        />
-        <div>
-          <CardDescription>担当エージェント</CardDescription>
-          <AgentLink agentId={doc.agent} label={doc.agentDisplayName} />
+      <CardContent className="flex flex-col gap-5">
+        <div className="grid gap-5 md:grid-cols-2">
+          <List
+            label="入力"
+            items={doc.inputs}
+            paths={ioPaths?.inputs ?? null}
+            docs={doc.artifactDocs}
+            onPreviewIo={onPreviewIo}
+          />
+          <List
+            label="出力"
+            items={doc.outputs}
+            paths={ioPaths?.outputs ?? null}
+            docs={doc.artifactDocs}
+            onPreviewIo={onPreviewIo}
+            onboardingAnchor="stage-outputs"
+          />
         </div>
-        <div data-onboarding="gate-requirement">
-          <CardDescription>ゲート要求</CardDescription>
-          <p>{doc.gateRequirement}</p>
+        <div className="grid gap-5 md:grid-cols-2">
+          <div>
+            <SectionLabel>担当エージェント</SectionLabel>
+            <AgentLink agentId={doc.agent} label={doc.agentDisplayName} />
+          </div>
+          <div data-onboarding="gate-requirement">
+            <SectionLabel>ゲート要求</SectionLabel>
+            <p>{doc.gateRequirement}</p>
+          </div>
         </div>
-        <DocsLink doc={doc} />
+        <div className="border-t pt-4 empty:hidden">
+          <DocsLink doc={doc} />
+        </div>
         {/* Bolt 4 / FR-B4-1: never mount doc.excerpt as article (UI-only; API may still return it). */}
       </CardContent>
     </Card>

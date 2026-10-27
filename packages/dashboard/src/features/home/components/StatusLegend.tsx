@@ -39,7 +39,7 @@ export function StatusLegend(): ReactNode {
         凡例
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent data-testid="legend-dialog" size="scroll" tabIndex={0}>
+        <DialogContent data-testid="legend-dialog" size="scroll">
           <DialogHeader className="pr-6">
             <DialogTitle>凡例</DialogTitle>
             <DialogDescription>
@@ -48,7 +48,9 @@ export function StatusLegend(): ReactNode {
             </DialogDescription>
           </DialogHeader>
           <ul
-            className="flex flex-col gap-3"
+            // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- the keyboard must reach a legend taller than the screen to scroll it
+            tabIndex={0}
+            className="flex flex-col gap-3 rounded-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             data-testid="legend-list"
             aria-label="ステージ状態の凡例一覧"
           >

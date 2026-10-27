@@ -1,3 +1,4 @@
+import { BookOpenIcon } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { fetchOfficialDocsStageMap } from "@/services/api.ts";
@@ -59,7 +60,7 @@ export function OpenOfficialDocLink({
   };
 
   return (
-    <p>
+    <p className="flex flex-wrap items-center gap-3">
       <Button
         type="button"
         variant="default"
@@ -67,13 +68,11 @@ export function OpenOfficialDocLink({
         aria-label={OPEN_IN_DOCS_LABEL}
         onClick={onActivate}
       >
+        <BookOpenIcon />
         {OPEN_IN_DOCS_LABEL}
       </Button>
       {sourceVersion === undefined ? null : (
-        <>
-          {" "}
-          <span className="text-muted-foreground">（sync: {sourceVersion}）</span>
-        </>
+        <span className="text-xs text-muted-foreground">（sync: {sourceVersion}）</span>
       )}
     </p>
   );

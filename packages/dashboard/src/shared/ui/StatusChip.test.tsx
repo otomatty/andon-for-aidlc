@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render } from "@tests/render.tsx";
 import { describe, expect, it } from "vitest";
 import { CHIP_STATUSES, STATUS_PRESENTATION, StatusChip } from "@/shared/ui/StatusChip.tsx";
 

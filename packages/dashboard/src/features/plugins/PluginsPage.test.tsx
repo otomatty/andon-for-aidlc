@@ -4,7 +4,7 @@ import type {
   PluginsState,
 } from "@aidlc-guide/shared-types";
 import { BUNDLED_PLUGINS } from "@aidlc-guide/shared-types";
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PluginsPanel } from "@/features/plugins/PluginsPage.tsx";

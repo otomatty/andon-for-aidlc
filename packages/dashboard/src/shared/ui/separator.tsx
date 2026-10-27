@@ -1,16 +1,20 @@
-import { Separator as SeparatorPrimitive } from "@base-ui/react/separator";
+import { Divider } from "@mantine/core";
+import type * as React from "react";
 
-import { cn } from "@/lib/utils";
-
-function Separator({ className, orientation = "horizontal", ...props }: SeparatorPrimitive.Props) {
+function Separator({
+  className,
+  orientation = "horizontal",
+  ...props
+}: Omit<React.ComponentPropsWithRef<"div">, "color"> & {
+  orientation?: "horizontal" | "vertical";
+}) {
   return (
-    <SeparatorPrimitive
+    <Divider
       data-slot="separator"
+      role="separator"
+      aria-orientation={orientation}
       orientation={orientation}
-      className={cn(
-        "shrink-0 bg-border data-horizontal:h-px data-horizontal:w-full data-vertical:w-px data-vertical:self-stretch",
-        className,
-      )}
+      className={className}
       {...props}
     />
   );

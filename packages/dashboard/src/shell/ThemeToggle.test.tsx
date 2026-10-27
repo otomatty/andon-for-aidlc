@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen } from "@tests/render.tsx";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ThemeToggle } from "@/shell/ThemeToggle.tsx";
 import { StoreProvider } from "@/store/context.tsx";

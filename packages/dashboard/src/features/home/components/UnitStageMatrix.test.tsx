@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { UnitStageMatrix } from "@/features/home/components/UnitStageMatrix.tsx";
@@ -83,13 +83,15 @@ describe("UnitStageMatrix (FR-4.3)", () => {
     const dialog = screen.getByRole("dialog", { name: "凡例" });
     const close = within(dialog).getByRole("button", { name: "閉じる" });
 
+    const legend = within(dialog).getByRole("list", { name: "ステージ状態の凡例一覧" });
+
     close.focus();
     await userEvent.tab({ shift: true });
-    expect(document.activeElement).toBe(dialog);
+    expect(document.activeElement).toBe(legend);
     await userEvent.tab();
     expect(document.activeElement).toBe(close);
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog", { name: "凡例" })).toBeNull();
-    expect(document.activeElement).toBe(trigger);
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
   });
 });

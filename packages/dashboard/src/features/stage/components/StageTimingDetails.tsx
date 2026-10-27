@@ -48,7 +48,7 @@ export function StageTimingDetails({
     ["割り当てできない時間", breakdown?.unattributedMs],
   ] as const;
   return (
-    <Card data-testid="stage-timing-details">
+    <Card size="lg" data-testid="stage-timing-details">
       <CardHeader>
         <CardTitle>時間の内訳</CardTitle>
         <CardDescription>
@@ -56,11 +56,13 @@ export function StageTimingDetails({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <dl className="grid grid-cols-label-value gap-x-4 gap-y-2 text-sm">
+        <dl className="grid max-w-xl grid-cols-label-value text-sm">
           {rows.map(([label, ms]) => (
             <div className="contents" key={label}>
-              <dt>{label}</dt>
-              <dd className="text-right tabular-nums">{formatTimingDuration(ms)}</dd>
+              <dt className="border-b py-2">{label}</dt>
+              <dd className="border-b py-2 text-right font-bold tabular-nums">
+                {formatTimingDuration(ms)}
+              </dd>
             </div>
           ))}
         </dl>
@@ -113,15 +115,15 @@ export function StageTimingDetails({
         )}
         {(view?.sensitivity?.length ?? 0) > 0 ? (
           <div className="flex flex-col gap-2 text-sm">
-            <h3 className="font-medium">区切り設定による変動幅</h3>
-            <dl className="grid grid-cols-label-value gap-x-4 gap-y-2">
+            <h3 className="font-bold">区切り設定による変動幅</h3>
+            <dl className="grid max-w-xl grid-cols-label-value overflow-hidden rounded-md border">
               {view?.sensitivity?.map((comparison) => (
                 <div className="contents" key={comparison.thresholdMs}>
-                  <dt>
+                  <dt className="border-b px-4 py-2.5">
                     {formatTimingDuration(comparison.thresholdMs)}で区切る
                     {comparison.thresholdMs === policy?.gapThresholdMs ? "（使用中）" : ""}
                   </dt>
-                  <dd className="text-right tabular-nums">
+                  <dd className="border-b px-4 py-2.5 text-right tabular-nums">
                     {formatTimingDuration(comparison.workMs)}
                   </dd>
                 </div>

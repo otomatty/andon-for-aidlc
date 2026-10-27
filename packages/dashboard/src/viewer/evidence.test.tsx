@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen } from "@tests/render.tsx";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { MarkdownEvidence } from "@/viewer/evidence.ts";

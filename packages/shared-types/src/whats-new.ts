@@ -13,6 +13,13 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "mantine-look",
+    date: "2026-10-27",
+    title: "ダッシュボードの見た目を新しくしました",
+    body: "ステージ一覧は終わったフェーズを要約にたたみ、工程をタイムラインで示します。現在のステージの項目はカードに、完了は進捗バーで表示します。セットアップと更新の画面も同じ配色にそろえました。",
+    action: { label: "ステージ一覧を開く", target: "home" },
+  },
+  {
     id: "setup-three-steps",
     date: "2026-10-27",
     title: "セットアップ画面を 3 つの手順に整理しました",

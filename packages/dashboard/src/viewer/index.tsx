@@ -57,7 +57,7 @@ function ViewerToolbar({
 }): ReactNode {
   const canEdit = editPath !== null && canOpenDocsInIde();
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-2" data-testid="viewer-toolbar">
+    <div className="mb-5 flex flex-wrap items-center gap-2" data-testid="viewer-toolbar">
       <Tabs
         value={open}
         onValueChange={(value) => {
@@ -72,6 +72,7 @@ function ViewerToolbar({
           ))}
         </TabsList>
       </Tabs>
+      <span className="flex-1" />
       {verdict === null ? null : (
         <span className="cell__verdict" data-verdict={verdict} data-testid="viewer-verdict">
           {verdict}
@@ -162,7 +163,11 @@ export function ArtifactViewer({ unit, stage, files, verdict }: ArtifactViewerPr
   }
 
   return (
-    <section className="viewer" aria-label="成果物" data-testid="artifact-viewer">
+    <section
+      className="viewer rounded-md border bg-card px-6 pt-3 pb-6"
+      aria-label="成果物"
+      data-testid="artifact-viewer"
+    >
       <ViewerToolbar
         files={files}
         open={open}

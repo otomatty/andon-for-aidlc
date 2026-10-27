@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@tests/render.tsx";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TourAnchor } from "./steps.ts";
 import { ANCHOR_TIMEOUT_MS, useTourAnchor } from "./useTourAnchor.ts";
@@ -48,7 +48,11 @@ describe("useTourAnchor", () => {
   });
 
   it("jumps instead of animating for users who prefer reduced motion", async () => {
-    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query.includes("reduce") }));
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query.includes("reduce"),
+      addEventListener() {},
+      removeEventListener() {},
+    }));
     const now = element("now");
     document.body.append(now.node);
     const { result } = renderHook(() => useTourAnchor(anchor("now")));

@@ -139,7 +139,7 @@ function PluginCard({
 function Section({ title, children }: { title: string; children: ReactNode }): ReactNode {
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-sm font-semibold">{title}</h3>
+      <h3 className="text-section-title font-bold">{title}</h3>
       {children}
     </section>
   );
@@ -151,10 +151,8 @@ function StageFlow({ stages }: { stages: BundledPluginStage[] }): ReactNode {
     <div data-testid="plugin-stages" className="flex flex-col gap-3">
       {phases.map((phase) => (
         <div key={phase} className="flex flex-col gap-1">
-          <p className="text-xs font-medium text-muted-foreground">
-            {PHASE_LABELS[phase] ?? phase}
-          </p>
-          <ol className="flex flex-col gap-1">
+          <p className="text-xs font-bold text-muted-foreground">{PHASE_LABELS[phase] ?? phase}</p>
+          <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {stages
               .filter((stage) => stage.phase === phase)
               .map((stage) => {
@@ -163,10 +161,11 @@ function StageFlow({ stages }: { stages: BundledPluginStage[] }): ReactNode {
                   <li
                     key={stage.slug}
                     data-origin={stage.origin}
-                    className="flex flex-wrap items-center gap-2 rounded-md border px-3 py-1.5 text-sm data-[origin=plugin]:border-primary"
+                    className="flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-md border bg-card px-3.5 py-2.5 text-sm data-[origin=plugin]:border-primary data-[origin=plugin]:bg-primary-light"
                   >
-                    <span>{stage.name}</span>
+                    <span className="font-bold">{stage.name}</span>
                     <span className="font-mono text-xs text-muted-foreground">{stage.slug}</span>
+                    <span className="flex-1" />
                     {origin === null ? null : (
                       <Badge variant={stage.origin === "plugin" ? "default" : "secondary"}>
                         {origin}
@@ -188,11 +187,11 @@ function StageFlow({ stages }: { stages: BundledPluginStage[] }): ReactNode {
 
 function FileList({ title, files }: { title: string; files: string[] }): ReactNode {
   return (
-    <details className="text-sm">
-      <summary className="cursor-pointer">
+    <details className="border-b text-sm last:border-b-0">
+      <summary className="cursor-pointer px-4 py-3 hover:bg-muted">
         {title}（{files.length} 件）
       </summary>
-      <ul className="mt-1 flex flex-col gap-0.5 font-mono text-xs wrap-anywhere">
+      <ul className="flex flex-col gap-0.5 px-4 pb-3 font-mono text-xs wrap-anywhere">
         {files.map((file) => (
           <li key={file}>{file}</li>
         ))}
@@ -203,6 +202,10 @@ function FileList({ title, files }: { title: string; files: string[] }): ReactNo
 
 const MARKS: Record<string, string> = { true: "✔", false: "✖", null: "？" };
 
+/** One prerequisite as a row of a ruled, striped list. */
+const REQUIREMENT_ROW =
+  "flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-4 py-2.5 last:border-b-0 odd:bg-muted/60";
+
 function Prerequisites({
   host,
   items,
@@ -211,10 +214,19 @@ function Prerequisites({
   items: PluginPrerequisite[];
 }): ReactNode {
   return (
-    <ul data-testid="plugin-requirements" className="flex flex-col gap-1.5 text-sm">
+    <ul
+      data-testid="plugin-requirements"
+      className="m-0 flex list-none flex-col overflow-hidden rounded-md border p-0 text-sm"
+    >
       {items.map((item) => (
-        <li key={item.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span aria-hidden="true">{MARKS[String(item.met)]}</span>
+        <li key={item.id} data-met={String(item.met)} className={REQUIREMENT_ROW}>
+          <span
+            aria-hidden="true"
+            className="w-4 text-center font-bold data-[met=false]:text-destructive data-[met=true]:text-status-done"
+            data-met={String(item.met)}
+          >
+            {MARKS[String(item.met)]}
+          </span>
           <Badge variant={item.level === "required" ? "secondary" : "outline"}>
             {LEVEL_LABELS[item.level]}
           </Badge>
@@ -251,7 +263,10 @@ function PluginActions({ plugin, host }: { plugin: BundledPlugin; host: PluginsH
   const detail = state.plugins.find((entry) => entry.name === plugin.name)?.detail;
   const own = result?.name === plugin.name ? result : null;
   return (
-    <section className="flex flex-col gap-2 rounded-md border p-3" data-testid="plugin-actions">
+    <section
+      className="flex flex-col gap-2 rounded-md border bg-card p-4 shadow-xs"
+      data-testid="plugin-actions"
+    >
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span>このプロジェクトでは</span>
         <InstallStatus host={host} name={plugin.name} />
@@ -366,7 +381,7 @@ function PluginDetail({
             一覧に戻る
           </Button>
         </div>
-        <h2 className="flex flex-wrap items-center gap-2 text-lg font-semibold">
+        <h2 className="flex flex-wrap items-center gap-2 text-page-title font-bold">
           <span>{plugin.title}</span>
           <span className="font-mono text-xs text-muted-foreground">v{plugin.version}</span>
           <StatusBadge plugin={plugin} />
@@ -394,16 +409,16 @@ function PluginDetail({
           </figure>
         )}
         <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">合う人</p>
+          <div className="rounded-md border bg-card p-4 shadow-xs">
+            <p className="mb-2 font-bold text-status-done">合う人</p>
             <ul className="list-disc pl-5 text-sm">
               {plugin.fitFor.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
           </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">合わない人</p>
+          <div className="rounded-md border bg-card p-4 shadow-xs">
+            <p className="mb-2 font-bold text-destructive">合わない人</p>
             <ul className="list-disc pl-5 text-sm">
               {plugin.notFitFor.map((item) => (
                 <li key={item}>{item}</li>
@@ -417,13 +432,16 @@ function PluginDetail({
         {host.state !== null ? (
           <Prerequisites host={host} items={host.state.prerequisites} />
         ) : (
-          <ul data-testid="plugin-requirements" className="flex flex-col gap-1.5 text-sm">
-            <li>
+          <ul
+            data-testid="plugin-requirements"
+            className="m-0 flex list-none flex-col overflow-hidden rounded-md border p-0 text-sm"
+          >
+            <li className={REQUIREMENT_ROW}>
               <Badge variant="secondary">必須</Badge> Claude Code（
               <code className="font-mono">.claude</code>）で AI-DLC を使っていること
             </li>
             {plugin.requirements.map((requirement) => (
-              <li key={requirement.id}>
+              <li key={requirement.id} className={REQUIREMENT_ROW}>
                 <Badge variant={requirement.level === "required" ? "secondary" : "outline"}>
                   {LEVEL_LABELS[requirement.level]}
                 </Badge>{" "}
@@ -437,8 +455,10 @@ function PluginDetail({
 
       <Section title="追加・変更されるファイル">
         <div data-testid="plugin-files" className="flex flex-col gap-1.5">
-          <FileList title="追加されるファイル" files={plugin.files.added} />
-          <FileList title="変更されるファイル" files={plugin.files.changed} />
+          <div className="overflow-hidden rounded-md border bg-card">
+            <FileList title="追加されるファイル" files={plugin.files.added} />
+            <FileList title="変更されるファイル" files={plugin.files.changed} />
+          </div>
           <p className="text-xs text-muted-foreground">
             アプリケーションのコードは変えません。変わるのは AI-DLC の設定（
             <code className="font-mono">.claude/</code>

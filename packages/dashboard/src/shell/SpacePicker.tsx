@@ -1,4 +1,5 @@
 import type { SpaceCatalog } from "@aidlc-guide/shared-types";
+import { ChevronDownIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -85,7 +86,8 @@ export function SpacePicker() {
           setOpen(true);
         }}
       >
-        <span className="truncate">Space: {active ?? "…"}</span>
+        <span className="truncate font-medium">Space: {active ?? "…"}</span>
+        <ChevronDownIcon data-icon="inline-end" className="text-muted-foreground" />
       </Button>
       <Dialog
         open={open}

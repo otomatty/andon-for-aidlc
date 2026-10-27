@@ -54,6 +54,7 @@ export function DocsNavigation({
 
   return (
     <Tabs
+      variant="segmented"
       value={category}
       onValueChange={(value) => {
         if (value === "workflow" || value === "extension") {
@@ -76,7 +77,12 @@ export function DocsNavigation({
         <p className="mb-3 px-4 text-sm text-muted-foreground">
           aidlc-workflows の公式ドキュメント、更新履歴、運用Tipsを調べる。
         </p>
-        <Accordion key={workflowSection} defaultValue={[workflowSection]} className="px-4">
+        <Accordion
+          key={workflowSection}
+          variant="contained"
+          defaultValue={[workflowSection]}
+          className="px-4"
+        >
           <AccordionItem value="official">
             <AccordionTrigger>公式ドキュメント</AccordionTrigger>
             <AccordionContent>

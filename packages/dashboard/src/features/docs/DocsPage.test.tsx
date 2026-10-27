@@ -1,11 +1,10 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { type ReactNode, useEffect, useRef } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { DetailPanel } from "@/features/stage/StagePage.tsx";
 import { DocsShell } from "@/features/docs/DocsPage.tsx";
 import { AnchorApplier, slugifyHeading } from "@/features/docs/components/qa/AnchorApplier.tsx";
@@ -275,10 +274,8 @@ function stubOfficialDocsApi(options?: StubOptions): ReturnType<typeof vi.fn> {
 function Harness(): ReactNode {
   return (
     <StoreProvider>
-      <TooltipProvider>
-        <Header />
-        <DocsShell />
-      </TooltipProvider>
+      <Header />
+      <DocsShell />
     </StoreProvider>
   );
 }
@@ -310,10 +307,8 @@ function DeepLinkHarness({
 }): ReactNode {
   return (
     <StoreProvider>
-      <TooltipProvider>
-        <DeepLinkOpen path={path} anchor={anchor} locale={locale} />
-        <DocsShell />
-      </TooltipProvider>
+      <DeepLinkOpen path={path} anchor={anchor} locale={locale} />
+      <DocsShell />
     </StoreProvider>
   );
 }
@@ -398,10 +393,8 @@ describe("DocsShell — walking skeleton", () => {
     const fetchMock = stubOfficialDocsApi();
     render(
       <StoreProvider preloaded={{ route: { name: "stage", slug: "code-generation" } }}>
-        <TooltipProvider>
-          <DetailPanel />
-          <DocsShell />
-        </TooltipProvider>
+        <DetailPanel />
+        <DocsShell />
       </StoreProvider>,
     );
     await userEvent.click(screen.getByRole("tab", { name: "時間" }));
@@ -793,12 +786,10 @@ describe("DocsShell — walking skeleton", () => {
     stubOfficialDocsApi();
     render(
       <StoreProvider>
-        <TooltipProvider>
-          <Header />
-          <HostDeepLinkButton />
-          <HostDocsHomeButton />
-          <DocsShell />
-        </TooltipProvider>
+        <Header />
+        <HostDeepLinkButton />
+        <HostDocsHomeButton />
+        <DocsShell />
       </StoreProvider>,
     );
     await openDocs();
@@ -848,10 +839,8 @@ describe("DocsShell — walking skeleton", () => {
     const fetchMock = stubOfficialDocsApi();
     render(
       <StoreProvider>
-        <TooltipProvider>
-          <HostDeepLinkButton />
-          <DocsShell />
-        </TooltipProvider>
+        <HostDeepLinkButton />
+        <DocsShell />
       </StoreProvider>,
     );
     const trigger = screen.getByRole("button", { name: "Open host document link" });

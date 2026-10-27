@@ -3,14 +3,7 @@ import { RefreshCwIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFetchView } from "@/hooks/useFetchView.ts";
 import { fetchEffectiveness } from "@/services/api.ts";
 import { useAppState, useDispatch } from "@/store/context.tsx";
@@ -48,11 +41,11 @@ function MetricCard({
         <CardDescription>{detail}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-2xl font-medium tabular-nums">{value}</p>
+        <p className="text-3xl font-bold tabular-nums">{value}</p>
       </CardContent>
-      <CardFooter>
-        <p className="text-xs text-muted-foreground">{evidence}</p>
-      </CardFooter>
+      <CardContent className="mt-auto">
+        <p className="border-t pt-3 text-xs text-muted-foreground">{evidence}</p>
+      </CardContent>
     </Card>
   );
 }
@@ -158,7 +151,7 @@ function Comparison({
           <Summary rows={rows} />
           <section className="grid min-w-0 gap-4" aria-labelledby="effectiveness-records-heading">
             <div className="grid gap-1">
-              <h2 id="effectiveness-records-heading" className="text-base font-medium">
+              <h2 id="effectiveness-records-heading" className="text-section-title font-bold">
                 案件ごとの記録
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -208,9 +201,6 @@ function EffectivenessContent({ space }: { space: string | null }): ReactNode {
       testId="effectiveness-panel"
       returnFocusSelector='[data-testid="header-menu-trigger"]'
       onClose={close}
-      onEscapeKeyDown={() => {
-        if (!filtersOpen) close();
-      }}
       actions={
         <>
           <EffectivenessFilters

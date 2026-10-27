@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import path from "node:path";
-import { render, screen } from "@testing-library/react";
+import { render, screen } from "@tests/render.tsx";
 import { type ReactNode, useState } from "react";
 import { describe, expect, it } from "vitest";
 

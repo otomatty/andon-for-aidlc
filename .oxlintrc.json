@@ -288,6 +288,23 @@
     {
       "files": ["packages/dashboard/src/**"],
       "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@base-ui/**",
+                  "@radix-ui/**",
+                  "@shadcn/react",
+                  "@shadcn/react/**",
+                  "class-variance-authority"
+                ],
+                "message": "The dashboard's UI is Mantine behind src/shared/ui. Add or extend a part there."
+              }
+            ]
+          }
+        ],
         "react/no-danger": "error",
         "react/no-danger-with-children": "error",
         "shadcn/no-restyle": [
@@ -345,7 +362,46 @@
       "files": ["packages/dashboard/src/shared/ui/**"],
       "rules": {
         "shadcn/no-restyle": "off",
-        "shadcn/no-arbitrary-values": "off"
+        "shadcn/no-arbitrary-values": "off",
+        "shadcn/require-static-classes": "off"
+      }
+    },
+    {
+      "files": [
+        "packages/dashboard/src/**/*.test.ts",
+        "packages/dashboard/src/**/*.test.tsx",
+        "packages/dashboard/tests/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@testing-library/react",
+                "message": "Import from @tests/render.tsx so the render has a MantineProvider."
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "@base-ui/**",
+                  "@radix-ui/**",
+                  "@shadcn/react",
+                  "@shadcn/react/**",
+                  "class-variance-authority"
+                ],
+                "message": "The dashboard's UI is Mantine behind src/shared/ui. Add or extend a part there."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/dashboard/tests/render.tsx", "packages/dashboard/tests/setup.ts"],
+      "rules": {
+        "no-restricted-imports": "off"
       }
     }
   ]

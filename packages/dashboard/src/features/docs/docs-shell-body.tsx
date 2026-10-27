@@ -14,7 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip } from "@/components/ui/tooltip";
 import { useFetchView } from "@/hooks/useFetchView.ts";
 import {
   fetchGuide,
@@ -300,35 +300,22 @@ export function DocsShell(): ReactNode {
       returnFocusSelector='[data-testid="header-menu-trigger"]'
       title={title}
       onClose={onClose}
-      onEscapeKeyDown={(event) => {
-        if (drawerOpen) {
-          event.preventDefault();
-          setDrawerOpen(false);
-          return;
-        }
-        onClose();
-      }}
       leading={
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                data-testid="docs-menu"
-                aria-label="ドキュメント一覧"
-                aria-expanded={drawerOpen}
-                aria-haspopup="dialog"
-                onClick={() => {
-                  setDrawerOpen(true);
-                }}
-              />
-            }
+        <Tooltip label="ドキュメント一覧">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            data-testid="docs-menu"
+            aria-label="ドキュメント一覧"
+            aria-expanded={drawerOpen}
+            aria-haspopup="dialog"
+            onClick={() => {
+              setDrawerOpen(true);
+            }}
           >
             <MenuIcon />
-          </TooltipTrigger>
-          <TooltipContent>ドキュメント一覧</TooltipContent>
+          </Button>
         </Tooltip>
       }
       actions={
@@ -418,11 +405,7 @@ export function DocsShell(): ReactNode {
         </div>
       </LoadingSequence>
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent
-          side="left"
-          data-testid="docs-drawer"
-          className="data-[side=left]:w-full data-[side=left]:sm:max-w-md"
-        >
+        <SheetContent side="left" data-testid="docs-drawer" size="min(100%, 28rem)">
           <SheetHeader>
             <SheetTitle>ドキュメント一覧</SheetTitle>
             <SheetDescription>種類を切り替えて、読みたいページを選んでください。</SheetDescription>

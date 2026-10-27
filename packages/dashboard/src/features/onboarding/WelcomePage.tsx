@@ -101,11 +101,11 @@ export default function WelcomePage(): ReactNode {
       data-testid="welcome-page"
     >
       <header className="flex flex-col gap-4">
-        <p className="text-sm font-medium text-muted-foreground">はじめに</p>
+        <p className="text-sm font-semibold text-primary-light-foreground">はじめに</p>
         <h1
           ref={heading}
           tabIndex={-1}
-          className="text-2xl font-semibold tracking-tight text-balance outline-none"
+          className="text-page-title font-bold text-balance outline-none"
         >
           AIと進める開発の、現在地と次の一手がわかる。
         </h1>
@@ -132,7 +132,7 @@ export default function WelcomePage(): ReactNode {
             id="welcome-basics-title"
             ref={basicsHeading}
             tabIndex={-1}
-            className="text-lg font-medium outline-none"
+            className="text-section-title font-bold outline-none"
           >
             まず押さえる3つのこと
           </h2>
@@ -140,21 +140,29 @@ export default function WelcomePage(): ReactNode {
             画像は説明用の表示例です。画像の中のボタンは操作できません。
           </p>
         </div>
-        <ol className="m-0 flex list-none flex-col gap-8 p-0">
-          {BASICS.map((shot) => (
-            <li key={shot.id} className="flex flex-col gap-3">
-              <h3 className="text-base font-medium">{shot.title}</h3>
+        <ol className="m-0 flex list-none flex-col gap-4 p-0">
+          {BASICS.map((shot, index) => (
+            <li key={shot.id} className="rounded-md border bg-card p-4 shadow-xs">
               <figure className="m-0 grid gap-4 md:grid-cols-5 md:items-start">
                 <div className="md:col-span-3">
                   <Screenshot shot={shot} />
                 </div>
                 <figcaption className="flex flex-col gap-2 text-sm leading-relaxed md:col-span-2">
+                  <h3 className="flex items-center gap-2 text-base font-bold">
+                    <span
+                      aria-hidden="true"
+                      className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground"
+                    >
+                      {index + 1}
+                    </span>
+                    {shot.title}
+                  </h3>
                   <p>
-                    <span className="font-medium">見る場所：</span>
+                    <span className="font-bold">見る場所：</span>
                     {shot.where}
                   </p>
                   <p>
-                    <span className="font-medium">できること：</span>
+                    <span className="font-bold">できること：</span>
                     {shot.what}
                   </p>
                   {shot.note === undefined ? null : (
@@ -168,14 +176,14 @@ export default function WelcomePage(): ReactNode {
       </section>
 
       <section aria-labelledby="welcome-more-title" className="flex flex-col gap-3">
-        <h2 id="welcome-more-title" className="text-lg font-medium">
+        <h2 id="welcome-more-title" className="text-section-title font-bold">
           必要になったら使う機能
         </h2>
         <p className="text-sm text-muted-foreground">
           使うときに開けば十分です。項目を選ぶと、画面の例と開き方を表示します。
         </p>
-        <div className="rounded-lg border px-4">
-          <Accordion multiple>
+        <div>
+          <Accordion variant="contained" multiple>
             {MORE.map((feature) => (
               <AccordionItem key={feature.id} value={feature.id}>
                 <AccordionTrigger>
@@ -221,9 +229,9 @@ export default function WelcomePage(): ReactNode {
 
       <section
         aria-labelledby="welcome-start-title"
-        className="flex flex-col gap-3 rounded-xl border bg-muted/40 p-4"
+        className="flex flex-col gap-3 rounded-md bg-primary-light p-6"
       >
-        <h2 id="welcome-start-title" className="text-lg font-medium">
+        <h2 id="welcome-start-title" className="text-section-title font-bold">
           自分のプロジェクトで開いてみましょう
         </h2>
         <p className="text-sm leading-relaxed">

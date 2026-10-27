@@ -1,32 +1,11 @@
-import { copyFileSync } from "node:fs";
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig } from "vite";
 
 const src = path.resolve(import.meta.dirname, "src");
-const SHADCN_LICENSE_SOURCE = "src/shared/styles/vendor/shadcn-4.21.0/LICENSE.md";
-const SHADCN_LICENSE_OUTPUT = "shadcn-4.21.0-LICENSE.md";
-
-function copyShadcnLicense(): Plugin {
-  let outDir = "";
-  return {
-    name: "copy-shadcn-license",
-    apply: "build",
-    configResolved(config) {
-      outDir = path.resolve(config.root, config.build.outDir);
-    },
-    closeBundle() {
-      copyFileSync(
-        path.resolve(import.meta.dirname, SHADCN_LICENSE_SOURCE),
-        path.join(outDir, SHADCN_LICENSE_OUTPUT),
-      );
-    },
-  };
-}
-
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), tailwindcss(), copyShadcnLicense()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: [
       { find: "@/components/ui", replacement: path.join(src, "shared/ui") },

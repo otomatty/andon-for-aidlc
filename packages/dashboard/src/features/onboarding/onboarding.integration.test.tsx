@@ -1,5 +1,5 @@
 import { type OnboardingRecord, WHATS_NEW } from "@aidlc-guide/shared-types";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "@/app/App.tsx";

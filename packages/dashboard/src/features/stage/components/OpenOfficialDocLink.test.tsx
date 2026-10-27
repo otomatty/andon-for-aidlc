@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { OpenOfficialDocLink } from "@/features/stage/components/OpenOfficialDocLink.tsx";

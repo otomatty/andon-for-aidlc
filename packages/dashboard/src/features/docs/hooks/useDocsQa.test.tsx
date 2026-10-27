@@ -6,10 +6,9 @@ import type {
   DocsQaRequest,
   DocsQaToolStatus,
 } from "@aidlc-guide/shared-types";
-import { act, cleanup, render, renderHook, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, render, renderHook, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { DocsShell } from "@/features/docs/DocsPage.tsx";
 import { useDocsQa } from "@/features/docs/hooks/useDocsQa.ts";
 import { docsQaApi } from "@/services/docs-qa.ts";
@@ -225,11 +224,9 @@ function stubApi(options: ApiOptions = {}) {
 function showDocs(): void {
   render(
     <StoreProvider preloaded={{ route: { name: "docs" } }}>
-      <TooltipProvider>
-        <div data-testid="app-scroll">
-          <DocsShell />
-        </div>
-      </TooltipProvider>
+      <div data-testid="app-scroll">
+        <DocsShell />
+      </div>
     </StoreProvider>,
   );
 }

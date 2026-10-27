@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { IconTile } from "@/components/ui/icon-tile";
 import { type DocsCategory, WORKFLOW_TIPS_INDEX } from "@/features/docs/utils/docs-navigation.ts";
 
 const CATEGORIES = [
@@ -56,7 +57,7 @@ export function DocsHome({
       data-testid="docs-home"
     >
       <header className="flex max-w-2xl flex-col gap-3">
-        <h1 id="docs-home-title" className="font-heading text-2xl font-semibold tracking-tight">
+        <h1 id="docs-home-title" className="text-page-title font-bold">
           ドキュメント
         </h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
@@ -68,10 +69,12 @@ export function DocsHome({
       {questionPanel}
       <div className="grid gap-4 md:grid-cols-2">
         {CATEGORIES.map(({ id, title, description, icon: Icon, topics, action }) => (
-          <Card key={id}>
+          <Card key={id} size="lg">
             <CardHeader className="gap-3">
               <CardTitle className="flex items-center gap-3">
-                <Icon aria-hidden="true" />
+                <IconTile>
+                  <Icon />
+                </IconTile>
                 <h2>{title}</h2>
               </CardTitle>
               <CardDescription>{description}</CardDescription>
@@ -93,7 +96,7 @@ export function DocsHome({
         ))}
       </div>
       <section className="flex flex-col items-start gap-3" aria-labelledby="docs-tips-title">
-        <h2 id="docs-tips-title" className="font-heading text-lg font-semibold">
+        <h2 id="docs-tips-title" className="text-section-title font-bold">
           aidlc-workflows Tips
         </h2>
         <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">

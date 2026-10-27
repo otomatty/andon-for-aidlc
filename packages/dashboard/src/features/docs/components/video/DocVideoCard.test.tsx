@@ -1,5 +1,5 @@
 import type { DocVideoPayload, ReadResult } from "@aidlc-guide/shared-types";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

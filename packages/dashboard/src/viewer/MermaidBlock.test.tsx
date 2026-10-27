@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@tests/render.tsx";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 /**

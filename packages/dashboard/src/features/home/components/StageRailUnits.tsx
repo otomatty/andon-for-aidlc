@@ -8,6 +8,7 @@ import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { formatStageLabel } from "@/data/stage-numbers.ts";
 import { STATUS_PRESENTATION, StatusChip } from "@/shared/ui/StatusChip.tsx";
+import { TimelineItem } from "@/shared/ui/timeline.tsx";
 
 /**
  * The stage rail's Unit pieces. Stage-major keeps one row per stage and lays
@@ -23,8 +24,8 @@ export interface RovingProps {
   register: (element: HTMLButtonElement | null) => void;
 }
 
-const ROW =
-  "flex w-full cursor-pointer items-start gap-2 rounded-lg border border-transparent px-2 py-1.5 text-left text-sm hover:bg-muted aria-[current=step]:border-primary aria-[current=step]:bg-muted aria-[current=step]:font-semibold";
+const STEP_ROW =
+  "flex w-full cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 rounded-md px-2.5 py-1.5 text-left text-sm hover:bg-muted aria-[current=step]:bg-primary-light";
 
 /**
  * One cell per Unit, in walk order, then the count. Colour, symbol and the
@@ -99,7 +100,7 @@ function Chevron({ open }: { open: boolean }): ReactNode {
       stroke="currentColor"
       strokeWidth="1.8"
       aria-hidden="true"
-      className="mt-1 shrink-0"
+      className="shrink-0 text-muted-foreground"
     >
       <path d={open ? "M4 6l4 4 4-4" : "M6 4l4 4-4 4"} />
     </svg>
@@ -124,7 +125,10 @@ export function UnitGroupToggle({
     <button
       type="button"
       ref={roving.register}
-      className={cn(ROW, "items-center border-border bg-muted/40")}
+      className={cn(
+        "flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-sm hover:bg-muted",
+        open && "bg-primary-light",
+      )}
       aria-expanded={open}
       tabIndex={roving.tabbable ? 0 : -1}
       onClick={onToggle}
@@ -133,8 +137,9 @@ export function UnitGroupToggle({
     >
       <Chevron open={open} />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="font-semibold">
-          Unit <span className="font-mono text-xs font-normal">{unit.unit}</span>
+        <span>
+          Unit{" "}
+          <span className={cn("font-mono", open ? "font-bold" : "font-medium")}>{unit.unit}</span>
         </span>
         {working === null ? null : (
           <span className="text-xs font-normal text-muted-foreground">
@@ -161,20 +166,22 @@ export function UnitStepRow({
   onSelect: () => void;
 }): ReactNode {
   return (
-    <li>
+    <TimelineItem status={step.status}>
       <button
         type="button"
         ref={roving.register}
-        className={cn(ROW, step.status === "skipped" && "opacity-60")}
+        className={cn(STEP_ROW, step.status === "skipped" && "opacity-60")}
         aria-current={isCurrent ? "step" : undefined}
         tabIndex={roving.tabbable ? 0 : -1}
         onClick={onSelect}
         onKeyDown={roving.onKeyDown}
         data-testid={`unit-step-${unit}-${step.stage}`}
       >
+        <span className={cn("flex-1 font-mono", isCurrent ? "font-bold" : "font-semibold")}>
+          {formatStageLabel(step.stage)}
+        </span>
         <StatusChip status={step.status} />
-        <span className="font-mono text-xs">{formatStageLabel(step.stage)}</span>
       </button>
-    </li>
+    </TimelineItem>
   );
 }

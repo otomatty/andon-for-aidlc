@@ -55,7 +55,7 @@ function Cell({
     <td className="cell" data-testid={testId} data-kind={kind}>
       <button
         type="button"
-        className="flex w-full cursor-pointer flex-col items-center gap-0.5 p-1"
+        className="flex w-full cursor-pointer items-center gap-2 py-1"
         onClick={onSelect}
       >
         {cell.error !== undefined ? (
@@ -131,7 +131,7 @@ function UnitStageMatrixImpl({ state, onSelectCell, onRetry }: UnitStageMatrixPr
          containing block for the cells' `sr-only` spans — without it they
          resolve against the viewport, so a wide table parks them past the
          right edge and the *page*, not this box, grows the scrollbar. */
-      <div className="relative overflow-x-auto">
+      <div className="relative overflow-x-auto rounded-md border bg-card">
         <table className="matrix__table">
           <caption className="sr-only">ユニット × ステージの成果物件数</caption>
           <thead>
@@ -162,7 +162,7 @@ function UnitStageMatrixImpl({ state, onSelectCell, onRetry }: UnitStageMatrixPr
   return (
     <section className="matrix" aria-labelledby="matrix-heading">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="matrix-heading" className="m-0 text-base font-semibold">
+        <h2 id="matrix-heading" className="m-0 text-section-title font-bold">
           成果物マトリクス
         </h2>
         {matrix === null ? null : <StatusLegend />}

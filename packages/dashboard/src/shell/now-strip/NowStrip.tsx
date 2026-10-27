@@ -13,6 +13,7 @@ import {
   isStageEstimateOverrun,
   nextGateTarget,
 } from "@aidlc-guide/shared-types";
+import { Progress } from "@mantine/core";
 import { memo, type ReactNode } from "react";
 import {
   Accordion,
@@ -79,14 +80,23 @@ function ExplainCard({
   label,
   explain,
   children,
+  aside,
+  size = "metric",
+  footer,
 }: {
   fieldKey: string;
   label: string;
   explain: FieldExplain;
   children: ReactNode;
+  /** Right of the label, e.g. the done percentage. */
+  aside?: ReactNode;
+  /** `metric` for a short figure; `text` for a sentence-long value. */
+  size?: "metric" | "text";
+  /** Under the value, e.g. the progress bar. */
+  footer?: ReactNode;
 }): ReactNode {
   return (
-    <HoverCard>
+    <HoverCard position="bottom-start" width={320}>
       <HoverCardTrigger
         variant="explain"
         render={
@@ -94,15 +104,20 @@ function ExplainCard({
           <button type="button" data-testid={`now-field-${fieldKey}`} />
         }
       >
-        <span className="text-muted-foreground text-xs font-medium">{label}</span>
-        <span className="text-sm">{children}</span>
+        <span className="flex justify-between gap-2 text-xs font-semibold text-muted-foreground">
+          <span>{label}</span>
+          {aside}
+        </span>
+        <span
+          className={
+            size === "metric" ? "text-base font-bold tabular-nums" : "text-sm font-semibold"
+          }
+        >
+          {children}
+        </span>
+        {footer}
       </HoverCardTrigger>
-      <HoverCardContent
-        side="bottom"
-        align="start"
-        className="w-80 p-3"
-        data-testid={`now-explain-${fieldKey}`}
-      >
+      <HoverCardContent className="p-3" data-testid={`now-explain-${fieldKey}`}>
         <div className="flex flex-col gap-2">
           <p className="font-medium text-sm">{label}</p>
           <p className="text-muted-foreground text-xs leading-relaxed">{explain.definition}</p>
@@ -175,7 +190,7 @@ function NowStripImpl({
     );
 
   return (
-    <section className="border-b px-4 py-3" aria-labelledby="now-heading">
+    <section className="px-4 pt-4" aria-labelledby="now-heading">
       <h2 id="now-heading" className="sr-only">
         現在のステージ
       </h2>
@@ -205,6 +220,7 @@ function NowStripImpl({
         <AreaError detail={state.detail} onRetry={onRetry} />
       ) : (
         <Accordion
+          variant="contained"
           value={expanded === undefined ? undefined : expanded ? ["current"] : []}
           onValueChange={(value) => onExpandedChange?.(value.includes("current"))}
         >
@@ -212,7 +228,7 @@ function NowStripImpl({
             <AccordionTrigger data-testid="now-toggle" className="min-w-0 items-center gap-2">
               <span className="flex min-w-0 flex-1 items-center gap-2">
                 <span className="shrink-0">現在のステージ：</span>
-                <span className="truncate" data-testid="now-current-stage">
+                <span className="truncate font-mono" data-testid="now-current-stage">
                   {state.value.currentStage ??
                     (state.value.total > 0 && state.value.done >= state.value.total
                       ? "ワークフロー完了"
@@ -235,7 +251,7 @@ function NowStripImpl({
         </Accordion>
       )}
       {activeUnit === undefined || workflow === null ? null : (
-        <p className="mt-1 mb-0 text-xs text-muted-foreground" data-testid="now-active-unit">
+        <p className="mt-2 mb-0 px-0.5 text-xs text-muted-foreground" data-testid="now-active-unit">
           {activeUnitText(activeUnit, workflow.currentStage)}
         </p>
       )}
@@ -258,7 +274,7 @@ function NextGateValue({
   current: StageView | null;
 }): ReactNode {
   if (nextGate === null) return "—";
-  if (nextGate.kind === "open") return "承認待ち";
+  if (nextGate.kind === "open") return <span className="text-status-gate">承認待ち</span>;
   if (nextGate.kind === "none") return "なし";
   if (nextGate.remainingMs === null) return "—";
   const overrun = current !== null && isNextGateOverrun(nextGate, current);
@@ -302,12 +318,13 @@ function NowStripBody({
   // (issue #9); whether it is still fresh was decided in the store selector
   // (issue #10). Nothing left to get wrong here.
   const explain = explainNowFields(workflow, current, nextGate);
+  const donePercent = workflow.total === 0 ? 0 : Math.round((workflow.done / workflow.total) * 100);
   const target = nextGateTarget(nextGate);
   const gateNotes = nextGateNotes(nextGate);
 
   return (
     <div className="@container">
-      <div className="grid grid-cols-1 items-start gap-x-6 gap-y-4 @min-[25.5rem]:grid-cols-2 @min-[52.5rem]:grid-cols-4">
+      <div className="grid grid-cols-1 items-stretch gap-2.5 @min-[25.5rem]:grid-cols-2 @min-[52.5rem]:grid-cols-4">
         <ExplainCard fieldKey="phase" label="フェーズ" explain={explain.phase}>
           {workflow.phase}
         </ExplainCard>
@@ -317,16 +334,23 @@ function NowStripBody({
         <ExplainCard fieldKey="depth" label="Depth" explain={explain.depth}>
           {workflow.depth}
         </ExplainCard>
-        <ExplainCard fieldKey="done" label="完了" explain={explain.done}>
+        <ExplainCard
+          fieldKey="done"
+          label="完了"
+          explain={explain.done}
+          aside={<span className="tabular-nums">{donePercent}%</span>}
+          footer={<Progress aria-hidden="true" size="sm" value={donePercent} className="mt-1" />}
+        >
           <span data-testid="done-total">
             {workflow.done} / {workflow.total}
           </span>
         </ExplainCard>
-        <div className="col-span-full">
+        <div className="col-span-full grid">
           <ExplainCard
             fieldKey="change-control"
             label="Guard Policy（記録値）"
             explain={explain.guardPolicy}
+            size="text"
           >
             <span data-testid="now-change-control">
               {workflow.unparseable?.guardPolicy
@@ -336,11 +360,12 @@ function NowStripBody({
             </span>
           </ExplainCard>
         </div>
-        <div className="col-span-full grid grid-cols-1 items-start gap-x-6 gap-y-4 @min-[25.5rem]:grid-cols-2">
+        <div className="col-span-full grid grid-cols-1 items-stretch gap-2.5 @min-[25.5rem]:grid-cols-2">
           <ExplainCard
             fieldKey="ceremonies"
             label="進め方の設定（記録値）"
             explain={explain.ceremonies}
+            size="text"
           >
             <span data-testid="now-ceremonies">
               {workflow.unparseable?.ceremonies ? "一部解析不可・" : null}
@@ -351,11 +376,12 @@ function NowStripBody({
             fieldKey="project-type"
             label="プロジェクト種別"
             explain={explain.projectType}
+            size="text"
           >
             <span data-testid="now-project-type">{projectTypeText(workflow)}</span>
           </ExplainCard>
         </div>
-        <div className="col-span-full grid grid-cols-1 items-start gap-x-6 gap-y-4 @min-[25.5rem]:grid-cols-2 @min-[52.5rem]:grid-cols-4">
+        <div className="col-span-full grid grid-cols-1 items-stretch gap-2.5 @min-[25.5rem]:grid-cols-2 @min-[52.5rem]:grid-cols-4">
           <ExplainCard fieldKey="elapsed" label="このステージの作業時間" explain={explain.elapsed}>
             <span data-testid="now-elapsed">{formatTimingDuration(current?.elapsedActiveMs)}</span>
           </ExplainCard>
@@ -401,9 +427,9 @@ function NowStripBody({
               </p>
             )}
           </div>
-          <div className="flex min-w-0 flex-col gap-1 px-1 py-0.5 wrap-anywhere">
-            <span className="text-muted-foreground text-xs font-medium">全体の残り時間</span>
-            <span className="text-sm tabular-nums" data-testid="now-total-remaining">
+          <div className="flex min-w-0 flex-col gap-1 rounded-md border bg-card px-4 py-3 wrap-anywhere">
+            <span className="text-xs font-semibold text-muted-foreground">全体の残り時間</span>
+            <span className="text-base font-bold tabular-nums" data-testid="now-total-remaining">
               {remaining?.totalRemainingMs == null ? (
                 "—"
               ) : (

@@ -3,10 +3,11 @@ import type {
   CustomizationItem,
   CustomizationKind,
 } from "@aidlc-guide/shared-types";
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { FormSelect } from "@/shared/form-select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { IconTile } from "@/components/ui/icon-tile";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -128,8 +129,10 @@ function NavigationCard({
       <Card variant="interactive" className="h-full">
         <CardHeader>
           <CardTitle>
-            <h3 className="flex items-center gap-3">
-              <CategoryIcon category={category} />
+            <h3 className="flex items-center gap-3 text-lg">
+              <IconTile>
+                <CategoryIcon category={category} />
+              </IconTile>
               <a
                 href={`#customization-${category}`}
                 onClick={(event) => {
@@ -337,7 +340,6 @@ export function CustomizationExplorer({
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [drawerId, setDrawerId] = useState<string | null>(null);
-  const drawerTitle = useRef<HTMLHeadingElement>(null);
   const [creating, setCreating] = useState<CustomizationKind | null>(null);
   const [baseId, setBaseId] = useState("");
   const [name, setName] = useState("");
@@ -725,7 +727,7 @@ export function CustomizationExplorer({
       ) : (
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold">{categoryLabel}</h2>
+            <h2 className="text-section-title font-bold">{categoryLabel}</h2>
             <div className="flex flex-wrap gap-2">
               {category === "knowledge" ? (
                 <Button variant="outline" disabled={disabled} onClick={onDocument}>
@@ -836,9 +838,9 @@ export function CustomizationExplorer({
           if (!open) setDrawerId(null);
         }}
       >
-        <DialogContent size="drawer" initialFocus={drawerTitle}>
+        <DialogContent size="drawer">
           <DialogHeader>
-            <DialogTitle ref={drawerTitle} tabIndex={-1} className="wrap-break-word">
+            <DialogTitle data-autofocus tabIndex={-1} className="wrap-break-word">
               {drawer?.title}
             </DialogTitle>
             <DialogDescription>ステージの設定と作業方針</DialogDescription>

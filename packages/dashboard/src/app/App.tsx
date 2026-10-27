@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { AreaBoundary } from "@/shell/AreaBoundary.tsx";
 import { Header } from "@/shell/Header.tsx";
 import { NowStrip } from "@/shell/now-strip/NowStrip.tsx";
@@ -32,6 +31,7 @@ import { useLiveConnection } from "@/services/live.ts";
 import { onOnboardingSnapshot } from "@/services/onboarding.ts";
 import { onVersionGate, VersionGateContext, versionGateOf } from "@/services/version-gate.ts";
 import { StoreProvider, useAppState, useDispatch } from "@/store/context.tsx";
+import { MantineRoot } from "@/theme/MantineRoot.tsx";
 import { selectCurrentTiming, selectTimingNotes, selectUnitWalk } from "@/store/select-timing.ts";
 import { viewValue, type WorkflowPayload } from "@/store/state.ts";
 import { RouteOutlet } from "./RouteOutlet.tsx";
@@ -407,7 +407,7 @@ export function App({ bootstrap }: AppProps): ReactNode {
 
   return (
     <StoreProvider key={generation}>
-      <TooltipProvider>
+      <MantineRoot>
         <VersionGateContext.Provider value={gate}>
           <AreaBoundary name="app">
             {gate === null ? (
@@ -417,7 +417,7 @@ export function App({ bootstrap }: AppProps): ReactNode {
             )}
           </AreaBoundary>
         </VersionGateContext.Provider>
-      </TooltipProvider>
+      </MantineRoot>
     </StoreProvider>
   );
 }

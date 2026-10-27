@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@tests/render.tsx";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { routeRead } from "../../../../../api-core/src/handlers/read.ts";
 import { createGuideService, type GuideService } from "../../../../../api-core/src/service.ts";

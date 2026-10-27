@@ -4,7 +4,7 @@ import type {
   StageModelsPayload,
   TimingsPayload,
 } from "@aidlc-guide/shared-types";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@tests/render.tsx";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StageModelLabel } from "@/features/home/components/StageModelLabel.tsx";
 import { StageModelsRail } from "@/features/home/components/StageModelsRail.tsx";

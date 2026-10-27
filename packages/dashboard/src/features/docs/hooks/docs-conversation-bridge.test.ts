@@ -1,5 +1,5 @@
 import type { DocsQaJob } from "@aidlc-guide/shared-types";
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook } from "@tests/render.tsx";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useDocsConversationBridge } from "@/features/docs/hooks/docs-conversation-bridge.ts";

@@ -109,14 +109,13 @@ export function Header(): ReactNode {
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <ThemeToggle />
-        <DropdownMenu modal={false}>
+        <DropdownMenu position="bottom-end" width={288}>
           <DropdownMenuTrigger
             render={
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                id="header-menu-trigger"
                 data-testid="header-menu-trigger"
                 aria-label="メニュー"
                 aria-describedby={unseen > 0 ? "header-menu-news" : undefined}
@@ -138,7 +137,7 @@ export function Header(): ReactNode {
               {`新着の更新情報が${unseen}件あります`}
             </span>
           ) : null}
-          <DropdownMenuContent align="end" className="w-72 min-w-72 p-2" aria-label="メニュー">
+          <DropdownMenuContent className="p-2" aria-label="メニュー">
             <DropdownMenuGroup data-testid="header-nav-grid" className="grid grid-cols-3 gap-1">
               {destinations.map(({ id, testId, label, icon: Icon, active, onClick }) => (
                 <DropdownMenuItem

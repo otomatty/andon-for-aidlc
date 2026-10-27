@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook } from "@tests/render.tsx";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SKELETON_DELAY_MS, useDelayedLoading } from "@/hooks/useDelayedLoading.ts";
 

@@ -1,5 +1,5 @@
 import type { TimingBreakdown } from "@aidlc-guide/shared-types";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { NowStrip } from "@/shell/now-strip/NowStrip.tsx";

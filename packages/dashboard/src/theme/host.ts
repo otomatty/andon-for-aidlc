@@ -1,7 +1,8 @@
 /**
  * VS Code webview host detection + theme sync.
  * Webview body gets `vscode-light` / `vscode-dark` / `vscode-high-contrast` /
- * `vscode-high-contrast-light`; we mirror dark into `html.dark` for shadcn.
+ * `vscode-high-contrast-light`; we mirror dark into `html.dark` and high
+ * contrast into `html[data-contrast="high"]`.
  */
 
 type HostWindow = { acquireVsCodeApi?: unknown };
@@ -18,7 +19,13 @@ export function isVsCodeDarkBody(body: Element): boolean {
   return classes.contains("vscode-dark");
 }
 
-/** Mark the document as VS Code-hosted and sync `.dark` / `data-theme`. */
+/** True for both high contrast editor themes, dark and light. */
+export function isVsCodeHighContrastBody(body: Element): boolean {
+  const classes = body.classList;
+  return classes.contains("vscode-high-contrast") || classes.contains("vscode-high-contrast-light");
+}
+
+/** Mark the document as VS Code-hosted and sync `.dark` / `data-theme` / `data-contrast`. */
 export function applyVsCodeHost(root: HTMLElement, body: Element = document.body): void {
   root.setAttribute("data-host", "vscode");
   syncVsCodeTheme(root, body);
@@ -28,6 +35,9 @@ export function syncVsCodeTheme(root: HTMLElement, body: Element = document.body
   const dark = isVsCodeDarkBody(body);
   root.classList.toggle("dark", dark);
   root.setAttribute("data-theme", dark ? "dark" : "light");
+  // globals.css swaps the Mantine palette for the editor's own colours here.
+  if (isVsCodeHighContrastBody(body)) root.setAttribute("data-contrast", "high");
+  else root.removeAttribute("data-contrast");
 }
 
 /**

@@ -17,8 +17,8 @@ export function nextTheme(theme: Theme): Theme {
 
 /**
  * Browser: local light/dark toggle.
- * VS Code webview: follows the editor theme (no toggle); CSS maps shadcn tokens
- * to `--vscode-*` variables.
+ * VS Code webview: follows the editor theme (no toggle). MantineRoot takes the
+ * editor's light/dark, and high contrast themes map the tokens to `--vscode-*`.
  */
 export function ThemeToggle(): ReactNode {
   const { theme } = useAppState();

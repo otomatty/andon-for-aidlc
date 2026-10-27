@@ -16,11 +16,14 @@ import type { ViewState } from "@/store/state.ts";
 import { AreaError } from "@/shared/atoms.tsx";
 import { StageRailSkeleton } from "@/features/home/components/StageRailSkeleton.tsx";
 import { type ModelLoadState, StageModelLabel } from "./StageModelLabel.tsx";
-import { StatusChip } from "@/shared/ui/StatusChip.tsx";
+import { ChevronDownIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { type ChipStatus, StatusChip } from "@/shared/ui/StatusChip.tsx";
+import { Timeline, TimelineItem } from "@/shared/ui/timeline.tsx";
 import { ActiveUnitTag, UnitGroupToggle, UnitProgress, UnitStepRow } from "./StageRailUnits.tsx";
 
 /** The rail's own frame, shared by the loaded and not-yet-loaded wrappers. */
-const RAIL = "border-b pb-3";
+const RAIL = "overflow-hidden rounded-md border bg-card";
 
 const PHASES: readonly Phase[] = [
   "INITIALIZATION",
@@ -29,6 +32,15 @@ const PHASES: readonly Phase[] = [
   "CONSTRUCTION",
   "OPERATION",
 ];
+
+/** The phase names as the screens write them. */
+const PHASE_LABEL: Record<Phase, string> = {
+  INITIALIZATION: "Initialization",
+  IDEATION: "Ideation",
+  INCEPTION: "Inception",
+  CONSTRUCTION: "Construction",
+  OPERATION: "Operation",
+};
 
 const ITERATION_HINT = {
   "unit-major": "Unit ごとに 3.1〜3.5 を終えてから、次の Unit へ進みます",
@@ -106,14 +118,15 @@ function StageRailItem({
   register: (element: HTMLButtonElement | null) => void;
 }): ReactNode {
   const skipped = stage.execution === "SKIP";
+  const status: ChipStatus = stage.unparseable === undefined ? stage.status : "unparseable";
   return (
-    <li>
+    <TimelineItem status={status}>
       <button
         type="button"
         ref={register}
         className={cn(
-          "flex w-full cursor-pointer items-start gap-2 rounded-lg border border-transparent px-2 py-1.5 text-left text-sm hover:bg-muted",
-          "aria-[current=step]:border-primary aria-[current=step]:bg-muted aria-[current=step]:font-semibold",
+          "flex w-full cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 rounded-md px-2.5 py-1.5 text-left text-sm hover:bg-muted",
+          "aria-[current=step]:bg-primary-light",
           skipped && "opacity-60",
         )}
         aria-current={isCurrent ? "step" : undefined}
@@ -122,22 +135,24 @@ function StageRailItem({
         onKeyDown={onKeyDown}
         data-testid={`stage-rail-item-${stage.slug}`}
       >
-        <StatusChip status={stage.unparseable === undefined ? stage.status : "unparseable"} />
-        <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="font-mono text-xs">{formatStageLabel(stage.slug)}</span>
-          <StageModelLabel
-            stage={stage.slug}
-            observed={observed}
-            hasReviewer={hasReviewer}
-            hasSupport={hasSupport}
-            loadState={modelLoadState}
-            usageLoadState={usageLoadState}
-          />
+        <span className="flex min-w-0 flex-1 basis-64 flex-col gap-0.5">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className={cn("font-mono", isCurrent ? "font-bold" : "font-semibold")}>
+              {formatStageLabel(stage.slug)}
+            </span>
+            <StageModelLabel
+              stage={stage.slug}
+              observed={observed}
+              hasReviewer={hasReviewer}
+              hasSupport={hasSupport}
+              loadState={modelLoadState}
+              usageLoadState={usageLoadState}
+            />
+          </span>
           {units}
           {purpose === undefined || purpose === "" ? null : (
             /* Narrow: slug + status only. From 48rem (md) up, show the stage
-               purpose. `font-normal` on the span itself outranks the current
-               row's inherited semibold. */
+               purpose. */
             <span
               className="hidden font-sans text-muted-foreground text-xs font-normal leading-snug whitespace-normal md:block"
               data-testid={`stage-rail-purpose-${stage.slug}`}
@@ -146,28 +161,19 @@ function StageRailItem({
             </span>
           )}
         </span>
+        <StatusChip status={status} />
         {duration === null ? null : (
           /* Trailing edge of the row, so durations read down as one scannable
-             column instead of landing wherever the purpose text happens to
-             end. Tabular figures keep that column from jittering row to row.
-             Muted + regular weight even on the current row: the emphasis there
-             belongs to the stage, not its clock.
-
-             Below 48rem the purpose is hidden, so no wrappable sibling is left
-             to absorb a squeeze — chip and slug are both fixed. The duration
-             gives way itself there (`flex-initial`); holding the column
-             instead pushes the row past the viewport once the widest chip
-             ("awaiting approval") meets a forecast label. From `md`
-             up the purpose takes the squeeze and the column stays whole.
-
-             A skipped row is already dimmed wholesale by the button's
+             column. Tabular figures keep that column from jittering row to
+             row. A skipped row is already dimmed wholesale by the button's
              `opacity-60`; muting the figure on top of that stacks two
-             reductions and costs real contrast (light theme: 2.32:1 → 1.90:1).
-             Take the row's dim only. */
+             reductions and costs real contrast, so it takes the row's dim
+             only. */
           <span
             className={cn(
-              "ml-auto flex-initial text-xs font-normal tabular-nums md:flex-none md:whitespace-nowrap",
-              !skipped && "text-muted-foreground",
+              "ml-auto text-right text-xs font-normal tabular-nums md:w-26 md:shrink-0",
+              !skipped && !isCurrent && "text-muted-foreground",
+              isCurrent && "font-semibold",
             )}
             data-testid={`rail-duration-${stage.slug}`}
           >
@@ -178,7 +184,7 @@ function StageRailItem({
           </span>
         )}
       </button>
-    </li>
+    </TimelineItem>
   );
 }
 
@@ -230,6 +236,8 @@ function StageRailImpl({
   const [focused, setFocused] = useState(0);
   /** Units the person opened or closed; the rest follow {@link focusUnitOf}. */
   const [toggled, setToggled] = useState<Readonly<Record<string, boolean>>>({});
+  /** Phases the person opened or closed; the rest follow {@link phaseOpenByDefault}. */
+  const [phaseToggled, setPhaseToggled] = useState<Readonly<Partial<Record<Phase, boolean>>>>({});
   const items = useRef<(HTMLButtonElement | null)[]>([]);
 
   const move = useCallback((from: number, delta: number, count: number) => {
@@ -310,11 +318,33 @@ function StageRailImpl({
     const { gates, once } = belowUnits(stages);
     return [...groups, ...[...gates, ...once].map((stage): Entry => ({ kind: "stage", stage }))];
   };
-  const sections = runs.map((run) => ({
-    phase: run.phase,
-    stages: run.stages,
-    entries: entriesOf(run.stages, run.phase),
-  }));
+  // With no current stage, the first stage that runs stands in for it — the
+  // same row the guided tour points at (onboarding/tour/steps.ts).
+  const shownSlug =
+    highlighted ??
+    workflow.stages.find((stage) => stage.execution === "EXECUTE")?.slug ??
+    workflow.stages[0]?.slug;
+  /**
+   * A phase starts open while it has work left or holds the marked stage;
+   * a phase that is all done or skipped starts closed to its summary.
+   */
+  const phaseOpenByDefault = (run: Run): boolean =>
+    run.stages.some(
+      (stage) =>
+        stage.slug === shownSlug ||
+        (stage.status !== "completed" && stage.status !== "skipped") ||
+        stage.unparseable !== undefined,
+    ) ||
+    (run.phase === "CONSTRUCTION" && focusUnit !== null);
+  const sections = runs.map((run) => {
+    const open = phaseToggled[run.phase] ?? phaseOpenByDefault(run);
+    return {
+      phase: run.phase,
+      stages: run.stages,
+      open,
+      entries: open ? entriesOf(run.stages, run.phase) : [],
+    };
+  });
   const count = sections.reduce((sum, section) => sum + section.entries.length, 0);
   items.current.length = count;
 
@@ -429,9 +459,9 @@ function StageRailImpl({
 
   /** A divider naming the rows below it. */
   const divider = (label: string): ReactNode => (
-    <div className="mx-2 mt-3 mb-1 flex items-center gap-2" aria-hidden="true">
+    <div className="my-3 flex items-center gap-3" aria-hidden="true">
       <span className="h-px flex-1 bg-border" />
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs font-semibold text-muted-foreground">{label}</span>
       <span className="h-px flex-1 bg-border" />
     </div>
   );
@@ -451,7 +481,13 @@ function StageRailImpl({
                 ? { stage: active.stage, paused: active.state === "paused" }
                 : null;
             return (
-              <li key={unit.unit} className="flex flex-col gap-1">
+              <li
+                key={unit.unit}
+                className={cn(
+                  "flex flex-col overflow-hidden rounded-md border",
+                  open && "border-primary",
+                )}
+              >
                 <UnitGroupToggle
                   {...roving(groupIndex)}
                   unit={unit}
@@ -463,7 +499,7 @@ function StageRailImpl({
                   }}
                 />
                 {open ? (
-                  <ul className="m-0 flex list-none flex-col gap-1 py-0 pr-0 pl-4">
+                  <Timeline className="mx-4 my-3">
                     {unit.steps.map((step) => {
                       const index = take();
                       return (
@@ -480,7 +516,7 @@ function StageRailImpl({
                         />
                       );
                     })}
-                  </ul>
+                  </Timeline>
                 ) : null}
               </li>
             );
@@ -489,17 +525,13 @@ function StageRailImpl({
         {gates.length === 0 ? null : (
           <>
             {divider("ステージごとの承認")}
-            <ul className="m-0 flex list-none flex-col gap-1 p-0">
-              {gates.map((stage) => stageRow(stage, take()))}
-            </ul>
+            <Timeline>{gates.map((stage) => stageRow(stage, take()))}</Timeline>
           </>
         )}
         {once.length === 0 ? null : (
           <>
             {divider("全 Unit の完了後に 1 回")}
-            <ul className="m-0 flex list-none flex-col gap-1 p-0">
-              {once.map((stage) => stageRow(stage, take()))}
-            </ul>
+            <Timeline>{once.map((stage) => stageRow(stage, take()))}</Timeline>
           </>
         )}
       </>
@@ -508,34 +540,90 @@ function StageRailImpl({
 
   return (
     <nav className={RAIL} aria-label="ステージ一覧">
-      {sections.map((section) => (
-        <section className="mb-4" key={section.phase} aria-label={section.phase}>
-          <div className="mb-2 flex flex-wrap items-baseline gap-x-2">
-            <h3 className="text-xs font-semibold uppercase tracking-caps text-muted-foreground">
-              {section.phase}
-            </h3>
-            {section.phase === "CONSTRUCTION" && iteration !== null ? (
-              <span
-                className="text-xs text-muted-foreground"
-                title={ITERATION_HINT[iteration]}
-                data-testid="construction-iteration"
+      {sections.map((section) => {
+        const panelId = `stage-rail-phase-${section.phase}`;
+        return (
+          <section
+            className="border-b last:border-b-0"
+            key={section.phase}
+            aria-label={section.phase}
+          >
+            <h3 className="m-0">
+              <button
+                type="button"
+                className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left hover:bg-muted"
+                aria-expanded={section.open}
+                aria-controls={section.open ? panelId : undefined}
+                data-testid={`stage-rail-phase-${section.phase}`}
+                onClick={() =>
+                  setPhaseToggled((prev) => ({ ...prev, [section.phase]: !section.open }))
+                }
               >
-                進め方: {iteration}
-              </span>
+                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                  <span className="font-semibold">{PHASE_LABEL[section.phase]}</span>
+                  <PhaseSummary stages={section.stages} />
+                  {section.phase === "CONSTRUCTION" && iteration !== null ? (
+                    <>
+                      <Badge variant="info" data-testid="construction-iteration">
+                        進め方: {iteration}
+                      </Badge>
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {ITERATION_HINT[iteration]}
+                      </span>
+                    </>
+                  ) : null}
+                </span>
+                <ChevronDownIcon
+                  aria-hidden="true"
+                  className={cn(
+                    "size-4 shrink-0 text-muted-foreground transition-transform",
+                    section.open && "rotate-180",
+                  )}
+                />
+              </button>
+            </h3>
+            {section.open ? (
+              <div id={panelId} className="px-4 pt-1 pb-4">
+                {layout === "grouped" && section.phase === "CONSTRUCTION" ? (
+                  groupedBody(section.stages)
+                ) : (
+                  <Timeline>
+                    {section.entries.map((entry) =>
+                      entry.kind === "stage" ? stageRow(entry.stage, take()) : null,
+                    )}
+                  </Timeline>
+                )}
+              </div>
             ) : null}
-          </div>
-          {layout === "grouped" && section.phase === "CONSTRUCTION" ? (
-            groupedBody(section.stages)
-          ) : (
-            <ul className="m-0 flex list-none flex-col gap-1 p-0">
-              {section.entries.map((entry) =>
-                entry.kind === "stage" ? stageRow(entry.stage, take()) : null,
-              )}
-            </ul>
-          )}
-        </section>
-      ))}
+          </section>
+        );
+      })}
     </nav>
+  );
+}
+
+/**
+ * The phase's state in one badge: done of the stages it runs, or all skipped.
+ * The closed phase still says how far it got. A run stage that was skipped
+ * counts as done, as in the state file's own tally (reader-core state.ts).
+ */
+function PhaseSummary({ stages }: { stages: readonly StageInfo[] }): ReactNode {
+  const skipped = stages.filter((stage) => stage.execution === "SKIP").length;
+  const run = stages.length - skipped;
+  if (run === 0) return <Badge variant="secondary">⊘ スキップ {skipped}</Badge>;
+  const done = stages.filter(
+    (stage) =>
+      stage.execution === "EXECUTE" && (stage.status === "completed" || stage.status === "skipped"),
+  ).length;
+  return (
+    <span className="flex flex-wrap items-center gap-1.5">
+      <Badge variant={done === run ? "success" : "secondary"}>
+        完了 {done} / {run}
+      </Badge>
+      {skipped === 0 ? null : (
+        <span className="text-xs font-normal text-muted-foreground">スキップ {skipped}</span>
+      )}
+    </span>
   );
 }
 

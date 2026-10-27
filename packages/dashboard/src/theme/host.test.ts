@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   applyVsCodeHost,
   isVsCodeDarkBody,
+  isVsCodeHighContrastBody,
   isVsCodeWebview,
   syncVsCodeTheme,
   watchVsCodeTheme,
@@ -34,12 +35,38 @@ describe("isVsCodeDarkBody", () => {
   });
 });
 
+describe("isVsCodeHighContrastBody", () => {
+  it("is true for both high contrast themes only", () => {
+    const body = document.createElement("body");
+    body.className = "vscode-dark";
+    expect(isVsCodeHighContrastBody(body)).toBe(false);
+
+    body.className = "vscode-high-contrast";
+    expect(isVsCodeHighContrastBody(body)).toBe(true);
+
+    body.className = "vscode-high-contrast-light";
+    expect(isVsCodeHighContrastBody(body)).toBe(true);
+  });
+});
+
 describe("applyVsCodeHost / syncVsCodeTheme", () => {
   afterEach(() => {
     document.documentElement.removeAttribute("data-host");
     document.documentElement.removeAttribute("data-theme");
+    document.documentElement.removeAttribute("data-contrast");
     document.documentElement.classList.remove("dark");
     document.body.className = "";
+  });
+
+  it("marks high contrast themes and clears the mark again", () => {
+    document.body.className = "vscode-high-contrast-light";
+    syncVsCodeTheme(document.documentElement);
+    expect(document.documentElement.getAttribute("data-contrast")).toBe("high");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+
+    document.body.className = "vscode-dark";
+    syncVsCodeTheme(document.documentElement);
+    expect(document.documentElement.hasAttribute("data-contrast")).toBe(false);
   });
 
   it("sets data-host and mirrors body theme onto html", () => {

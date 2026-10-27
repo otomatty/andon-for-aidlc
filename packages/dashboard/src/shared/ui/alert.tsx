@@ -1,34 +1,35 @@
-import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const alertVariants = cva(
-  "group/alert relative grid w-full gap-0.5 rounded-lg border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
-  {
-    variants: {
-      variant: {
-        default: "bg-card text-card-foreground",
-        destructive:
-          "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  },
-);
+/**
+ * Mantine's light Alert look (tinted surface, coloured title and icon) on the
+ * dashboard's children API: callers put an icon, AlertTitle, AlertDescription
+ * and AlertAction inside, which Mantine's Alert has no slot for. The colours
+ * are Mantine's own light-variant variables.
+ */
+const ALERT_COLORS: Record<"default" | "destructive", string> = {
+  default:
+    "[--alert-bg:var(--mantine-color-blue-light)] [--alert-color:var(--mantine-color-blue-light-color)]",
+  destructive:
+    "[--alert-bg:var(--mantine-color-red-light)] [--alert-color:var(--mantine-color-red-light-color)]",
+};
 
 function Alert({
   className,
-  variant,
+  variant = "default",
   ...props
-}: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
+}: React.ComponentProps<"div"> & { variant?: "default" | "destructive" | null }) {
   return (
     <div
       data-slot="alert"
+      data-variant={variant ?? "default"}
       role="alert"
-      className={cn(alertVariants({ variant }), className)}
+      className={cn(
+        "group/alert relative grid w-full gap-1 rounded-md bg-(--alert-bg) px-4 py-3 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-3 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-(--alert-color) *:[svg:not([class*='size-'])]:size-4",
+        ALERT_COLORS[variant ?? "default"],
+        className,
+      )}
       {...props}
     />
   );
@@ -39,7 +40,7 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="alert-title"
       className={cn(
-        "font-medium group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground",
+        "font-bold text-(--alert-color) group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-3",
         className,
       )}
       {...props}
@@ -52,7 +53,7 @@ function AlertDescription({ className, ...props }: React.ComponentProps<"div">) 
     <div
       data-slot="alert-description"
       className={cn(
-        "text-sm text-balance text-muted-foreground md:text-pretty [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
+        "text-sm text-balance text-foreground md:text-pretty [&_a]:underline [&_a]:underline-offset-3 [&_p:not(:last-child)]:mb-4",
         className,
       )}
       {...props}

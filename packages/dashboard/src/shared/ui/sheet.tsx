@@ -1,86 +1,73 @@
-import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
-import { XIcon } from "lucide-react";
-import type * as React from "react";
-import { Button } from "@/components/ui/button";
+import { CloseButton, Drawer } from "@mantine/core";
+import { createContext, useContext, type ComponentPropsWithRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-function Sheet({ ...props }: SheetPrimitive.Root.Props) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />;
-}
+type SheetState = { open: boolean; onOpenChange: (open: boolean) => void };
+const SheetContext = createContext<SheetState>({ open: false, onOpenChange: () => {} });
 
-function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
-  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
-}
-
-function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
-  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
-}
-
-function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
-  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
-}
-
-function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
-  return (
-    <SheetPrimitive.Backdrop
-      data-slot="sheet-overlay"
-      className={cn(
-        "fixed inset-0 z-50 bg-black/10 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs",
-        className,
-      )}
-      {...props}
-    />
-  );
+/** A side panel on Mantine's Drawer; the open state always comes from the caller. */
+function Sheet({
+  open,
+  onOpenChange,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children?: ReactNode;
+}) {
+  return <SheetContext.Provider value={{ open, onOpenChange }}>{children}</SheetContext.Provider>;
 }
 
 function SheetContent({
   className,
   children,
   side = "right",
+  size = "min(75%, 24rem)",
   showCloseButton = true,
   ...props
-}: SheetPrimitive.Popup.Props & {
+}: Omit<ComponentPropsWithRef<"div">, "color"> & {
   side?: "top" | "right" | "bottom" | "left";
+  /** The panel's width (or height, for top and bottom), as any CSS length. */
+  size?: string;
   showCloseButton?: boolean;
 }) {
+  const { open, onOpenChange } = useContext(SheetContext);
+  const onClose = () => onOpenChange(false);
   return (
-    <SheetPortal>
-      <SheetOverlay />
-      <SheetPrimitive.Popup
+    <Drawer.Root opened={open} onClose={onClose} position={side} size={size}>
+      <Drawer.Overlay backgroundOpacity={0.4} />
+      <Drawer.Content
         data-slot="sheet-content"
         data-side={side}
-        className={cn(
-          "fixed z-50 flex flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=bottom]:data-ending-style:translate-y-[2.5rem] data-[side=bottom]:data-starting-style:translate-y-[2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:data-ending-style:translate-x-[-2.5rem] data-[side=left]:data-starting-style:translate-x-[-2.5rem] data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:data-ending-style:translate-x-[2.5rem] data-[side=right]:data-starting-style:translate-x-[2.5rem] data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=top]:data-ending-style:translate-y-[-2.5rem] data-[side=top]:data-starting-style:translate-y-[-2.5rem] data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",
-          className,
-        )}
+        classNames={{ content: cn("relative flex flex-col gap-4 text-sm", className) }}
         {...props}
       >
-        {children}
+        {/* First in the DOM, so opening a long panel focuses Close, not a control mid-list. */}
         {showCloseButton && (
-          <SheetPrimitive.Close
+          <CloseButton
             data-slot="sheet-close"
-            render={<Button variant="ghost" className="absolute top-3 right-3" size="icon-sm" />}
-          >
-            <XIcon />
-            <span className="sr-only">閉じる</span>
-          </SheetPrimitive.Close>
+            aria-label="閉じる"
+            className="absolute top-3 right-3"
+            onClick={onClose}
+          />
         )}
-      </SheetPrimitive.Popup>
-    </SheetPortal>
+        {children}
+      </Drawer.Content>
+    </Drawer.Root>
   );
 }
 
-function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
+function SheetHeader({ className, ...props }: ComponentPropsWithRef<"div">) {
   return (
     <div
       data-slot="sheet-header"
-      className={cn("flex flex-col gap-0.5 p-4", className)}
+      className={cn("flex flex-col gap-0.5 p-4 pr-12", className)}
       {...props}
     />
   );
 }
 
-function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
+function SheetFooter({ className, ...props }: ComponentPropsWithRef<"div">) {
   return (
     <div
       data-slot="sheet-footer"
@@ -90,19 +77,19 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
+function SheetTitle({ className, ...props }: Omit<ComponentPropsWithRef<"h2">, "color">) {
   return (
-    <SheetPrimitive.Title
+    <Drawer.Title
       data-slot="sheet-title"
-      className={cn("font-heading text-base font-medium text-foreground", className)}
+      className={cn("text-base font-semibold text-foreground", className)}
       {...props}
     />
   );
 }
 
-function SheetDescription({ className, ...props }: SheetPrimitive.Description.Props) {
+function SheetDescription({ className, ...props }: ComponentPropsWithRef<"p">) {
   return (
-    <SheetPrimitive.Description
+    <p
       data-slot="sheet-description"
       className={cn("text-sm text-muted-foreground", className)}
       {...props}
@@ -110,13 +97,4 @@ function SheetDescription({ className, ...props }: SheetPrimitive.Description.Pr
   );
 }
 
-export {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-};
+export { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle };
