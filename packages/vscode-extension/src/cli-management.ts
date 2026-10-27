@@ -401,7 +401,7 @@ function nextAction(stage: CliManagementResult["stage"], details: string): strin
 
 async function manageCli(
   opts: CliManagementOptions,
-  mode: "prepare" | "update" | "pin" | "use",
+  mode: "prepare" | "update" | "pin" | "use" | "runtime",
 ): Promise<CliManagementResult> {
   const hooks = opts.hooks ?? {};
   const active = hooks.readActive ?? readNativeInstall;
@@ -445,8 +445,13 @@ async function manageCli(
     const state = inspectCliManagement(opts.workspaceRoot, hooks);
     preserveDefault =
       mode === "pin" ||
+      mode === "runtime" ||
       (mode === "prepare" && inputs.pin.exists) ||
       (newerThanTarget(previous?.version) && (mode === "update" || isFreshProject(inputs)));
+    if (mode === "runtime" && state.targetInstalled && state.launcherReady) {
+      release();
+      return result(true, `この PC には ${SETUP_RELEASE} の実行環境があります。`);
+    }
     if ((mode === "prepare" && state.setupReady) || (mode === "update" && !state.canUpdate)) {
       const ok = mode === "prepare" || (state.targetInstalled && state.launcherReady);
       release();
@@ -558,9 +563,13 @@ async function manageCli(
           ? `このプロジェクトを ${SETUP_RELEASE} に固定しました。マシンの既定CLI ${previous?.version} は維持しています。.aidlc-version をコミットしてチームに共有してください。`
           : mode === "use"
             ? `このマシンの既定CLIを ${previous?.version} から ${SETUP_RELEASE} に戻しました。`
-            : preserveDefault
-              ? `実行環境 ${SETUP_RELEASE} を追加導入しました。マシンの既定CLI ${previous?.version} は維持しています。`
-              : `このマシンの既定CLIを ${SETUP_RELEASE} に更新しました。`,
+            : mode === "runtime"
+              ? previous
+                ? `この PC に ${SETUP_RELEASE} の実行環境を準備しました。既定のバージョン ${previous.version} は変えていません。`
+                : `この PC に ${SETUP_RELEASE} を導入しました。`
+              : preserveDefault
+                ? `実行環境 ${SETUP_RELEASE} を追加導入しました。マシンの既定CLI ${previous?.version} は維持しています。`
+                : `このマシンの既定CLIを ${SETUP_RELEASE} に更新しました。`,
     );
   } catch (cause) {
     const details = errorDetails(cause);
@@ -618,10 +627,11 @@ async function manageCli(
       };
     if (
       outcome.ok &&
-      (mode === "update" || mode === "use") &&
+      (mode === "update" || mode === "use" || mode === "runtime") &&
       (!retained(SETUP_RELEASE) ||
         !launcherReady(active()) ||
-        active()?.version !== (preserveDefault ? previous?.version : SETUP_RELEASE))
+        active()?.version !==
+          (preserveDefault ? (previous?.version ?? SETUP_RELEASE) : SETUP_RELEASE))
     )
       outcome = {
         ...result(
@@ -666,6 +676,13 @@ export const updateMachineCli = (opts: CliManagementOptions): Promise<CliManagem
  */
 export const pinProjectCli = (opts: CliManagementOptions): Promise<CliManagementResult> =>
   manageCli(opts, "pin");
+
+/**
+ * Make the target runtime available for a project update without moving this
+ * machine's default; the update then pins the project to it. Changes no project file.
+ */
+export const prepareTargetRuntime = (opts: CliManagementOptions): Promise<CliManagementResult> =>
+  manageCli(opts, "runtime");
 
 /** Move this machine's newer default back to the target. Changes no project file. */
 export const useTargetCli = (opts: CliManagementOptions): Promise<CliManagementResult> =>

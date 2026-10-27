@@ -95,7 +95,7 @@ export function SettingsPage(): ReactNode {
             </CardTitle>
             <CardDescription>
               {inIde
-                ? "このマシンのCLIと、リポジトリ内のエンジン・設定をそれぞれ更新できます。AIDLC Guide拡張の更新確認もこちらで行います。"
+                ? "このPCとプロジェクトを、Guideの対応版にそろえます。AIDLC Guide拡張の更新確認もこちらで行います。"
                 : "更新はVS Code / Cursorの拡張機能で行います。IDEでAIDLC Guideを開き、設定から更新画面へ進んでください。"}
             </CardDescription>
           </CardHeader>

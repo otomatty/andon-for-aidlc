@@ -297,7 +297,7 @@ describe("Header (BLM step 7)", () => {
     const updates = within(page).getByRole("region", { name: "更新・修復" });
     const tools = within(page).getByRole("region", { name: "ツール追加" });
     expect(setup.textContent).toContain("既存プロジェクトに参加する方");
-    expect(updates.textContent).toContain("CLIと、リポジトリ内のエンジン・設定をそれぞれ更新");
+    expect(updates.textContent).toContain("このPCとプロジェクトを、Guideの対応版にそろえます");
     expect(tools.textContent).toContain("追加するツールは複数選べます");
     expect(within(page).queryByRole("button", { name: "更新を確認" })).toBeNull();
     expect(postMessage).toHaveBeenCalledWith({ type: "get-workflows-management" });

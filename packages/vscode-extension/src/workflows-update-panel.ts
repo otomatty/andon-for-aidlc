@@ -1,14 +1,12 @@
 import { randomBytes } from "node:crypto";
 import path from "node:path";
-import { type HarnessId, inspectVersionGate } from "@aidlc-guide/reader-core";
+import { inspectVersionGate } from "@aidlc-guide/reader-core";
 import {
   VERSION_GATE_ACTIONS,
-  type VersionGate,
   type VersionGateAction,
   versionGateActionLabel,
   versionGateRollbackGuide,
   WORKFLOWS_TARGET_VERSION,
-  type WorkflowsManagementState,
 } from "@aidlc-guide/shared-types";
 import { commands, type ExtensionContext, env, Uri, ViewColumn, window, workspace } from "vscode";
 import { configureCliEnvironment } from "./cli-environment.ts";
@@ -24,22 +22,20 @@ import {
   inspectCliManagement,
   pinProjectCli,
   prepareProjectCli,
+  prepareTargetRuntime,
   updateMachineCli,
   useTargetCli,
 } from "./cli-management.ts";
 import { HARNESS_LABELS } from "./harness-detect.ts";
 import { INSTALL_GUIDE_URL, readNativeInstall } from "./native-setup.ts";
-import { escapeSetupText as esc } from "./setup-html.ts";
 import {
   changedSince,
   gitStatusSnapshot,
   pinCommitMessage,
-  sharedFilesFor,
   updateCommitMessage,
 } from "./shared-file-changes.ts";
-import type { UpdateProblem } from "./workflows-conflicts.ts";
 import { diagnoseInstalledWorkflows } from "./workflows-diagnose.ts";
-import { inspectWorkflowsManagement, workflowsEngineCanApply } from "./workflows-management.ts";
+import { inspectWorkflowsManagement } from "./workflows-management.ts";
 import type {
   NativeWorkflowsUpdateResult,
   WorkflowsToolUpdateResult,
@@ -53,10 +49,16 @@ import {
   repairWorkflows,
 } from "./workflows-repair.ts";
 import { repairPath } from "./workflows-repair-files.ts";
-import { repairHtml, repairScript, repairStyles } from "./workflows-repair-html.ts";
-import { webviewThemeStyles } from "./webview-theme.ts";
 import { updateInstalledWorkflows } from "./workflows-update.ts";
-import { UPDATE_WORKFLOWS_COMMAND } from "./workflows-version.ts";
+import {
+  type UpdateActivity,
+  type UpdateChange,
+  type UpdateCheck,
+  type UpdateView,
+  workflowsUpdateHtml,
+} from "./workflows-update-html.ts";
+import { updatePhase } from "./workflows-update-phase.ts";
+import { readAllWorkspaceAidlcVersions, UPDATE_WORKFLOWS_COMMAND } from "./workflows-version.ts";
 
 /** Where the version-check screen's action lands in this panel. */
 const GATE_FOCUS: Readonly<Partial<Record<VersionGateAction, string>>> = {
@@ -66,252 +68,11 @@ const GATE_FOCUS: Readonly<Partial<Record<VersionGateAction, string>>> = {
   doctor: "doctor",
 };
 
-const CLI_UPDATE_LABEL = "CLI を更新";
-const CLI_REGISTER_LABEL = "このマシンに登録";
-
-/** Long lists stay readable; the rest are counted. */
-const SHARED_FILES_SHOWN = 30;
-
 const isOpenFolder = (root: string): boolean =>
   workspace.workspaceFolders?.some((folder) => folder.uri.fsPath === root) ?? false;
 
-/** Render the nonce-protected update page; diagnostics are inserted as text by its client. */
-export function workflowsUpdateHtml(
-  state: WorkflowsManagementState,
-  nonce: string,
-  cli: ReturnType<typeof inspectCliManagement>,
-  gate: VersionGate | null = null,
-): string {
-  const blocked = gate !== null && gate.status !== "ok";
-  const register = cliRegistersPin(cli);
-  const shared = sharedFilesFor(state.tools.map((tool) => tool.id as HarnessId));
-  return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';">
-<title>AI-DLC の更新</title>
-<style nonce="${nonce}">
-${webviewThemeStyles}
-* { box-sizing: border-box; }
-body { margin: 0; font-family: var(--vscode-font-family, system-ui); font-size: 14px; color: var(--m-text); background: var(--m-body); line-height: 1.7; padding: 24px; }
-main { max-width: 860px; margin: auto; }
-h1 { margin: 8px 0 4px; color: var(--m-bright); font-size: 30px; font-weight: 700; line-height: 1.35; }
-section { margin: 20px 0; padding: 20px 24px; border: 1px solid var(--m-border); border-radius: 8px; background: var(--m-card); box-shadow: var(--m-shadow); }
-section#gate { border: 0; background: var(--m-warning-light); box-shadow: none; }
-section#gate h2 { color: var(--m-warning); font-size: 16px; }
-h2 { margin-top: 0; color: var(--m-bright); font-size: 20px; font-weight: 700; }
-h3 { color: var(--m-bright); font-size: 15px; font-weight: 700; }
-a.text-link, button.text-link { min-height: 0; background: transparent; color: var(--m-primary-light-color); font-weight: 500; border: 0; padding: 0; border-radius: 0; text-decoration: none; }
-a.text-link, button.text-link { display: inline-block; margin: 12px 16px 0 0; }
-a.text-link:hover, button.text-link:hover { background: transparent; text-decoration: underline; }
-button.text-link:disabled { text-decoration: none; }
-table { width: 100%; border: 1px solid var(--m-border); border-radius: 8px; border-collapse: separate; border-spacing: 0; overflow: hidden; }
-caption { padding: 0 0 6px; color: var(--m-dimmed); font-size: 12px; text-align: left; }
-th, td { text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--m-border); }
-thead th { color: var(--m-bright); font-weight: 700; }
-tbody tr:nth-child(odd) { background: var(--m-hover); }
-tbody tr:last-child td { border-bottom: 0; }
-tbody td:first-child { font-weight: 600; }
-tbody td + td { font-family: var(--vscode-editor-font-family, monospace); font-size: 13px; }
-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; font: inherit; font-weight: 600; margin: 12px 8px 0 0; padding: 0 18px; cursor: pointer; color: var(--m-primary-contrast); background: var(--m-primary); border: 0; border-radius: 4px; }
-button:hover { background: var(--m-primary-hover); }
-button:disabled { opacity: .55; cursor: default; } button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--m-focus); outline-offset: 2px; }
-.cli-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; }
-.cli-actions button { margin-right: 0; }
-.cli-actions #cli-result { margin: 12px 0 0; flex: 1 1 16rem; }
-pre { white-space: pre-wrap; overflow-wrap: anywhere; border-radius: 4px; background: var(--m-code); padding: 12px; }
-code { overflow-wrap: anywhere; padding: 1px 6px; border-radius: 4px; background: var(--m-code); font-family: var(--vscode-editor-font-family, monospace); font-size: 13px; }
-pre code { padding: 0; background: transparent; }
-#results { padding-left: 20px; }
-main > details { margin-top: 20px; border: 1px solid var(--m-border); border-radius: 8px; background: var(--m-card); }
-main > details > summary { padding: 12px 16px; }
-main > details > pre { margin: 0 16px 16px; }
-${repairStyles}
-</style></head><body><main>
-<h1>AI-DLC の更新</h1>
-<p>対象プロジェクト：<code>${esc(state.root)}</code></p>
-<p>このマシンの CLI と、Git で共有するプロジェクトのエンジンをそれぞれ更新できます。</p>
-<section id="gate" role="status" aria-labelledby="gate-heading"${blocked ? "" : " hidden"}>
-<h2 id="gate-heading">AIDLC Guide を使うには更新が必要です</h2>
-<p id="gate-message">${esc(gate?.message ?? "")}</p>
-<div id="gate-rollback" hidden>
-<h3 id="gate-rollback-heading"></h3>
-<div id="gate-rollback-lines"></div>
-<pre id="gate-rollback-commands" hidden></pre>
-<button type="button" id="copy-rollback" hidden>コマンドをコピー</button>
-</div>
-<button type="button" id="open-dashboard" hidden>AIDLC Guide を開く</button>
-</section>
-<section id="cli-section" aria-labelledby="cli-heading" aria-busy="false">
-<h2 id="cli-heading">このマシンの AI-DLC CLI</h2>
-<p>このマシンの CLI と実行用ランタイムを更新します。リポジトリのファイルは変更しません。</p>
-<p>マシンの既定バージョン：<strong id="cli-current">${esc(cli.machineVersion ?? "未インストール")}</strong> ／ 実行環境の対象バージョン：<strong>${esc(cli.target)}</strong></p>
-<p>プロジェクトの固定バージョン：<code id="project-pin">${esc(state.projectPin ?? "指定なし")}</code>。固定バージョンがあるプロジェクトは、そのバージョンを引き続き使用します。</p>
-<p id="cli-state" role="status">${esc(register || cli.engineNewer ? cli.message : cli.updateMessage)}</p>
-<div class="cli-actions">
-<button id="pin-project"${cli.engineNewer ? "" : " hidden"}>${esc(versionGateActionLabel("pin-project", cli.target))}</button>
-<button type="button" class="text-link" id="use-target"${cli.engineNewer ? "" : " hidden"}>この PC の既定を ${esc(cli.target)} に戻す</button>
-<button id="update-cli"${cli.canUpdate || register ? "" : " disabled"}${cli.engineNewer ? " hidden" : ""}>${register ? CLI_REGISTER_LABEL : CLI_UPDATE_LABEL}</button>
-<p id="cli-result" role="status" aria-live="polite"></p>
-</div>
-</section>
-<section aria-labelledby="project-heading">
-<h2 id="project-heading">プロジェクトのエンジン</h2>
-<p>設定済みのすべてのツールのエンジン・設定と <code>.aidlc-version</code> を ${esc(state.target)} に揃えます。変更内容は Git の差分で確認し、チームに共有してください。</p>
-<p>チーム・プロジェクトの設定とワークフローの成果物は保持します。進行中の作業があっても実行でき、更新後もそのまま続けられます。</p>
-<p id="shared-files-note">リポジトリで共有する次のファイルが変わる可能性があります（どれが変わるかはツールと版によります）：${shared.map((file) => `<code>${esc(file)}</code>`).join("、")}。更新後に、実際に変わったファイルとコミットメッセージを表示します。</p>
-<table><caption>更新対象のツール</caption><thead><tr><th scope="col">ツール</th><th scope="col">現在</th><th scope="col">更新後</th></tr></thead><tbody id="tools">${state.tools.map((tool) => `<tr><td>${esc(tool.label)}</td><td>${esc(tool.version ?? "確認が必要")}</td><td>${esc(state.target)}</td></tr>`).join("")}</tbody></table>
-<p id="state" role="status">${esc(state.message)}</p>
-<p id="runtime-required"${workflowsEngineCanApply(state) && (!cli.targetInstalled || !cli.launcherReady) ? "" : " hidden"}>先に「CLI を更新」で ${esc(state.target)} の実行環境を準備してください。</p>
-<button id="apply"${workflowsEngineCanApply(state) && cli.targetInstalled && cli.launcherReady ? "" : " disabled"}>プロジェクトのエンジンを更新</button>
-<button type="button" class="text-link" id="doctor"${state.tools.length > 0 ? "" : " disabled"}>Doctor を再実行</button>
-<button type="button" class="text-link" id="install">利用するツールを追加</button>
-<ul id="results" aria-label="ツールごとの更新結果" aria-live="polite"></ul>
-<p id="result" role="status"></p>
-<div id="shared-changes" hidden>
-<h3>リポジトリで変わったファイル</h3>
-<ul id="shared-files"></ul>
-<p id="shared-files-more" hidden></p>
-<p>次のメッセージでコミットし、チームに共有してください。チームのメンバーは pull した後、AIDLC Guide の案内に従えば揃えられます。</p>
-<pre id="commit-message"></pre>
-<button type="button" id="copy-commit">コミットメッセージをコピー</button>
-</div>
-${repairHtml}
-</section>
-<section aria-labelledby="extension-heading"><h2 id="extension-heading">AIDLC Guide 拡張機能</h2>
-<p>新しい AI-DLC のバージョンに対応した拡張機能を確認します。</p><button type="button" class="text-link" id="extension-update">拡張機能の更新を確認</button></section>
-<button type="button" class="text-link" id="refresh">状態を再確認</button><button type="button" class="text-link" id="setup">セットアップを開く</button><a class="text-link" id="docs" href="${esc(INSTALL_GUIDE_URL)}">公式手順を開く</a>
-<details><summary>実行ログ</summary><pre id="log"></pre></details>
-</main><script nonce="${nonce}">
-const vscode = acquireVsCodeApi();
-let busy = false;
-let busyScope = '';
-function engineCanApply(next) {
-  return !!next.engineBumpNeeded;
-}
-let canUpdate = ${workflowsEngineCanApply(state)};
-let cliCanUpdate = ${cli.canUpdate || register};
-let engineNewer = ${cli.engineNewer};
-let targetInstalled = ${cli.targetInstalled && cli.launcherReady};
-let hasTools = ${state.tools.length > 0};
-const apply = document.getElementById('apply');
-const cliResult = document.getElementById('cli-result');
-function setCliProgress(text) { cliResult.textContent = text; }
-function buttons() {
-  apply.disabled = busy || !canUpdate || !targetInstalled;
-  document.getElementById('update-cli').disabled = busy || !cliCanUpdate;
-  document.getElementById('update-cli').hidden = engineNewer;
-  for (const id of ['pin-project', 'use-target']) {
-    document.getElementById(id).hidden = !engineNewer;
-    document.getElementById(id).disabled = busy || !engineNewer;
-  }
-  document.getElementById('doctor').disabled = busy || !hasTools;
-  for (const id of ['refresh', 'install', 'setup', 'extension-update']) document.getElementById(id).disabled = busy;
-  document.getElementById('runtime-required').hidden = !canUpdate || targetInstalled;
-  document.getElementById('cli-section').setAttribute('aria-busy', String(busy && busyScope === 'cli'));
-  repairButtons();
-}
-for (const id of ['apply', 'update-cli', 'pin-project', 'use-target', 'doctor']) document.getElementById(id).addEventListener('click', () => {
-  if (id === 'apply' && (!canUpdate || !targetInstalled)) return;
-  busy = true;
-  busyScope = id === 'apply' || id === 'doctor' ? 'project' : 'cli';
-  if (busyScope === 'cli') setCliProgress(id === 'update-cli' ? '更新中…' : '処理中…');
-  buttons();
-  vscode.postMessage({ type: id });
-});
-for (const id of ['refresh', 'install', 'setup', 'extension-update', 'docs']) document.getElementById(id).addEventListener('click', (event) => {
-  if (event.currentTarget instanceof HTMLAnchorElement) event.preventDefault();
-  vscode.postMessage({ type: id });
-});
-document.getElementById('copy-commit').addEventListener('click', () => vscode.postMessage({ type: 'copy-commit' }));
-document.getElementById('copy-rollback').addEventListener('click', () => vscode.postMessage({ type: 'copy-rollback' }));
-document.getElementById('open-dashboard').addEventListener('click', () => vscode.postMessage({ type: 'open-dashboard' }));
-window.addEventListener('message', ({ data: msg }) => {
-  if (msg.type === 'gate') {
-    const section = document.getElementById('gate');
-    if (msg.gate === null) { section.hidden = true; return; }
-    section.hidden = false;
-    const ok = msg.gate.status === 'ok';
-    document.getElementById('gate-heading').textContent = ok ? 'バージョンが揃いました' : 'AIDLC Guide を使うには更新が必要です';
-    document.getElementById('gate-message').textContent = ok ? 'AIDLC Guide のすべての機能を使えます。' : msg.gate.message;
-    document.getElementById('open-dashboard').hidden = !ok;
-    const rollback = ok ? null : msg.rollback;
-    document.getElementById('gate-rollback').hidden = !rollback;
-    document.getElementById('gate-rollback-heading').textContent = rollback ? rollback.heading : '';
-    document.getElementById('gate-rollback-lines').replaceChildren(...(rollback ? rollback.lines : []).map(line => {
-      const item = document.createElement('p'); item.textContent = line; return item;
-    }));
-    const commands = rollback ? rollback.commands : [];
-    document.getElementById('gate-rollback-commands').textContent = commands.join('\\n');
-    document.getElementById('gate-rollback-commands').hidden = commands.length === 0;
-    document.getElementById('copy-rollback').hidden = commands.length === 0;
-  }
-  if (msg.type === 'focus') {
-    const target = document.getElementById(msg.id);
-    if (target) { target.scrollIntoView({ block: 'center' }); target.focus(); }
-  }
-  if (msg.type === 'shared-changes') {
-    const block = document.getElementById('shared-changes');
-    block.hidden = false;
-    const items = msg.files.length > 0 ? msg.files : ['Git で変更を確認できませんでした。差分は git status で確認してください。'];
-    document.getElementById('shared-files').replaceChildren(...items.map(file => {
-      const item = document.createElement('li'); item.textContent = file; return item;
-    }));
-    const more = document.getElementById('shared-files-more');
-    more.hidden = !(msg.more > 0);
-    more.textContent = msg.more > 0 ? 'ほか ' + msg.more + ' 件' : '';
-    document.getElementById('commit-message').textContent = msg.commitMessage;
-  }
-  if (msg.type === 'log') {
-    document.getElementById('log').textContent += msg.line + '\\n';
-    if (busyScope === 'cli') {
-      const lines = String(msg.line).split('\\n').map(line => line.trim()).filter(Boolean);
-      setCliProgress(lines[lines.length - 1] || '更新中…');
-    }
-  }
-  if (msg.type === 'state') {
-    canUpdate = engineCanApply(msg.state);
-    hasTools = msg.state.tools.length > 0;
-    document.getElementById('state').textContent = msg.state.message;
-    document.getElementById('project-pin').textContent = msg.state.projectPin || '指定なし';
-    const rows = msg.state.tools.map(tool => {
-      const row = document.createElement('tr');
-      for (const value of [tool.label, tool.version || '確認が必要', msg.state.target]) {
-        const cell = document.createElement('td'); cell.textContent = value; row.append(cell);
-      }
-      return row;
-    });
-    document.getElementById('tools').replaceChildren(...rows); buttons();
-  }
-  if (msg.type === 'cli-state') {
-    const wasInstalled = targetInstalled;
-    cliCanUpdate = msg.state.canUpdate || msg.register;
-    engineNewer = !!msg.state.engineNewer;
-    targetInstalled = msg.state.targetInstalled && msg.state.launcherReady;
-    document.getElementById('cli-current').textContent = msg.state.machineVersion || '未インストール';
-    document.getElementById('cli-state').textContent = msg.register || engineNewer ? msg.state.message : msg.state.updateMessage;
-    document.getElementById('update-cli').textContent = msg.register ? ${JSON.stringify(CLI_REGISTER_LABEL)} : ${JSON.stringify(CLI_UPDATE_LABEL)};
-    buttons();
-    if (!wasInstalled && targetInstalled) vscode.postMessage({ type: 'ready' });
-  }
-  if (msg.type === 'results') document.getElementById('results').replaceChildren(...msg.results.map(result => {
-    const item = document.createElement('li'); item.textContent = result.label + '：' + result.message; return item;
-  }));
-  if (msg.type === 'done') {
-    busy = false;
-    busyScope = '';
-    document.getElementById(msg.scope === 'cli' ? 'cli-result' : 'result').textContent = msg.message;
-    buttons();
-  }
-  if (msg.type === 'reset') {
-    document.getElementById('log').textContent = '';
-    if (msg.scope === 'cli') setCliProgress('更新中…');
-    else document.getElementById('result').textContent = '';
-  }
-});
-${repairScript}
-vscode.postMessage({ type: 'ready' });
-</script></body></html>`;
-}
+const errorText = (cause: unknown): string =>
+  cause instanceof Error ? cause.message : String(cause);
 
 export function workflowsUpdateMessage(
   result: NativeWorkflowsUpdateResult,
@@ -332,15 +93,15 @@ function workflowsUpdateBaseMessage(
   if (result.ok)
     return "プロジェクトのエンジン・固定バージョンの更新と Doctor の確認が完了しました。Git の差分を確認して共有してください。";
   if (result.reason === "doctor")
-    return "設定反映済み・診断未完了です。実行ログの診断内容を確認し、対処後に「Doctor を再実行」を選んでください。";
+    return "設定反映済み・診断未完了です。実行ログの診断内容を確認し、対処後に「Doctor で診断」を押してください。";
   if (result.reason === "runtime-required")
-    return "プロジェクトの更新は未実行です。先に「CLI を更新」で必要な実行環境を準備してください。";
+    return "プロジェクトの更新は未実行です。この PC に必要な実行環境を準備できませんでした。もう一度更新してください。";
   if (result.reason === "previous-runtime-required")
     return "更新前に停止しました。失敗時に以前の固定バージョンへ戻すための実行環境がありません。実行ログに示された旧固定バージョンの CLI を公式手順で復元してから再実行してください。プロジェクトの設定は変更していません。";
   if (result.reason === "pin-failed")
     return "プロジェクトの固定バージョンの設定に失敗しました。ツールのエンジンは未更新です。実行ログと .aidlc-version を確認してください。";
   if (result.reason === "preflight")
-    return "更新前の確認で停止しました。ツールのエンジンは未更新です。下の問題と実行ログを確認し、対処後に更新を再実行してください。";
+    return "更新前の確認で停止しました。ツールのエンジンは未更新です。問題を直してから、もう一度更新してください。";
   if (result.reason === "busy")
     return "別のインストールまたは更新が実行中です。処理が終わってから再実行してください。";
   if (result.reason === "verification" || result.reason === "runtime-verification")
@@ -384,33 +145,30 @@ export async function openWorkflowsUpdatePanel(
     void window.showErrorMessage("更新対象のワークスペースを開き、信頼してから実行してください。");
     return;
   }
+  const target = WORKFLOWS_TARGET_VERSION;
   const repairKey = workflowsRepairKey(workspaceRoot);
   const needsRepair = () => context.workspaceState.get<boolean>(repairKey) === true;
   const inspect = () => inspectWorkflowsManagement(workspaceRoot, needsRepair());
+  const inspectCli = () => inspectCliManagement(workspaceRoot);
+  const gateOf = () => inspectVersionGate(workspaceRoot, target);
   const panel = window.createWebviewPanel(
     "aidlcGuide.updateWorkflows",
     "AI-DLC の更新",
     ViewColumn.One,
     { enableScripts: true, retainContextWhenHidden: true },
   );
-  const gateOf = () => inspectVersionGate(workspaceRoot, WORKFLOWS_TARGET_VERSION);
-  panel.webview.html = workflowsUpdateHtml(
-    inspect(),
-    randomBytes(18).toString("hex"),
-    inspectCliManagement(workspaceRoot),
-    gateOf(),
-  );
   // Doctor needs a detected tool; a file-only problem is fixed by hand and then re-checked.
   const focusId =
     focus === undefined
       ? undefined
       : focus === "doctor" && inspect().tools.length === 0
-        ? "refresh"
+        ? "recheck"
         : GATE_FOCUS[focus];
   let disposed = false;
   let busy = false;
   let validFolder = true;
   const cancellation = new AbortController();
+  let repairCancellation: AbortController | undefined;
   const folderSubscription = workspace.onDidChangeWorkspaceFolders?.(() => {
     if (!isOpenFolder(workspaceRoot)) {
       validFolder = false;
@@ -423,38 +181,155 @@ export async function openWorkflowsUpdatePanel(
   const send = (message: unknown) => {
     if (!disposed) void panel.webview.postMessage(message);
   };
-  const refresh = () => {
-    if (!isCurrent()) return;
-    send({ type: "state", state: inspect() });
-    const cliState = inspectCliManagement(workspaceRoot);
-    send({ type: "cli-state", state: cliState, register: cliRegistersPin(cliState) });
-    const gate = gateOf();
-    // Once the versions match, say so; a workspace that was never blocked shows nothing.
-    send({
-      type: "gate",
-      gate: gate.status === "ok" && focus === undefined ? null : gate,
-      rollback: versionGateRollbackGuide(gate),
-    });
-  };
-  const results = new Map<string, WorkflowsToolUpdateResult>();
-  // What "copy" puts on the clipboard: the last change this panel made to shared files.
-  let commitMessage = updateCommitMessage(WORKFLOWS_TARGET_VERSION);
-  let problems: UpdateProblem[] = [];
+
+  // What this panel has learned and done; the page is drawn from it and the workspace.
+  let check: UpdateCheck = { state: "pending" };
+  let repairTools: UpdateView["repairTools"] = null;
+  let change: UpdateChange | null = null;
+  let activity: UpdateActivity | null = null;
+  let outcome: UpdateView["outcome"] = null;
+  const toolResults = new Map<string, WorkflowsToolUpdateResult>();
+  let logText = "";
+  let focused = false;
+  // A finished action redraws the page; the new page then reads out its status line, or
+  // after the automatic check, goes back to the action the version check asked for.
+  let refocus: string | null = null;
   let initialCheckStarted = false;
-  let repairCancellation: AbortController | undefined;
-  const showProblems = (entries: UpdateProblem[], message?: string) => {
-    problems = entries;
-    send({
-      type: "problems",
-      problems: entries.map((p) => ({ ...p, label: HARNESS_LABELS[p.harness] })),
-      message,
-    });
+  // The last page drawn without its nonce, so an unchanged state does not reload the webview.
+  let shown = "";
+
+  const view = (): UpdateView => ({
+    gate: gateOf(),
+    workflows: inspect(),
+    cli: inspectCli(),
+    check,
+    repairTools,
+    change,
+    activity,
+    outcome,
+    toolResults: [...toolResults.values()].map(({ id, message }) => ({ id, message })),
+    records: readAllWorkspaceAidlcVersions(workspaceRoot).map((entry) => entry.version),
+    extensionVersion: context.extension?.packageJSON?.version,
+  });
+  /** Whether the page changed; an unchanged state does not reload the webview. */
+  const render = (): boolean => {
+    if (!isCurrent()) return false;
+    const current = view();
+    const page = workflowsUpdateHtml(current, "");
+    if (page === shown) return false;
+    shown = page;
+    panel.webview.html = workflowsUpdateHtml(current, randomBytes(18).toString("hex"));
+    return true;
   };
-  const applyUpdate = async (signal = cancellation.signal, patches: LocalPatch[] = []) => {
-    results.clear();
-    send({ type: "reset" });
-    send({ type: "results", results: [] });
+  const phase = () => updatePhase(gateOf(), inspect(), inspectCli(), change?.kind ?? null);
+  const runtimeReady = () => {
+    const cli = inspectCli();
+    return cli.targetInstalled && cli.launcherReady;
+  };
+  /** Redraw after an action; a page that stays the same is told to take its buttons back. */
+  const settle = (): boolean => {
+    const redrawn = render();
+    if (!redrawn) send({ type: "unlock" });
+    return redrawn;
+  };
+  const log = (line: string) => {
+    logText = `${logText}${line}\n`.slice(-60000);
+    send({ type: "log", line });
+  };
+  const doing = (text: string, cancellable = false) => {
+    activity = { text, cancellable };
+    render();
+  };
+  const reportResults = () =>
+    send({
+      type: "results",
+      results: [...toolResults.values()].map((item) => ({
+        ...item,
+        label: HARNESS_LABELS[item.id],
+      })),
+    });
+  const onHarnessResult = (entry: WorkflowsToolUpdateResult) => {
+    toolResults.set(entry.id, entry);
+    reportResults();
+  };
+  const backupParent = () => path.join(context.globalStorageUri.fsPath, "update-backups");
+
+  /** The pre-update check: what would stop the update, and which AI tools could fix it. */
+  const runCheck = async (signal: AbortSignal): Promise<boolean> => {
+    check = { state: "checking" };
+    render();
+    const [diagnosis, capabilities] = await Promise.allSettled([
+      repairWorkflows({
+        root: workspaceRoot,
+        backupParent: backupParent(),
+        signal,
+        isCurrent,
+        log,
+      }),
+      probeRepairTools(signal),
+    ]);
+    if (!isCurrent()) return false;
+    repairTools =
+      capabilities.status === "fulfilled"
+        ? { tools: capabilities.value }
+        : { tools: [], message: "AI の検出に失敗しました。もう一度確認してください。" };
+    if (signal.aborted) {
+      check = { state: "pending" };
+      outcome = { text: "確認を中止しました。", error: false };
+      return false;
+    }
+    if (diagnosis.status === "rejected") {
+      check = {
+        state: "failed",
+        message: errorText(diagnosis.reason) || "チェックを完了できませんでした。",
+      };
+      return false;
+    }
+    const { problems, message } = diagnosis.value;
+    check =
+      problems.length > 0 ? { state: "problems", problems, message } : { state: "ok", message };
+    return problems.length === 0;
+  };
+
+  /**
+   * Whether Git still lists a file the recorded change touched. Without Git, or
+   * without the list, it cannot tell, so the commit step stays.
+   */
+  const uncommitted = async (recorded: UpdateChange): Promise<boolean> => {
+    if (recorded.files.length === 0) return true;
+    const status = await gitStatusSnapshot(workspaceRoot);
+    if (status === null) return true;
+    const dirty = [...status.keys()];
+    return recorded.files.some((file) =>
+      dirty.some(
+        (entry) =>
+          entry === file ||
+          (file.endsWith("/") && entry.startsWith(file)) ||
+          (entry.endsWith("/") && file.startsWith(entry)),
+      ),
+    );
+  };
+
+  /** The shared files a finished update or pin changed, as Git sees them. */
+  const commitChanges = async (
+    kind: UpdateChange["kind"],
+    before: Awaited<ReturnType<typeof gitStatusSnapshot>>,
+  ) => {
+    const after = await gitStatusSnapshot(workspaceRoot);
+    change = {
+      kind,
+      files: before === null || after === null ? [] : changedSince(before, after),
+      commitMessage: kind === "pin" ? pinCommitMessage(target) : updateCommitMessage(target),
+    };
+  };
+
+  const applyUpdate = async (signal: AbortSignal, patches: LocalPatch[] = [], note = "") => {
+    toolResults.clear();
+    reportResults();
     const before = await gitStatusSnapshot(workspaceRoot, signal);
+    const unapplied = patches.length
+      ? ` 更新が完了していないため、独自パッチを当て直していません: ${patches.map((p) => p.path).join(", ")}。修正前のファイルはバックアップにあります。`
+      : "";
     try {
       const result = await updateInstalledWorkflows({
         workspaceRoot,
@@ -465,20 +340,20 @@ export async function openWorkflowsUpdatePanel(
         setNeedsRepair: async (value) => {
           await context.workspaceState.update(repairKey, value);
         },
-        log: (line) => send({ type: "log", line }),
-        onHarnessResult: (entry) => {
-          results.set(entry.id, entry);
-          send({
-            type: "results",
-            results: [...results.values()].map((item) => ({
-              ...item,
-              label: HARNESS_LABELS[item.id],
-            })),
-          });
-        },
+        log,
+        onHarnessResult,
       });
-      if (result.problems) showProblems(result.problems);
-      else if (result.ok) showProblems([], "すべての問題を解消し、更新が完了しました。");
+      if (result.problems)
+        check =
+          result.problems.length > 0
+            ? {
+                state: "problems",
+                problems: result.problems,
+                message: `${result.problems.length} 件の問題があります。`,
+              }
+            : check.state === "problems"
+              ? { state: "pending" }
+              : check;
       let patchMessage = "";
       if (patches.length && result.ok) {
         const { applied, skipped } = reapplyLocalPatches(workspaceRoot, patches);
@@ -486,33 +361,39 @@ export async function openWorkflowsUpdatePanel(
           patchMessage += ` 独自パッチを当て直しました: ${applied.join(", ")}。次回の更新でも同じ手順で当て直します。`;
         if (skipped.length)
           patchMessage += ` 更新後のファイルが想定した公式版と異なるため、独自パッチを当て直していません: ${skipped.join(", ")}。修正前のファイルはバックアップにあります。`;
-      } else if (patches.length)
-        patchMessage = ` 更新が完了していないため、独自パッチを当て直していません: ${patches.map((p) => p.path).join(", ")}。修正前のファイルはバックアップにあります。`;
-      send({
-        type: "done",
-        message: workflowsUpdateMessage(result, [...results.values()]) + patchMessage,
-      });
-      if (result.ok) {
-        const after = await gitStatusSnapshot(workspaceRoot);
-        const files = before === null || after === null ? [] : changedSince(before, after);
-        commitMessage = updateCommitMessage(WORKFLOWS_TARGET_VERSION);
-        send({
-          type: "shared-changes",
-          files: files.slice(0, SHARED_FILES_SHOWN),
-          more: Math.max(0, files.length - SHARED_FILES_SHOWN),
-          commitMessage,
-        });
-      }
+      } else if (patches.length) patchMessage = unapplied;
+      const text = `${workflowsUpdateMessage(result, [...toolResults.values()])}${patchMessage}${note ? ` ${note}` : ""}`;
+      outcome = { text, error: !result.ok };
+      if (result.ok) await commitChanges("update", before);
     } catch (cause) {
-      const pending = patches.length
-        ? ` 更新が完了していないため、独自パッチを当て直していません: ${patches.map((p) => p.path).join(", ")}。修正前のファイルはバックアップにあります。`
-        : "";
-      send({
-        type: "done",
-        message: `更新に失敗しました：${cause instanceof Error ? cause.message : String(cause)}${pending}`,
-      });
+      outcome = { text: `更新に失敗しました：${errorText(cause)}${unapplied}`, error: true };
     }
   };
+
+  /** The update button: this PC's runtime if missing, the check if not yet run, then the update. */
+  const updateProject = async () => {
+    const signal = cancellation.signal;
+    if (!runtimeReady()) {
+      doing(`この PC に ${target} を準備しています…`);
+      const prepared = await prepareTargetRuntime({ workspaceRoot, isCurrent, signal, log });
+      if (!isCurrent()) return;
+      if (!prepared.ok) {
+        outcome = { text: cliUpdateMessage(prepared), error: true };
+        return;
+      }
+      const runtime = readNativeInstall();
+      if (runtime) configureCliEnvironment(context, runtime);
+    }
+    // A check that ran and failed was shown once; pressing update again goes ahead without it.
+    if (check.state === "pending") {
+      doing("更新前のチェックをしています…");
+      initialCheckStarted = true;
+      if (!(await runCheck(signal)) || !isCurrent()) return;
+    }
+    doing("プロジェクトを更新しています…");
+    await applyUpdate(signal);
+  };
+
   panel.onDidDispose(() => {
     disposed = true;
     cancellation.abort();
@@ -521,128 +402,66 @@ export async function openWorkflowsUpdatePanel(
   });
   panel.webview.onDidReceiveMessage(async (message: unknown) => {
     if (!message || typeof message !== "object" || !isCurrent()) return;
-    let { type } = message as { type?: unknown };
-    if (type === "cancel-repair") {
+    const { type } = message as { type?: unknown };
+    if (type === "ready") {
+      send({ type: "restore", log: logText });
+      if (!focused && focusId !== undefined) send({ type: "focus", id: focusId });
+      else if (refocus !== null) send({ type: "focus", id: refocus });
+      focused = true;
+      refocus = null;
+      // The check runs by itself once, as soon as this PC can run it.
+      if (busy || initialCheckStarted || check.state !== "pending") return;
+      if (phase().name !== "update" || !runtimeReady()) return;
+    } else if (type === "cancel-repair") {
       repairCancellation?.abort();
       return;
-    }
-    if (type === "docs") {
+    } else if (type === "docs") {
       await env.openExternal(Uri.parse(INSTALL_GUIDE_URL));
       return;
-    }
-    if (type === "copy-commit") {
-      await env.clipboard.writeText(commitMessage);
+    } else if (type === "copy-commit") {
+      if (!change) return;
+      await env.clipboard.writeText(change.commitMessage);
       void window.showInformationMessage("コミットメッセージをコピーしました。");
       return;
-    }
-    if (type === "copy-rollback") {
+    } else if (type === "copy-rollback") {
       const guide = versionGateRollbackGuide(gateOf());
       if (!guide || guide.commands.length === 0) return;
       await env.clipboard.writeText(guide.commands.join("\n"));
       void window.showInformationMessage("コマンドをコピーしました。");
       return;
-    }
-    if (type === "open-dashboard") {
-      void commands.executeCommand("aidlc-guide.open");
-      return;
-    }
-    if (busy) return;
-    if (type === "ready" || type === "refresh") {
-      refresh();
-      if (type === "ready" && focusId !== undefined) send({ type: "focus", id: focusId });
-      const cliState = inspectCliManagement(workspaceRoot);
-      if (
-        (type === "ready" && initialCheckStarted) ||
-        !inspect().canUpdate ||
-        !cliState.targetInstalled ||
-        !cliState.launcherReady
-      )
-        return;
-      initialCheckStarted = true;
-      type = "diagnose";
-    }
-    if (type === "copy-diagnosis") {
+    } else if (type === "copy-diagnosis") {
       await env.clipboard.writeText(
-        JSON.stringify({ target: WORKFLOWS_TARGET_VERSION, problems }, null, 2),
+        JSON.stringify(
+          { target, problems: check.state === "problems" ? check.problems : [] },
+          null,
+          2,
+        ),
       );
       return;
-    }
-    if (type === "problem-file") {
+    } else if (type === "problem-file") {
       const index = (message as { index?: unknown }).index;
-      if (
-        typeof index !== "number" ||
-        !Number.isInteger(index) ||
-        !problems[index] ||
-        problems[index].path === "設定全体"
-      )
-        return;
+      const problem =
+        check.state === "problems" && typeof index === "number" && Number.isInteger(index)
+          ? check.problems[index]
+          : undefined;
+      if (!problem || problem.path === "設定全体") return;
       try {
         const document = await workspace.openTextDocument(
-          Uri.file(repairPath(workspaceRoot, problems[index].path)),
+          Uri.file(repairPath(workspaceRoot, problem.path)),
         );
         await window.showTextDocument(document, { preview: true });
       } catch {
         void window.showErrorMessage("対象ファイルを開けません。診断情報を確認してください。");
       }
       return;
-    }
-    if (type === "diagnose" || type === "repair") {
-      busy = true;
-      repairCancellation = new AbortController();
-      try {
-        const tool = (message as { tool?: unknown }).tool;
-        if (type === "repair" && !REPAIR_TOOLS.some((candidate) => candidate === tool))
-          throw new Error("修正に使うハーネスを選択してください。");
-        if (type === "repair") await context.workspaceState.update(repairKey, true);
-        const signal = AbortSignal.any([cancellation.signal, repairCancellation.signal]);
-        const options = {
-          root: workspaceRoot,
-          backupParent: path.join(context.globalStorageUri.fsPath, "update-backups"),
-          signal,
-          isCurrent,
-          log: (line: string) => send({ type: "log", line }),
-          ...(type === "repair" ? { tool: tool as (typeof REPAIR_TOOLS)[number] } : {}),
-        };
-        if (type === "diagnose") send({ type: "repair-checking" });
-        const [diagnosis, capabilities] = await Promise.allSettled([
-          repairWorkflows(options),
-          type === "diagnose" ? probeRepairTools(signal) : Promise.resolve(null),
-        ]);
-        if (!isCurrent()) return;
-        if (type === "diagnose") {
-          send(
-            capabilities.status === "fulfilled"
-              ? { type: "repair-tools", tools: capabilities.value }
-              : {
-                  type: "repair-tools",
-                  tools: [],
-                  message: "AI の検出に失敗しました。詳細欄から再診断してください。",
-                },
-          );
-        }
-        if (diagnosis.status === "rejected") throw diagnosis.reason;
-        const result = diagnosis.value;
-        showProblems(result.problems, result.message);
-        const continuing = type === "repair" && result.problems.length === 0 && !signal.aborted;
-        send({
-          type: "repair-done",
-          message: result.message + (result.backup ? ` バックアップ: ${result.backup}` : ""),
-          continuing,
-        });
-        if (continuing) await applyUpdate(signal, result.patches);
-      } catch (error) {
-        send({
-          type: "repair-done",
-          failed: true,
-          message: error instanceof Error ? error.message : String(error),
-        });
-      } finally {
-        busy = false;
-        repairCancellation = undefined;
-        refresh();
-      }
+    } else if (type === "open-dashboard") {
+      void commands.executeCommand("aidlc-guide.open");
+      return;
+    } else if (type === "open-scm") {
+      void commands.executeCommand("workbench.view.scm");
       return;
     }
+    if (busy) return;
     if (type === "install") {
       await commands.executeCommand("aidlc-guide.installWorkflows", workspaceRoot);
       return;
@@ -655,149 +474,170 @@ export async function openWorkflowsUpdatePanel(
       await commands.executeCommand("aidlc-guide.checkUpdate");
       return;
     }
-    if (type === "pin-project" || type === "use-target") {
-      busy = true;
-      const scope = "cli";
-      send({ type: "reset", scope });
-      try {
-        const cliState = inspectCliManagement(workspaceRoot);
-        const machine = cliState.machineVersion;
-        if (!cliState.engineNewer || machine === null) {
-          send({ type: "done", scope, message: "状況が変わりました。状態を再確認してください。" });
+    if (type === "refresh") {
+      outcome = null;
+      toolResults.clear();
+      // Once the change is committed, the screen moves on from the commit step.
+      if (change && !(await uncommitted(change))) change = null;
+      if (phase().name !== "update" || !runtimeReady()) {
+        settle();
+        return;
+      }
+    }
+    if (
+      ![
+        "ready",
+        "refresh",
+        "diagnose",
+        "repair",
+        "apply",
+        "update-cli",
+        "pin-project",
+        "use-target",
+        "doctor",
+      ].includes(type as string)
+    )
+      return;
+    busy = true;
+    outcome = null;
+    try {
+      if (type === "ready" || type === "refresh" || type === "diagnose") {
+        initialCheckStarted = true;
+        repairCancellation = new AbortController();
+        doing("更新前のチェックをしています…", true);
+        await runCheck(AbortSignal.any([cancellation.signal, repairCancellation.signal]));
+      } else if (type === "repair") {
+        const tool = (message as { tool?: unknown }).tool;
+        if (!REPAIR_TOOLS.some((candidate) => candidate === tool)) {
+          outcome = { text: "修正に使う AI を選んでください。", error: true };
+          return;
+        }
+        repairCancellation = new AbortController();
+        const signal = AbortSignal.any([cancellation.signal, repairCancellation.signal]);
+        doing("AI で直しています。終わったら、そのまま更新します…", true);
+        await context.workspaceState.update(repairKey, true);
+        const result = await repairWorkflows({
+          root: workspaceRoot,
+          backupParent: backupParent(),
+          signal,
+          isCurrent,
+          log,
+          tool: tool as (typeof REPAIR_TOOLS)[number],
+        });
+        if (!isCurrent()) return;
+        const repaired = result.message + (result.backup ? ` バックアップ: ${result.backup}` : "");
+        check =
+          result.problems.length > 0
+            ? { state: "problems", problems: result.problems, message: result.message }
+            : { state: "ok", message: result.message };
+        if (result.problems.length > 0 || signal.aborted) {
+          outcome = { text: repaired, error: false };
+          return;
+        }
+        doing("プロジェクトを更新しています…", true);
+        await applyUpdate(signal, result.patches, repaired);
+      } else if (type === "apply") {
+        await updateProject();
+      } else if (type === "update-cli") {
+        const cli = inspectCli();
+        const pinned = cli.projectPin ?? cli.projectVersion;
+        // A fresh clone registers its existing pin; the machine default stays as it is.
+        const register = cliRegistersPin(cli);
+        if (!register && cli.confirmUpdate && pinned) {
+          const choice = await window.showWarningMessage(
+            cliUpdateConfirmMessage(pinned, cli.target),
+            { modal: true },
+            CLI_UPDATE_CONFIRM_ACTION,
+          );
+          if (!isCurrent()) return;
+          if (choice !== CLI_UPDATE_CONFIRM_ACTION) {
+            outcome = { text: "CLI の更新を中止しました。", error: false };
+            return;
+          }
+          const latest = inspectCli();
+          if (
+            latest.confirmUpdate !== true ||
+            (latest.projectPin ?? latest.projectVersion) !== pinned
+          ) {
+            outcome = {
+              text: "固定バージョンが変わったため、CLI の更新を中止しました。",
+              error: true,
+            };
+            return;
+          }
+        }
+        doing(register ? "この PC に登録しています…" : `この PC に ${target} を導入しています…`);
+        const result = await (register ? prepareProjectCli : updateMachineCli)({
+          workspaceRoot,
+          isCurrent,
+          signal: cancellation.signal,
+          log,
+        });
+        const runtime = result.ok && isCurrent() ? readNativeInstall() : null;
+        if (runtime) configureCliEnvironment(context, runtime);
+        outcome = { text: cliUpdateMessage(result), error: !result.ok };
+      } else if (type === "pin-project" || type === "use-target") {
+        const cli = inspectCli();
+        const machine = cli.machineVersion;
+        if (!cli.engineNewer || machine === null) {
+          outcome = { text: "状況が変わりました。状態を再確認してください。", error: true };
           return;
         }
         const pin = type === "pin-project";
+        const confirm = pin ? CLI_PIN_CONFIRM_ACTION : CLI_USE_TARGET_CONFIRM_ACTION;
         const choice = await window.showWarningMessage(
           pin
-            ? cliPinConfirmMessage(machine, cliState.target)
-            : cliUseTargetConfirmMessage(machine, cliState.target),
+            ? cliPinConfirmMessage(machine, cli.target)
+            : cliUseTargetConfirmMessage(machine, cli.target),
           { modal: true },
-          pin ? CLI_PIN_CONFIRM_ACTION : CLI_USE_TARGET_CONFIRM_ACTION,
+          confirm,
         );
         if (!isCurrent()) return;
-        if (choice !== (pin ? CLI_PIN_CONFIRM_ACTION : CLI_USE_TARGET_CONFIRM_ACTION)) {
-          send({ type: "done", scope, message: "中止しました。" });
+        if (choice !== confirm) {
+          outcome = { text: "中止しました。", error: false };
           return;
         }
+        doing(pin ? "このプロジェクトを固定しています…" : "この PC の既定を戻しています…");
         const before = pin ? await gitStatusSnapshot(workspaceRoot, cancellation.signal) : null;
         const result = await (pin ? pinProjectCli : useTargetCli)({
           workspaceRoot,
           isCurrent,
           signal: cancellation.signal,
-          log: (line) => send({ type: "log", line }),
+          log,
         });
         const runtime = result.ok && isCurrent() ? readNativeInstall() : null;
         if (runtime) configureCliEnvironment(context, runtime);
-        send({ type: "done", scope, message: cliUpdateMessage(result) });
-        if (pin && result.ok) {
-          const after = await gitStatusSnapshot(workspaceRoot);
-          const files = before === null || after === null ? [] : changedSince(before, after);
-          commitMessage = pinCommitMessage(WORKFLOWS_TARGET_VERSION);
-          send({
-            type: "shared-changes",
-            files: files.slice(0, SHARED_FILES_SHOWN),
-            more: Math.max(0, files.length - SHARED_FILES_SHOWN),
-            commitMessage,
-          });
-        }
-      } catch (cause) {
-        send({
-          type: "done",
-          scope,
-          message: `処理の完了を確認できません。状態を再確認してください：${cause instanceof Error ? cause.message : String(cause)}`,
+        outcome = { text: cliUpdateMessage(result), error: !result.ok };
+        if (pin && result.ok) await commitChanges("pin", before);
+      } else if (type === "doctor") {
+        doing("Doctor で診断しています…");
+        toolResults.clear();
+        reportResults();
+        const result = await diagnoseInstalledWorkflows({
+          workspaceRoot,
+          isCurrent,
+          signal: cancellation.signal,
+          log,
+          setNeedsRepair: async (value) => {
+            await context.workspaceState.update(repairKey, value);
+          },
+          onHarnessResult,
         });
-      } finally {
-        busy = false;
-        refresh();
+        outcome = { text: result.message, error: !result.ok };
       }
-      return;
-    }
-    if (type === "update-cli" || type === "doctor") {
-      busy = true;
-      const scope = type === "update-cli" ? "cli" : "project";
-      send({ type: "reset", scope });
-      try {
-        if (type === "update-cli") {
-          const cliState = inspectCliManagement(workspaceRoot);
-          const pinned = cliState.projectPin ?? cliState.projectVersion;
-          // A fresh clone registers its existing pin; the machine default stays as it is.
-          const register = cliRegistersPin(cliState);
-          if (!register && cliState.confirmUpdate && pinned) {
-            const choice = await window.showWarningMessage(
-              cliUpdateConfirmMessage(pinned, cliState.target),
-              { modal: true },
-              CLI_UPDATE_CONFIRM_ACTION,
-            );
-            if (!isCurrent()) return;
-            if (choice !== CLI_UPDATE_CONFIRM_ACTION) {
-              send({ type: "done", scope, message: "CLI の更新を中止しました。" });
-              return;
-            }
-            const latest = inspectCliManagement(workspaceRoot);
-            const latestPin = latest.projectPin ?? latest.projectVersion;
-            if (latest.confirmUpdate !== true || latestPin !== pinned) {
-              send({
-                type: "done",
-                scope,
-                message: "固定バージョンが変わったため、CLI の更新を中止しました。",
-              });
-              return;
-            }
-          }
-          const result = await (register ? prepareProjectCli : updateMachineCli)({
-            workspaceRoot,
-            isCurrent,
-            signal: cancellation.signal,
-            log: (line) => send({ type: "log", line }),
-          });
-          const runtime = result.ok && isCurrent() ? readNativeInstall() : null;
-          if (runtime) configureCliEnvironment(context, runtime);
-          send({ type: "done", scope, message: cliUpdateMessage(result) });
-        } else {
-          results.clear();
-          send({ type: "results", results: [] });
-          const result = await diagnoseInstalledWorkflows({
-            workspaceRoot,
-            isCurrent,
-            signal: cancellation.signal,
-            log: (line) => send({ type: "log", line }),
-            setNeedsRepair: async (value) => {
-              await context.workspaceState.update(repairKey, value);
-            },
-            onHarnessResult: (entry) => {
-              results.set(entry.id, entry);
-              send({
-                type: "results",
-                results: [...results.values()].map((item) => ({
-                  ...item,
-                  label: HARNESS_LABELS[item.id],
-                })),
-              });
-            },
-          });
-          send({ type: "done", scope, message: result.message });
-        }
-      } catch (cause) {
-        send({
-          type: "done",
-          scope,
-          message: `処理の完了を確認できません。状態を再確認してください：${cause instanceof Error ? cause.message : String(cause)}`,
-        });
-      } finally {
-        busy = false;
-        refresh();
-      }
-      return;
-    }
-    if (type !== "apply") return;
-    busy = true;
-    try {
-      await applyUpdate();
+    } catch (cause) {
+      outcome = {
+        text: `処理の完了を確認できません。状態を再確認してください：${errorText(cause)}`,
+        error: true,
+      };
     } finally {
       busy = false;
-      refresh();
+      activity = null;
+      repairCancellation = undefined;
+      refocus = settle() ? (type === "ready" ? (focusId ?? "status") : "status") : null;
     }
   });
+  render();
 }
 
 const promptJobs = new Map<string, { job: Promise<void>; isCurrent: () => boolean }>();

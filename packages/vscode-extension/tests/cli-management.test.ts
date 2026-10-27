@@ -9,6 +9,7 @@ import {
   nativeLauncherReady,
   pinProjectCli,
   prepareProjectCli,
+  prepareTargetRuntime,
   updateMachineCli,
   useTargetCli,
 } from "../src/cli-management.ts";
@@ -973,5 +974,36 @@ describe("a newer machine default on an unpinned native project", () => {
     expect(hooks.install).not.toHaveBeenCalled();
     expect(hooks.pin).not.toHaveBeenCalled();
     expect(hooks.use).not.toHaveBeenCalled();
+  });
+});
+
+describe("readying the target runtime for a project update", () => {
+  it("installs the target beside an older default and leaves the default as it was", async () => {
+    const state = fixture({ machine: "2.8.0", pin: "2.8.0", versions: ["2.8.0"] });
+    const result = await prepareTargetRuntime(state.options);
+    expect(result).toMatchObject({ ok: true, stage: "complete", recovery: "restored" });
+    expect(result.message).toContain("既定のバージョン 2.8.0 は変えていません");
+    expect(state.hooks.install).toHaveBeenCalledOnce();
+    expect(state.retained.has(SETUP_RELEASE)).toBe(true);
+    expect(state.local.machine?.version).toBe("2.8.0");
+    expect(state.hooks.pin).not.toHaveBeenCalled();
+    expect(state.hooks.writePinBytes).not.toHaveBeenCalled();
+  });
+
+  it("makes the target the default on a PC that had no CLI", async () => {
+    const state = fixture({ pin: "2.8.0", versions: ["2.8.0"] });
+    expect(await prepareTargetRuntime(state.options)).toMatchObject({
+      ok: true,
+      recovery: "not-needed",
+    });
+    expect(state.local.machine?.version).toBe(SETUP_RELEASE);
+    expect(state.hooks.use).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when the target is already there", async () => {
+    const state = fixture({ machine: "2.8.0", retained: ["2.8.0", SETUP_RELEASE] });
+    expect(await prepareTargetRuntime(state.options)).toMatchObject({ ok: true, applied: false });
+    expect(state.hooks.install).not.toHaveBeenCalled();
+    expect(state.hooks.use).not.toHaveBeenCalled();
   });
 });

@@ -70,13 +70,16 @@ vi.mock("../src/mcp-register.ts", () => ({
 }));
 vi.mock("../src/dashboard-panel.ts", () => ({ openDashboardPanel: mocks.dashboard }));
 
-import { inspectCliManagement, updateMachineCli } from "../src/cli-management.ts";
+import {
+  inspectCliManagement,
+  prepareTargetRuntime,
+  updateMachineCli,
+} from "../src/cli-management.ts";
 import { SETUP_RELEASE } from "../src/native-setup.ts";
 import { openSetupPanel } from "../src/setup-panel.ts";
 import { inspectSetup, setupStateKey } from "../src/setup-state.ts";
 import { inspectWorkflowsManagement } from "../src/workflows-management.ts";
 import { updateInstalledWorkflows } from "../src/workflows-update.ts";
-import { workflowsUpdateHtml } from "../src/workflows-update-panel.ts";
 import { NEWER_WORKFLOWS_VERSION } from "./workflows-version-fixture.ts";
 
 let directory: string;
@@ -322,29 +325,18 @@ describe("joining an unpinned target project with a newer machine CLI", () => {
         canUpdate: true,
         projectPin: null,
       });
-      const updateView = () =>
-        new JSDOM(
-          workflowsUpdateHtml(
-            inspectWorkflowsManagement(root),
-            "nonce",
-            inspectCliManagement(root),
-          ),
-        );
-      let dom = updateView();
-      expect((dom.window.document.getElementById("apply") as HTMLButtonElement).disabled).toBe(
-        !retained,
-      );
-      dom.window.close();
+      expect(inspectCliManagement(root)).toMatchObject({ targetInstalled: retained });
+      // The update screen readies the target runtime itself and leaves the newer default alone.
       if (!retained)
-        expect(await updateMachineCli({ workspaceRoot: root, log: vi.fn() })).toMatchObject({
+        expect(await prepareTargetRuntime({ workspaceRoot: root, log: vi.fn() })).toMatchObject({
           ok: true,
         });
+      expect(mocks.machine).toBe(NEWER_WORKFLOWS_VERSION);
       expect(existsSync(path.join(root, ".aidlc-version"))).toBe(false);
-      dom = updateView();
-      expect((dom.window.document.getElementById("apply") as HTMLButtonElement).disabled).toBe(
-        false,
-      );
-      dom.window.close();
+      expect(inspectCliManagement(root)).toMatchObject({
+        targetInstalled: true,
+        launcherReady: true,
+      });
 
       const log = vi.fn();
       const result = await updateInstalledWorkflows({

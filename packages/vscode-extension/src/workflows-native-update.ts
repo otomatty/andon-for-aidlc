@@ -178,9 +178,7 @@ export async function applyNativeWorkflowsUpdate(opts: {
   }
   const previousPin = pinState.version;
   if (opts.preserveMachine && (!readInstall(target) || !previousMachine)) {
-    opts.log(
-      `先に「CLI を更新」で ${target} の CLI を準備してください。プロジェクトの設定は変更していません。`,
-    );
+    opts.log(`この PC に ${target} の実行環境がありません。プロジェクトの設定は変更していません。`);
     return { ok: false, reason: "runtime-required", target };
   }
   if (opts.preserveMachine && previousPin && previousPin !== target && !readInstall(previousPin)) {

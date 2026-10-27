@@ -53,7 +53,7 @@ export async function updateInstalledWorkflows(opts: {
       !readVersionedNativeInstall(target)
     ) {
       opts.log(
-        `先に「CLI を更新」で ${target} の CLI を準備してください。プロジェクトの設定は変更していません。`,
+        `この PC に ${target} の実行環境がありません。プロジェクトの設定は変更していません。`,
       );
       return { ok: false, target, reason: "runtime-required" };
     }

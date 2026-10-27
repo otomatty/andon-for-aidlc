@@ -3,16 +3,8 @@ import { HARNESS_LABELS, type HarnessId } from "./harness-detect.ts";
 import { INSTALL_GUIDE_URL, SETUP_RELEASE } from "./native-setup.ts";
 import { type SetupBlock, setupPhase } from "./setup-phase.ts";
 import type { SetupSnapshot } from "./setup-state.ts";
+import { escapeHtml, stepItem, webviewPageStyles } from "./webview-page.ts";
 import { webviewThemeStyles } from "./webview-theme.ts";
-
-export function escapeSetupText(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 export type SetupHtmlOptions = {
   selected: HarnessId[];
@@ -32,10 +24,7 @@ type BlockedCopy = {
   action: "update" | "recheck";
 };
 
-const esc = escapeSetupText;
-const CHECK_ICON =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-const STOP_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v6M12 17v.01"/></svg>';
+const esc = escapeHtml;
 const UPDATE_HINT = "更新・修復画面で確認と修復ができます。";
 
 const toolList = (ids: readonly HarnessId[]): string =>
@@ -182,20 +171,6 @@ ${copy.original ? `<details class="more"><summary>詳しく見る</summary><p cl
 ${feedback}`;
   };
 
-  const step = (
-    index: number,
-    title: string,
-    status: "done" | "current" | "blocked" | "todo",
-    body = "",
-    summary = "",
-  ): string => {
-    if (status === "done")
-      return `<li class="step done"><details><summary class="row"><span class="ic done">${CHECK_ICON}</span><span class="step-title">${title}</span><span class="sum">${esc(summary)}</span><span class="sr-only">（完了）</span></summary><div class="body">${body}</div></details></li>`;
-    if (status === "todo")
-      return `<li class="step todo"><div class="row"><span class="ic todo" aria-hidden="true">${index}</span><span class="step-title">${title}</span></div></li>`;
-    return `<li class="step ${status}" aria-current="step"><div class="row"><span class="ic ${status === "blocked" ? "stop" : "now"}" aria-hidden="true">${status === "blocked" ? STOP_ICON : index}</span><h2 class="step-title">${title}</h2></div><div class="body">${body}</div></li>`;
-  };
-
   // Step 1: this machine's CLI.
   const pin = cli?.projectPin ?? cli?.projectVersion ?? state.version;
   const current = cli?.effectiveVersion ?? state.native?.version ?? null;
@@ -206,7 +181,7 @@ ${feedback}`;
 <dt>固定バージョン</dt><dd>${esc(pin ?? `まだない（プロジェクトの設定で ${target} に固定）`)}</dd>
 </dl>`;
   let cliStep: string;
-  if (phase.name === "trust") cliStep = step(1, "このマシンの CLI", "todo");
+  if (phase.name === "trust") cliStep = stepItem(1, "このマシンの CLI", "todo");
   else if (phase.name === "cli") {
     const lead =
       confirmUpdate && pin
@@ -214,7 +189,7 @@ ${feedback}`;
         : installed.length > 0 && pin
           ? `このプロジェクトが使う CLI ${pin} を、このマシンに入れます。`
           : `このマシンに AI-DLC の CLI ${target} を入れます。`;
-    cliStep = step(
+    cliStep = stepItem(
       1,
       "このマシンの CLI",
       "current",
@@ -225,9 +200,9 @@ ${feedback}`;
 ${feedback}`,
     );
   } else if (phase.name === "blocked" && phase.step === "cli")
-    cliStep = step(1, "このマシンの CLI", "blocked", blockedBody(phase.block));
+    cliStep = stepItem(1, "このマシンの CLI", "blocked", blockedBody(phase.block));
   else
-    cliStep = step(
+    cliStep = stepItem(
       1,
       "このマシンの CLI",
       "done",
@@ -242,7 +217,7 @@ ${feedback}`,
   let projectStep: string;
   if (phase.name === "project" && phase.retry.length > 0) {
     const failed = toolList(phase.retry);
-    projectStep = step(
+    projectStep = stepItem(
       2,
       "プロジェクトの設定",
       "blocked",
@@ -252,7 +227,7 @@ ${resultsList}
 ${feedback}`,
     );
   } else if (phase.name === "project")
-    projectStep = step(
+    projectStep = stepItem(
       2,
       "プロジェクトの設定",
       "current",
@@ -266,9 +241,9 @@ ${resultsList}
 ${feedback}`,
     );
   else if (phase.name === "blocked" && phase.step === "project")
-    projectStep = step(2, "プロジェクトの設定", "blocked", blockedBody(phase.block));
+    projectStep = stepItem(2, "プロジェクトの設定", "blocked", blockedBody(phase.block));
   else if (installed.length > 0 && phase.name !== "trust")
-    projectStep = step(
+    projectStep = stepItem(
       2,
       "プロジェクトの設定",
       "done",
@@ -276,7 +251,7 @@ ${feedback}`,
 <p class="muted">AI-DLC の設定：${esc(state.version ?? "不明")}</p>`,
       toolList(installed),
     );
-  else projectStep = step(2, "プロジェクトの設定", "todo");
+  else projectStep = stepItem(2, "プロジェクトの設定", "todo");
 
   // Step 3: finish, add tools, optional diagnosis.
   let finishStep: string;
@@ -291,7 +266,7 @@ ${resultsList}
 </fieldset>`
       : `<div class="add-tools"><p class="lead">${esc(state.workflows?.message ?? "いまの設定にはツールを追加できません。")}</p>
 <div class="actions"><button type="button" id="open-update" data-send="open-workflows-update">更新・修復画面を開く</button><button type="button" class="text-link" id="cancel-add" data-send="cancel-add">キャンセル</button></div></div>`;
-    finishStep = step(
+    finishStep = stepItem(
       3,
       "完了",
       "current",
@@ -305,7 +280,7 @@ ${
 }
 ${feedback}`,
     );
-  } else finishStep = step(3, "完了", "todo");
+  } else finishStep = stepItem(3, "完了", "todo");
 
   const trustNotice =
     phase.name === "trust"
@@ -324,47 +299,12 @@ ${feedback}
 <title>AI-DLC のセットアップ</title>
 <style nonce="${nonce}">
 ${webviewThemeStyles}
-  * { box-sizing: border-box; }
-  body { margin: 0; color: var(--m-text); background: var(--m-body); font-family: var(--vscode-font-family, system-ui); font-size: 14px; line-height: 1.7; }
-  main { max-width: 760px; margin: 0 auto; padding: 40px 28px 36px; display: flex; flex-direction: column; gap: 22px; }
-  .eyebrow { color: var(--m-dimmed); font-size: 12px; font-weight: 700; letter-spacing: .08em; }
-  h1 { margin: 4px 0 0; color: var(--m-bright); font-size: clamp(24px, 4vw, 30px); font-weight: 700; line-height: 1.35; }
-  p { margin: 0; }
-  .muted { color: var(--m-dimmed); }
-  .folder { margin-top: 4px; overflow-wrap: anywhere; color: var(--m-dimmed); }
-  .folder code { padding: 1px 6px; border-radius: 4px; background: var(--m-code); color: var(--m-text); }
-  .folder code, .original { font-family: var(--vscode-editor-font-family, monospace); font-size: 12px; }
-  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+${webviewPageStyles}
+  .original { font-family: var(--vscode-editor-font-family, monospace); font-size: 12px; }
   .notice { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; border-radius: 8px; background: var(--m-warning-light); }
   .notice .lead { color: var(--m-warning); font-weight: 700; }
-  .steps { list-style: none; margin: 0; padding: 0; border: 1px solid var(--m-border); border-radius: 8px; background: var(--m-card); box-shadow: var(--m-shadow); }
   .notice + .steps { opacity: .6; }
-  .step + .step { border-top: 1px solid var(--m-border); }
-  .row { display: flex; align-items: center; gap: 12px; padding: 14px 18px; }
-  summary.row { cursor: pointer; list-style: none; }
-  summary.row:hover { background: var(--m-hover); }
-  summary.row::-webkit-details-marker { display: none; }
-  .ic { width: 26px; height: 26px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; font-size: 12px; font-weight: 700; }
-  .ic svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-  .ic.now { background: var(--m-primary); color: var(--m-primary-contrast); }
-  .ic.done { background: var(--m-success-light); color: var(--m-success); }
-  .ic.stop { color: var(--m-error); border: 2px solid currentColor; }
-  .ic.todo { color: var(--m-dimmed); border: 1px solid var(--m-input-border); }
-  .step-title { margin: 0; color: var(--m-bright); font-size: 16px; font-weight: 700; }
-  .step.done .step-title { font-size: 14px; }
-  .step.todo .step-title { color: var(--m-dimmed); font-weight: 500; }
-  .sum { margin-left: auto; color: var(--m-dimmed); font-size: 12px; text-align: right; overflow-wrap: anywhere; }
-  .body { display: flex; flex-direction: column; gap: 12px; padding: 0 18px 20px 56px; min-width: 0; }
-  .lead { font-size: 15px; }
-  .actions { display: flex; gap: 8px 16px; align-items: center; flex-wrap: wrap; }
-  button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; font: inherit; font-weight: 600; cursor: pointer; border: 1px solid transparent; border-radius: 4px; padding: 0 18px; background: var(--m-primary); color: var(--m-primary-contrast); }
-  button:hover { background: var(--m-primary-hover); }
-  button:disabled, input:disabled { opacity: .55; cursor: default; }
-  a.text-link, button.text-link { min-height: 0; background: transparent; color: var(--m-primary-light-color); font-weight: 500; border: 0; padding: 0; border-radius: 0; text-decoration: none; }
-  a.text-link:hover, button.text-link:hover { background: transparent; text-decoration: underline; }
-  button.text-link:disabled { text-decoration: none; }
-  button:focus-visible, input:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--m-focus); outline-offset: 2px; }
-  details.more > summary, #log-details > summary, .doctor-details > summary { width: max-content; max-width: 100%; color: var(--m-primary-light-color); font-weight: 500; cursor: pointer; }
+  #log-details > summary, .doctor-details > summary { width: max-content; max-width: 100%; color: var(--m-primary-light-color); font-weight: 500; cursor: pointer; }
   .facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px; margin: 10px 0; }
   .facts dt { color: var(--m-dimmed); }
   .facts dd { margin: 0; overflow-wrap: anywhere; }
@@ -389,8 +329,6 @@ ${webviewThemeStyles}
   .result-fail { color: var(--m-error); }
   #status { white-space: pre-wrap; overflow-wrap: anywhere; }
   #status.error { padding: 12px 16px; border-radius: 8px; background: var(--m-error-light); color: var(--m-error); }
-  pre { max-height: 300px; overflow: auto; margin: 8px 0 0; padding: 14px; border-radius: 4px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--m-code); font-size: 12px; }
-  footer { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--m-dimmed); }
   .doctor { overflow-wrap: anywhere; }
   .doctor h3, .doctor h4 { margin: 16px 0 6px; color: var(--m-bright); font-size: 14px; }
   .doctor-tool + .doctor-tool { margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--m-border); }
@@ -408,7 +346,6 @@ ${webviewThemeStyles}
   .doctor-fix, .doctor-original { margin: 6px 0 0; white-space: pre-wrap; }
   .doctor-original { color: var(--m-dimmed); }
   .note { padding: 12px 16px; border-radius: 8px; background: var(--m-warning-light); }
-  @media (max-width: 540px) { main { padding: 24px 16px; } .row { padding: 12px 14px; } .body { padding: 0 14px 18px; } .actions button:not(.text-link) { width: 100%; } }
 </style></head><body><main aria-busy="false">
 <header>
 <div class="eyebrow">AIDLC GUIDE / SETUP</div>

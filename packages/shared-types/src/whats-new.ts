@@ -13,6 +13,12 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "update-screen-steps",
+    date: "2026-10-27",
+    title: "AI-DLC の更新画面を整理しました",
+    body: "いまの状態を 1 行で示し、この PC・このプロジェクト・Guide の対応版の 3 つの版を並べます。やることは手順で示し、押すボタンは 1 つだけです。プロジェクトの更新は、この PC への準備と更新前のチェックから、変わったファイルのコミットまで続けて案内します。",
+  },
+  {
     id: "mantine-look",
     date: "2026-10-27",
     title: "ダッシュボードの見た目を新しくしました",
