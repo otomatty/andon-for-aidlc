@@ -1,7 +1,7 @@
 import path from "node:path";
 import { WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
-import { formatDoctorDetailsForLog } from "./doctor-output.ts";
-import { detectHarnesses, HARNESS_LABELS } from "./harness-detect.ts";
+import { formatDoctorDetailsForLog, type NativeDoctorReport } from "./doctor-output.ts";
+import { detectHarnesses, HARNESS_LABELS, type HarnessId } from "./harness-detect.ts";
 import {
   readNativeInstall,
   runNativeDoctor,
@@ -21,6 +21,8 @@ export async function diagnoseInstalledWorkflows(opts: {
   log: (line: string) => void;
   setNeedsRepair: (value: boolean) => Promise<void>;
   onHarnessResult: (result: WorkflowsToolUpdateResult) => void;
+  /** Each tool's Doctor report, for the screen to list what needs attention. */
+  onDoctorReport?: (id: HarnessId, report: NativeDoctorReport) => void;
 }): Promise<{ ok: boolean; message: string }> {
   const current = () => !opts.signal?.aborted && opts.isCurrent();
   const cancelled = { ok: false, message: "診断を中止しました。更新完了は記録していません。" };
@@ -63,12 +65,13 @@ export async function diagnoseInstalledWorkflows(opts: {
         });
         if (!current()) return cancelled;
         opts.log(`${HARNESS_LABELS[tool.id]} の診断:\n${formatDoctorDetailsForLog(report)}`);
+        opts.onDoctorReport?.(tool.id, report);
         const ok = report.outcome === "ok" || report.outcome === "warning";
         healthy = healthy && ok;
         opts.onHarnessResult({
           id: tool.id,
           status: ok ? "completed" : "failed",
-          message: ok ? "Doctor の確認完了" : "Doctor の確認失敗。実行ログを確認してください。",
+          message: ok ? "Doctor の確認完了" : "Doctor の確認失敗。下の項目を確認してください。",
         });
       } catch (cause) {
         if (!current()) return cancelled;
@@ -86,7 +89,7 @@ export async function diagnoseInstalledWorkflows(opts: {
       return {
         ok: false,
         message:
-          "診断未完了です。実行ログの確認事項に対処してから Doctor を再実行してください。エンジンの再設定は行っていません。",
+          "診断未完了です。下に挙げた項目に対処してから Doctor を再実行してください。エンジンの再設定は行っていません。",
       };
     const state = inspectWorkflowsManagement(opts.workspaceRoot);
     if (!current()) return cancelled;

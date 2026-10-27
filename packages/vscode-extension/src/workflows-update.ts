@@ -1,8 +1,8 @@
 import path from "node:path";
 import { WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
 import { nativeLauncherReady } from "./cli-management.ts";
-import { formatDoctorDetailsForLog } from "./doctor-output.ts";
-import { detectHarnesses, HARNESS_LABELS } from "./harness-detect.ts";
+import { formatDoctorDetailsForLog, type NativeDoctorReport } from "./doctor-output.ts";
+import { detectHarnesses, HARNESS_LABELS, type HarnessId } from "./harness-detect.ts";
 import {
   readNativeInstall,
   readVersionedNativeInstall,
@@ -30,6 +30,8 @@ export async function updateInstalledWorkflows(opts: {
   needsRepair: boolean;
   setNeedsRepair: (value: boolean) => Promise<void>;
   onHarnessResult: (result: WorkflowsToolUpdateResult) => void;
+  /** Each tool's final Doctor report, for the screen to list what needs attention. */
+  onDoctorReport?: (id: HarnessId, report: NativeDoctorReport) => void;
 }): Promise<NativeWorkflowsUpdateResult> {
   const target = WORKFLOWS_TARGET_VERSION;
   const isCurrent = () => !opts.signal?.aborted && opts.isCurrent();
@@ -128,6 +130,7 @@ export async function updateInstalledWorkflows(opts: {
       });
       if (!isCurrent()) return { ok: false, target, reason: "cancelled" };
       opts.log(`${HARNESS_LABELS[id]} の最終診断:\n${formatDoctorDetailsForLog(doctor)}`);
+      opts.onDoctorReport?.(id, doctor);
       const healthy = doctor.outcome === "ok" || doctor.outcome === "warning";
       allHealthy = allHealthy && healthy;
       opts.onHarnessResult({

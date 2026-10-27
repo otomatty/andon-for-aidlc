@@ -26,7 +26,9 @@ import {
   updateMachineCli,
   useTargetCli,
 } from "./cli-management.ts";
-import { HARNESS_LABELS } from "./harness-detect.ts";
+import { doctorFixFor, runDoctorFix } from "./doctor-fixes.ts";
+import type { NativeDoctorReport } from "./doctor-output.ts";
+import { HARNESS_LABELS, type HarnessId } from "./harness-detect.ts";
 import { INSTALL_GUIDE_URL, readNativeInstall } from "./native-setup.ts";
 import {
   changedSince,
@@ -42,12 +44,21 @@ import type {
 } from "./workflows-native-update.ts";
 import { workflowsRepairKey } from "./workflows-operation.ts";
 import {
+  explainRepair,
   type LocalPatch,
   probeRepairTools,
   REPAIR_TOOLS,
+  type RepairFix,
+  type RepairResult,
   reapplyLocalPatches,
   repairWorkflows,
 } from "./workflows-repair.ts";
+import {
+  chosenAction,
+  type RepairAction,
+  type RepairItem,
+  type RepairReview,
+} from "./workflows-repair-plan.ts";
 import { repairPath } from "./workflows-repair-files.ts";
 import { updateInstalledWorkflows } from "./workflows-update.ts";
 import {
@@ -93,7 +104,7 @@ function workflowsUpdateBaseMessage(
   if (result.ok)
     return "プロジェクトのエンジン・固定バージョンの更新と Doctor の確認が完了しました。Git の差分を確認して共有してください。";
   if (result.reason === "doctor")
-    return "設定反映済み・診断未完了です。実行ログの診断内容を確認し、対処後に「Doctor で診断」を押してください。";
+    return "設定反映済み・診断未完了です。下に挙げた Doctor の項目に対処してから、「Doctor で診断」を押してください。";
   if (result.reason === "runtime-required")
     return "プロジェクトの更新は未実行です。この PC に必要な実行環境を準備できませんでした。もう一度更新してください。";
   if (result.reason === "previous-runtime-required")
@@ -185,6 +196,12 @@ export async function openWorkflowsUpdatePanel(
   // What this panel has learned and done; the page is drawn from it and the workspace.
   let check: UpdateCheck = { state: "pending" };
   let repairTools: UpdateView["repairTools"] = null;
+  // What the person picked for each file that needs a decision, by path.
+  const choices: Record<string, RepairAction> = {};
+  // AI-written changes waiting for approval, with the picks and AI they were made with.
+  let review: { items: RepairReview[]; fix: RepairFix } | null = null;
+  const explanations = new Map<string, { text: string; error: boolean }>();
+  const doctorReports = new Map<HarnessId, NativeDoctorReport>();
   let change: UpdateChange | null = null;
   let activity: UpdateActivity | null = null;
   let outcome: UpdateView["outcome"] = null;
@@ -210,6 +227,10 @@ export async function openWorkflowsUpdatePanel(
     toolResults: [...toolResults.values()].map(({ id, message }) => ({ id, message })),
     records: readAllWorkspaceAidlcVersions(workspaceRoot).map((entry) => entry.version),
     extensionVersion: context.extension?.packageJSON?.version,
+    choices: { ...choices },
+    review: review?.items ?? null,
+    explanations: Object.fromEntries(explanations),
+    doctorReports: [...doctorReports].map(([id, report]) => ({ id, report })),
   });
   /** Whether the page changed; an unchanged state does not reload the webview. */
   const render = (): boolean => {
@@ -252,6 +273,27 @@ export async function openWorkflowsUpdatePanel(
     toolResults.set(entry.id, entry);
     reportResults();
   };
+  const onDoctorReport = (id: HarnessId, report: NativeDoctorReport) => {
+    doctorReports.set(id, report);
+  };
+  const items = (): RepairItem[] => (check.state === "problems" ? check.items : []);
+  /** Show what a check or repair found; picks and explanations for files no longer listed go. */
+  const showRepair = (result: Pick<RepairResult, "problems" | "items" | "message">) => {
+    review = null;
+    if (result.problems.length === 0) {
+      check = { state: "ok", message: result.message };
+      return;
+    }
+    check = {
+      state: "problems",
+      problems: result.problems,
+      items: result.items,
+      message: result.message,
+    };
+    const paths = new Set(result.items.map((item) => item.path));
+    for (const path of Object.keys(choices)) if (!paths.has(path)) delete choices[path];
+    for (const path of explanations.keys()) if (!paths.has(path)) explanations.delete(path);
+  };
   const backupParent = () => path.join(context.globalStorageUri.fsPath, "update-backups");
 
   /** The pre-update check: what would stop the update, and which AI tools could fix it. */
@@ -285,10 +327,8 @@ export async function openWorkflowsUpdatePanel(
       };
       return false;
     }
-    const { problems, message } = diagnosis.value;
-    check =
-      problems.length > 0 ? { state: "problems", problems, message } : { state: "ok", message };
-    return problems.length === 0;
+    showRepair(diagnosis.value);
+    return diagnosis.value.problems.length === 0;
   };
 
   /**
@@ -325,6 +365,7 @@ export async function openWorkflowsUpdatePanel(
 
   const applyUpdate = async (signal: AbortSignal, patches: LocalPatch[] = [], note = "") => {
     toolResults.clear();
+    doctorReports.clear();
     reportResults();
     const before = await gitStatusSnapshot(workspaceRoot, signal);
     const unapplied = patches.length
@@ -342,18 +383,10 @@ export async function openWorkflowsUpdatePanel(
         },
         log,
         onHarnessResult,
+        onDoctorReport,
       });
-      if (result.problems)
-        check =
-          result.problems.length > 0
-            ? {
-                state: "problems",
-                problems: result.problems,
-                message: `${result.problems.length} 件の問題があります。`,
-              }
-            : check.state === "problems"
-              ? { state: "pending" }
-              : check;
+      // An update that stopped on nothing listed leaves no list behind.
+      if (result.problems?.length === 0 && check.state === "problems") check = { state: "pending" };
       let patchMessage = "";
       if (patches.length && result.ok) {
         const { applied, skipped } = reapplyLocalPatches(workspaceRoot, patches);
@@ -365,6 +398,15 @@ export async function openWorkflowsUpdatePanel(
       const text = `${workflowsUpdateMessage(result, [...toolResults.values()])}${patchMessage}${note ? ` ${note}` : ""}`;
       outcome = { text, error: !result.ok };
       if (result.ok) await commitChanges("update", before);
+      // What stopped the update is checked again and sorted, so the next step is to fix it, not to retry.
+      else if (result.problems?.length && isCurrent() && !signal.aborted) {
+        await runCheck(signal);
+        if (check.state === "problems")
+          outcome = {
+            text: `更新は止まりました。次の ${check.items.length} 件を直すと更新できます。プロジェクトの設定は変更していません。`,
+            error: true,
+          };
+      }
     } catch (cause) {
       outcome = { text: `更新に失敗しました：${errorText(cause)}${unapplied}`, error: true };
     }
@@ -432,22 +474,41 @@ export async function openWorkflowsUpdatePanel(
     } else if (type === "copy-diagnosis") {
       await env.clipboard.writeText(
         JSON.stringify(
-          { target, problems: check.state === "problems" ? check.problems : [] },
+          {
+            target,
+            items: items().map(
+              ({ path, harnesses, kind, group, plan, detail, remediation, note }) => ({
+                path,
+                harnesses,
+                kind,
+                group,
+                plan,
+                detail,
+                remediation,
+                note,
+              }),
+            ),
+            problems: check.state === "problems" ? check.problems : [],
+          },
           null,
           2,
         ),
       );
+      void window.showInformationMessage("診断情報をコピーしました。");
+      return;
+    } else if (type === "choose") {
+      const { path, action } = message as { path?: unknown; action?: unknown };
+      const item = items().find((entry) => entry.path === path);
+      if (item?.group === "confirm" && item.options.some((option) => option.action === action))
+        choices[item.path] = action as RepairAction;
       return;
     } else if (type === "problem-file") {
-      const index = (message as { index?: unknown }).index;
-      const problem =
-        check.state === "problems" && typeof index === "number" && Number.isInteger(index)
-          ? check.problems[index]
-          : undefined;
-      if (!problem || problem.path === "設定全体") return;
+      const target = (message as { path?: unknown }).path;
+      const item = items().find((entry) => entry.path === target);
+      if (!item || item.path === "設定全体") return;
       try {
         const document = await workspace.openTextDocument(
-          Uri.file(repairPath(workspaceRoot, problem.path)),
+          Uri.file(repairPath(workspaceRoot, item.path)),
         );
         await window.showTextDocument(document, { preview: true });
       } catch {
@@ -490,11 +551,15 @@ export async function openWorkflowsUpdatePanel(
         "refresh",
         "diagnose",
         "repair",
+        "approve",
+        "discard-review",
+        "explain",
         "apply",
         "update-cli",
         "pin-project",
         "use-target",
         "doctor",
+        "doctor-fix",
       ].includes(type as string)
     )
       return;
@@ -506,15 +571,33 @@ export async function openWorkflowsUpdatePanel(
         repairCancellation = new AbortController();
         doing("更新前のチェックをしています…", true);
         await runCheck(AbortSignal.any([cancellation.signal, repairCancellation.signal]));
-      } else if (type === "repair") {
-        const tool = (message as { tool?: unknown }).tool;
-        if (!REPAIR_TOOLS.some((candidate) => candidate === tool)) {
-          outcome = { text: "修正に使う AI を選んでください。", error: true };
-          return;
+      } else if (type === "repair" || type === "approve") {
+        let fix: RepairFix;
+        if (type === "approve") {
+          if (!review) return;
+          fix = { ...review.fix, approved: review.items };
+        } else {
+          const tool = (message as { tool?: unknown }).tool;
+          const ready = REPAIR_TOOLS.some((candidate) => candidate === tool);
+          // Every file that needs a decision goes with the pick the page showed for it.
+          const picked: Record<string, RepairAction> = {};
+          for (const item of items()) {
+            const action = chosenAction(item, choices, ready);
+            if (item.group === "confirm" && action) picked[item.path] = action;
+          }
+          fix = {
+            choices: picked,
+            ...(ready ? { tool: tool as (typeof REPAIR_TOOLS)[number] } : {}),
+          };
         }
         repairCancellation = new AbortController();
         const signal = AbortSignal.any([cancellation.signal, repairCancellation.signal]);
-        doing("AI で直しています。終わったら、そのまま更新します…", true);
+        doing(
+          type === "approve"
+            ? "確認した内容で直しています。終わったら、そのまま更新します…"
+            : "直しています。終わったら、そのまま更新します…",
+          true,
+        );
         await context.workspaceState.update(repairKey, true);
         const result = await repairWorkflows({
           root: workspaceRoot,
@@ -522,20 +605,50 @@ export async function openWorkflowsUpdatePanel(
           signal,
           isCurrent,
           log,
-          tool: tool as (typeof REPAIR_TOOLS)[number],
+          fix,
         });
         if (!isCurrent()) return;
-        const repaired = result.message + (result.backup ? ` バックアップ: ${result.backup}` : "");
-        check =
-          result.problems.length > 0
-            ? { state: "problems", problems: result.problems, message: result.message }
-            : { state: "ok", message: result.message };
-        if (result.problems.length > 0 || signal.aborted) {
-          outcome = { text: repaired, error: false };
+        if (signal.aborted) {
+          outcome = { text: "中止しました。プロジェクトの設定は変更していません。", error: false };
           return;
         }
+        if (result.review?.length) {
+          showRepair(result);
+          review = { items: result.review, fix };
+          return;
+        }
+        const repaired = result.message + (result.backup ? ` バックアップ: ${result.backup}` : "");
+        if (result.problems.length > 0) {
+          showRepair(result);
+          outcome = { text: result.message, error: false };
+          return;
+        }
+        check = { state: "ok", message: result.message };
+        review = null;
         doing("プロジェクトを更新しています…", true);
         await applyUpdate(signal, result.patches, repaired);
+      } else if (type === "discard-review") {
+        review = null;
+        outcome = {
+          text: "AI の修正を使わずに戻りました。対処を選び直すか、ファイルを自分で直して再チェックしてください。",
+          error: false,
+        };
+      } else if (type === "explain") {
+        const { path, tool } = message as { path?: unknown; tool?: unknown };
+        const item = items().find((entry) => entry.path === path);
+        if (!item || !REPAIR_TOOLS.some((candidate) => candidate === tool)) return;
+        repairCancellation = new AbortController();
+        doing(`${item.path} について AI に聞いています…`, true);
+        try {
+          const text = await explainRepair(
+            item,
+            tool as (typeof REPAIR_TOOLS)[number],
+            AbortSignal.any([cancellation.signal, repairCancellation.signal]),
+          );
+          explanations.set(item.path, { text, error: false });
+        } catch (cause) {
+          explanations.set(item.path, { text: errorText(cause), error: true });
+        }
       } else if (type === "apply") {
         await updateProject();
       } else if (type === "update-cli") {
@@ -609,9 +722,31 @@ export async function openWorkflowsUpdatePanel(
         if (runtime) configureCliEnvironment(context, runtime);
         outcome = { text: cliUpdateMessage(result), error: !result.ok };
         if (pin && result.ok) await commitChanges("pin", before);
-      } else if (type === "doctor") {
+      } else if (type === "doctor" || type === "doctor-fix") {
+        if (type === "doctor-fix") {
+          const { harness, index } = message as { harness?: unknown; index?: unknown };
+          const report = doctorReports.get(harness as HarnessId);
+          const row = typeof index === "number" ? report?.checks[index] : undefined;
+          const fix = row ? doctorFixFor(row) : null;
+          if (!fix) {
+            outcome = { text: "状況が変わりました。Doctor で診断し直してください。", error: true };
+            return;
+          }
+          doing(`${fix.label}…`);
+          try {
+            await runDoctorFix(workspaceRoot, harness as HarnessId, fix, log, cancellation.signal);
+          } catch (cause) {
+            if (!isCurrent()) return;
+            outcome = {
+              text: `「${fix.label}」を完了できませんでした：${errorText(cause)}`,
+              error: true,
+            };
+            return;
+          }
+        }
         doing("Doctor で診断しています…");
         toolResults.clear();
+        doctorReports.clear();
         reportResults();
         const result = await diagnoseInstalledWorkflows({
           workspaceRoot,
@@ -622,6 +757,7 @@ export async function openWorkflowsUpdatePanel(
             await context.workspaceState.update(repairKey, value);
           },
           onHarnessResult,
+          onDoctorReport,
         });
         outcome = { text: result.message, error: !result.ok };
       }

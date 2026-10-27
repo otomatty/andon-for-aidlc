@@ -13,6 +13,12 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "update-repair-plan",
+    date: "2026-10-27",
+    title: "更新を止めたファイルを、ボタン 1 つで直せるようにしました",
+    body: "AI-DLC の更新前のチェックで問題が見つかると、ファイルごとに何が起きたかと直し方を日本語で示し、「自動で直します」「確認してください」「AI が直します」「手で直してください」に分けます。「N 件を直して更新」を押すと、作業用コピーで直して確かめてから、更新まで続けます。AI は答えが決まらないファイルにだけ使い、反映する前に差分を見せます。「AI に聞く」で理由と選び方を尋ねられます。",
+  },
+  {
     id: "vscode-theme-colors",
     date: "2026-10-27",
     title: "VS Code のカラーテーマの色で表示します",

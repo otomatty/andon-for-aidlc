@@ -469,6 +469,32 @@ export async function installNative(
   }
 }
 
+/**
+ * Keep another release on this machine beside the default, for reading its
+ * official files. The installer may move the default; it is moved back.
+ */
+export async function installRetainedNative(
+  version: string,
+  log: (message: string) => void,
+  options: { signal?: AbortSignal; isCurrent?: () => boolean } = {},
+): Promise<NativeInstall> {
+  const existing = readVersionedNativeInstall(version);
+  if (existing) return existing;
+  const previous = readNativeInstall();
+  try {
+    await installNative(log, undefined, undefined, version, options);
+  } finally {
+    // Restore even when cancelled: the default is the person's choice.
+    if (previous && readNativeInstall()?.version !== previous.version)
+      await useNative(previous, previous.version, log);
+  }
+  if (previous && readNativeInstall()?.version !== previous.version)
+    throw new Error(`既定のバージョン ${previous.version} への復元を確認できません。`);
+  const installed = readVersionedNativeInstall(version);
+  if (!installed) throw new Error(`本体 ${version} を確認できません。`);
+  return installed;
+}
+
 export async function useNative(
   install: NativeInstall,
   version: string,

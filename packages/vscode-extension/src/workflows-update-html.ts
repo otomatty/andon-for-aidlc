@@ -5,10 +5,23 @@ import {
   type WorkflowsManagementState,
 } from "@aidlc-guide/shared-types";
 import type { CliManagementState } from "./cli-management.ts";
+import { doctorFixFor } from "./doctor-fixes.ts";
+import type { NativeDoctorReport } from "./doctor-output.ts";
 import { HARNESS_LABELS, type HarnessId } from "./harness-detect.ts";
 import { INSTALL_GUIDE_URL } from "./native-setup.ts";
 import { sharedFilesFor } from "./shared-file-changes.ts";
 import type { UpdateProblem } from "./workflows-conflicts.ts";
+import {
+  chosenAction,
+  defaultAction,
+  diffHunks,
+  diffLines,
+  isAiAction,
+  type RepairChoices,
+  type RepairGroup,
+  type RepairItem,
+  type RepairReview,
+} from "./workflows-repair-plan.ts";
 import {
   compareToTarget,
   shownProjectVersion,
@@ -23,7 +36,7 @@ export type UpdateCheck =
   | { state: "pending" }
   | { state: "checking" }
   | { state: "ok"; message: string }
-  | { state: "problems"; problems: UpdateProblem[]; message: string }
+  | { state: "problems"; problems: UpdateProblem[]; items: RepairItem[]; message: string }
   | { state: "failed"; message: string };
 
 /** What the panel is doing now: the buttons wait, and the open step says so. */
@@ -56,6 +69,14 @@ export type UpdateView = {
   /** The workspace's version files, as the version check reads them. */
   records?: readonly (string | null)[];
   extensionVersion?: string;
+  /** What the person picked for the files that need a decision, by path. */
+  choices?: RepairChoices;
+  /** AI-written changes waiting for the person's approval. */
+  review?: readonly RepairReview[] | null;
+  /** What an AI said about a file when asked, by path. */
+  explanations?: Readonly<Record<string, { text: string; error: boolean }>>;
+  /** The last Doctor report of each tool. */
+  doctorReports?: readonly { id: HarnessId; report: NativeDoctorReport }[];
 };
 
 type Tone = "warning" | "success" | "error" | "info";
@@ -260,11 +281,19 @@ function changeHtml(change: UpdateChange): string {
 <p class="muted">チームのメンバーは pull すると、AIDLC Guide の案内で同じバージョンにそろえられます。</p>`;
 }
 
+const AI_LABELS: Record<string, string> = {
+  claude: "Claude Code",
+  cursor: "Cursor",
+  copilot: "GitHub Copilot",
+};
+
+/** The AI the page offers: a choice when several are available, otherwise the one, or why none. */
 function repairToolHtml(view: UpdateView): { field: string; tool: string; ready: boolean } {
   const probe = view.repairTools;
   if (!probe)
     return {
-      field: '<p class="muted">利用できる AI を確認できていません。もう一度確認してください。</p>',
+      field:
+        '<p class="muted small">利用できる AI を確認できていません。もう一度確認してください。</p>',
       tool: "",
       ready: false,
     };
@@ -272,7 +301,7 @@ function repairToolHtml(view: UpdateView): { field: string; tool: string; ready:
   const first = available[0];
   if (probe.message || !first)
     return {
-      field: `<p class="muted">${esc(probe.message ?? "利用できる AI がありません。Claude Code、Cursor、GitHub Copilot CLI のいずれかを導入・ログインしてから、もう一度確認してください。")}</p>`,
+      field: `<p class="muted small">${esc(probe.message ?? "AI を使えません。Claude Code、Cursor、GitHub Copilot CLI のいずれかを導入・ログインしてから、もう一度確認すると、AI での修正と説明を使えます。")}</p>`,
       tool: "",
       ready: false,
     };
@@ -294,34 +323,178 @@ function repairToolHtml(view: UpdateView): { field: string; tool: string; ready:
   };
 }
 
-/** Problems grouped by tool and kind, each with its guidance; diagnostic text stays text. */
-function problemsHtml(view: UpdateView, problems: readonly UpdateProblem[]): string {
-  const groups = new Map<string, { problem: UpdateProblem; index: number }[]>();
-  for (const [index, problem] of problems.entries()) {
-    const key = `${problem.harness}:${problem.kind}`;
-    groups.set(key, [...(groups.get(key) ?? []), { problem, index }]);
-  }
-  const list = [...groups.values()]
-    .map((entries) => {
-      const head = entries[0]!.problem;
-      return `<div class="problem-group"><p><strong>${esc(labelOf(head.harness))}</strong>：${esc(head.guidance)}</p><ul>${entries
-        .map(
-          ({ problem, index }) =>
-            `<li><div class="problem-head"><code>${esc(problem.path)}</code>${problem.path && problem.path !== "設定全体" ? `<button type="button" class="text-link" data-send="problem-file" data-index="${index}">ファイルを開く</button>` : ""}</div><p class="muted small">${esc(problem.detail)}</p></li>`,
-        )
-        .join("")}</ul></div>`;
-    })
-    .join("");
-  if (view.activity)
-    return `<p class="lead">${problems.length} 件、確認が必要です。</p>${list}${activityHtml(view)}`;
-  const repair = repairToolHtml(view);
-  return `<p class="lead">${problems.length} 件、確認が必要です。</p>
-${list}
-<p class="muted">AI に直してもらうと、そのまま更新まで進みます。直す前にバックアップを作ります。</p>
-${repair.field}
+const GROUPS: readonly { key: RepairGroup; badge: string; tone: Tone; note: string }[] = [
+  { key: "auto", badge: "自動で直します", tone: "success", note: "AI は使いません" },
+  { key: "confirm", badge: "確認してください", tone: "warning", note: "おすすめを選んであります" },
+  { key: "ai", badge: "AI が直します", tone: "info", note: "反映する前に差分を見せます" },
+  {
+    key: "manual",
+    badge: "手で直してください",
+    tone: "error",
+    note: "直したら再チェックしてください",
+  },
+];
+
+/** Where an item shows: one only an unavailable AI could fix is the person's to fix. */
+const shownGroup = (item: RepairItem, aiReady: boolean): RepairGroup =>
+  item.group !== "manual" && chosenAction(item, {}, aiReady) === null ? "manual" : item.group;
+
+function itemHtml(
+  item: RepairItem,
+  index: number,
+  view: UpdateView,
+  ai: { ready: boolean; tool: string },
+): string {
+  const choices = view.choices ?? {};
+  const head = `<div class="problem-head"><code>${esc(item.path)}</code><span class="muted small">${esc(item.harnesses.map(labelOf).join("・"))}</span>${
+    item.path === "設定全体" || item.kind === "not-file"
+      ? ""
+      : `<button type="button" class="text-link" data-send="problem-file" data-path="${esc(item.path)}">ファイルを開く</button>`
+  }${ai.ready ? `<button type="button" class="text-link" data-send="explain" data-path="${esc(item.path)}" data-tool="${esc(ai.tool)}">AI に聞く</button>` : ""}</div>`;
+  const picked = chosenAction(item, choices, ai.ready);
+  const recommended = defaultAction(item, ai.ready);
+  let action = "";
+  if (item.group === "confirm" && item.options.length > 1)
+    action = `<fieldset class="opts"><legend class="sr-only">${esc(item.path)} の直し方</legend>${item.options
+      .map((option) => {
+        const off = isAiAction(option.action) && !ai.ready;
+        return `<label><input type="radio" name="choice-${index}" value="${esc(option.action)}" data-path="${esc(item.path)}"${picked === option.action ? " checked" : ""}${off ? " disabled" : ""}><span>${esc(option.label)}${option.action === recommended ? '<span class="rec">おすすめ</span>' : ""}${off ? '<span class="muted small">（AI を使えません）</span>' : ""}</span></label>`;
+      })
+      .join("")}</fieldset>`;
+  else if (item.group === "confirm" && item.options[0] && picked)
+    action = `<p class="plan-action">${esc(item.options[0].label)}</p>`;
+  const blocked =
+    item.group !== "manual" && shownGroup(item, ai.ready) === "manual"
+      ? '<p class="muted small">AI を使えないため、手で直してから再チェックしてください。</p>'
+      : "";
+  const note = item.note ? `<p class="item-note" role="note">${esc(item.note)}</p>` : "";
+  const said = view.explanations?.[item.path];
+  const explanation = said
+    ? said.error
+      ? `<p class="outcome error">${esc(said.text)}</p>`
+      : `<div class="ai-note"><p class="muted small">AI の説明（参考）</p><p>${esc(said.text)}</p></div>`
+    : "";
+  const raw = `<details class="more raw"><summary>原文</summary><div class="more-body"><p class="muted small">${esc(item.detail)}</p>${item.remediation ? `<p class="muted small">${esc(item.remediation)}</p>` : ""}</div></details>`;
+  return `<div class="fix-item">${head}<p>${esc(item.guidance)}</p><p class="plan">${esc(item.plan)}</p>${action}${blocked}${note}${explanation}${raw}</div>`;
+}
+
+/** The files the check refused, sorted by what fixes them, with the one button that fixes them all. */
+function problemsHtml(view: UpdateView, items: readonly RepairItem[]): string {
+  const target = view.workflows.target;
+  const tool = repairToolHtml(view);
+  const ai = { ready: tool.ready, tool: tool.tool };
+  const hand = items.filter((item) => shownGroup(item, ai.ready) === "manual");
+  const fixable = items.length - hand.length;
+  const groups = GROUPS.map((group) => {
+    const members = items
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => shownGroup(item, ai.ready) === group.key);
+    if (members.length === 0) return "";
+    return `<div class="fix-group tone-${group.tone}" data-group="${group.key}"><div class="fix-head"><span class="badge tone-${group.tone}">${group.badge}</span><strong>${members.length} 件</strong><span class="muted small">${group.note}</span></div>${members
+      .map(({ item, index }) => itemHtml(item, index, view, ai))
+      .join("")}</div>`;
+  }).join("");
+  const lead = hand.length
+    ? `手で直す必要がある ${hand.length} 件を直してから、再チェックしてください。${fixable ? `残りの ${fixable} 件は、そのあとボタン 1 つで直せます。` : ""}`
+    : `このままでは更新できない設定が ${items.length} 件あります。下の内容で直してから、そのまま更新します。`;
+  if (view.activity) return `<p class="lead">${esc(lead)}</p>${groups}${activityHtml(view)}`;
+  const aiOffered = items.some(
+    (item) => item.group === "ai" || item.options.some((option) => isAiAction(option.action)),
+  );
+  const aiUsed = items.some((item) => {
+    const action = chosenAction(item, view.choices ?? {}, ai.ready);
+    return action !== null && isAiAction(action);
+  });
+  const field = ai.ready || aiOffered ? tool.field : "";
+  const consent = ai.ready
+    ? '<p class="muted small" id="repair-consent">「AI に聞く」では問題の説明だけを、AI で直すときはそのファイルの内容だけを、選んだ AI に送ります。CLI のログインと利用枠を使います。</p>'
+    : "";
+  const primary = hand.length
+    ? '<button type="button" id="diagnose" data-send="diagnose">直したので再チェック</button>'
+    : `<button type="button" id="repair" data-send="repair" data-tool="${esc(ai.tool)}">${esc(`${items.length} 件を直して ${target} に更新`)}</button><button type="button" class="text-link" id="diagnose" data-send="diagnose">自分で直して再チェック</button>`;
+  const safety = hand.length
+    ? ""
+    : `<p class="muted small">直す前に、変わるファイルをバックアップします。直した結果はまず作業用コピーで確かめ、すべてのツールで競合がなくなってからプロジェクトに反映します。${aiUsed ? "AI が直したファイルは、反映する前に差分を見せます。" : ""}</p>`;
+  return `<p class="lead">${esc(lead)}</p>
+${groups}
+${field}
 ${outcomeHtml(view)}
-<div class="actions"><button type="button" id="repair" data-send="repair" data-tool="${esc(repair.tool)}"${repair.ready ? "" : " disabled"}>AI で直して更新</button><button type="button" class="text-link" id="diagnose" data-send="diagnose">自分で直して再チェック</button><button type="button" class="text-link" id="copy-diagnosis" data-send="copy-diagnosis">診断情報をコピー</button></div>
-<p class="muted small" id="repair-consent">診断情報と必要な .gitignore の内容を、選んだ AI に送ります。CLI のログインと利用枠を使います。</p>`;
+<div class="actions">${primary}<button type="button" class="text-link" id="copy-diagnosis" data-send="copy-diagnosis">診断情報をコピー</button></div>
+${safety}${consent}`;
+}
+
+/** Rows of a diff with a little context; long diffs are cut. */
+const DIFF_ROWS_SHOWN = 300;
+
+function diffHtml(before: string, after: string): string {
+  const hunks = diffHunks(diffLines(before, after));
+  if (hunks.length === 0)
+    return '<pre class="diff"><span class="gap">変更はありません</span></pre>';
+  const shown = hunks.slice(0, DIFF_ROWS_SHOWN);
+  const rows = shown
+    .map((row) =>
+      row === null
+        ? '<span class="gap">…</span>'
+        : `<span class="${row.kind}"><span class="ln">${row.kind === "add" ? "" : (row.old ?? "")}</span><span class="ln">${row.kind === "del" ? "" : (row.new ?? "")}</span><span class="sign">${row.kind === "add" ? "+" : row.kind === "del" ? "-" : " "}</span>${esc(row.text)}</span>`,
+    )
+    .join("");
+  const more = hunks.length - shown.length;
+  return `<pre class="diff" aria-label="変更の差分">${rows}${more > 0 ? `<span class="gap">ほか ${more} 行</span>` : ""}</pre>`;
+}
+
+/** The AI-written changes, each as a diff with the AI's words and the Guide's checks. */
+function reviewHtml(view: UpdateView, reviews: readonly RepairReview[], total: number): string {
+  const target = view.workflows.target;
+  const blocks = reviews
+    .map(
+      (review) =>
+        `<div class="review"><div class="problem-head"><code>${esc(review.path)}</code><span class="muted small">${esc(AI_LABELS[review.tool] ?? review.tool)} の修正案${review.action === "ai-merge" ? "（更新の後のファイル）" : ""}</span></div>
+${diffHtml(review.before, review.after)}
+${review.summary ? `<div class="ai-note"><p class="muted small">AI の説明</p><p>${esc(review.summary)}</p></div>` : ""}
+<ul class="checks" aria-label="Guide による確認">${review.checks
+          .map(
+            (check) =>
+              `<li class="${check.ok ? "ok" : "warn"}"><span aria-hidden="true">${check.ok ? "✓" : "!"}</span><span>${esc(check.text)}</span></li>`,
+          )
+          .join("")}</ul></div>`,
+    )
+    .join("");
+  const lead = `作業用コピーで ${total} 件を直し、すべてのツールで更新できることを確かめました。AI が直した ${reviews.length} 件を確認してください。まだプロジェクトには反映していません。`;
+  if (view.activity) return `<p class="lead">${esc(lead)}</p>${blocks}${activityHtml(view)}`;
+  return `<p class="lead">${esc(lead)}</p>
+${blocks}
+${outcomeHtml(view)}
+<div class="actions"><button type="button" id="approve" data-send="approve">${esc(`この内容で ${target} に更新`)}</button><button type="button" class="text-link" id="discard-review" data-send="discard-review">この修正を使わない</button></div>
+<p class="muted small">反映する前に、変わるファイルをバックアップします。</p>`;
+}
+
+/** What Doctor found per tool, with the fixes the Guide can run itself. */
+function doctorHtml(view: UpdateView): string {
+  const groups = (view.doctorReports ?? []).flatMap(({ id, report }) => {
+    const rows = report.checks
+      .map((check, index) => ({ check, index }))
+      .filter(({ check }) => check.status !== "ok");
+    if (rows.length === 0 && (report.outcome === "ok" || report.outcome === "warning")) return [];
+    return [
+      `<div class="doctor-group"><p><strong>${esc(labelOf(id))}</strong>：${esc(report.summary)}</p>${
+        rows.length
+          ? `<ul>${rows
+              .map(({ check, index }) => {
+                const fix = doctorFixFor(check);
+                const original =
+                  !check.translated || check.fixTranslated === false
+                    ? `<details class="more raw"><summary>原文</summary><div class="more-body"><p class="muted small">${esc(check.originalLabel)}</p>${check.originalFix ? `<p class="muted small">${esc(check.originalFix)}</p>` : ""}</div></details>`
+                    : "";
+                return `<li><div class="problem-head"><span class="badge tone-${check.status === "fail" ? "error" : "warning"}">${check.status === "fail" ? "問題あり" : "要確認"}</span><span>${esc(check.label)}</span></div>${check.fix ? `<p class="muted small">対処：${esc(check.fix)}</p>` : ""}${fix ? `<div class="actions"><button type="button" class="secondary" data-send="doctor-fix" data-harness="${esc(id)}" data-index="${index}">${esc(fix.label)}</button></div>` : ""}${original}</li>`;
+              })
+              .join("")}</ul>`
+          : ""
+      }</div>`,
+    ];
+  });
+  return groups.length
+    ? `<div class="doctor" aria-label="Doctor の結果"><p><strong>Doctor が見つけた項目</strong></p>${groups.join("")}</div>`
+    : "";
 }
 
 function updateSteps(phase: Extract<UpdatePhase, { name: "update" }>, view: UpdateView): string {
@@ -338,7 +511,14 @@ function updateSteps(phase: Extract<UpdatePhase, { name: "update" }>, view: Upda
           "問題なし",
         )
       : check.state === "problems"
-        ? stepItem(1, "更新前のチェック", "blocked", problemsHtml(view, check.problems))
+        ? view.review?.length
+          ? stepItem(
+              1,
+              "AI が直した内容の確認",
+              "current",
+              reviewHtml(view, view.review, check.items.length),
+            )
+          : stepItem(1, "更新前のチェック", "blocked", problemsHtml(view, check.items))
         : stepItem(
             1,
             "更新前のチェック",
@@ -378,6 +558,7 @@ function updateSteps(phase: Extract<UpdatePhase, { name: "update" }>, view: Upda
 ${failed}
 ${outcomeHtml(view)}
 ${toolResultsHtml(view)}
+${doctorHtml(view)}
 <div class="actions"><button type="button" id="apply" data-send="apply">${esc(title)}</button></div>
 <details class="more"><summary>変わるファイル</summary><p class="muted small">ツールと版によって、次のファイルが変わります。更新後に、実際に変わったファイルを表示します。</p><ul class="files" id="shared-files-note">${shared.map((file) => `<li><code>${esc(file)}</code></li>`).join("")}</ul></details>`,
     );
@@ -396,7 +577,7 @@ function commitSteps(phase: Extract<UpdatePhase, { name: "commit" }>, view: Upda
     check.state === "ok" || check.state === "failed" ? `<p>${esc(check.message)}</p>` : "";
   const summary =
     check.state === "ok" ? "問題なし" : check.state === "failed" ? "確認できませんでした" : "";
-  return `${stepItem(1, "更新前のチェック", "done", checked, summary)}${stepItem(2, `プロジェクトを ${target} に更新`, "done", `${outcome}${toolResultsHtml(view)}`, toolList(view.workflows))}${stepItem(3, "コミットして共有", "current", commit)}`;
+  return `${stepItem(1, "更新前のチェック", "done", checked, summary)}${stepItem(2, `プロジェクトを ${target} に更新`, "done", `${outcome}${toolResultsHtml(view)}${doctorHtml(view)}`, toolList(view.workflows))}${stepItem(3, "コミットして共有", "current", commit)}`;
 }
 
 function installSteps(phase: Extract<UpdatePhase, { name: "install" }>, view: UpdateView): string {
@@ -460,6 +641,7 @@ ${outcomeHtml(view)}
 <div class="actions"><button type="button" id="doctor" data-send="doctor">Doctor で診断</button></div>`
 }
 ${toolResultsHtml(view)}
+${doctorHtml(view)}
 </section>`;
 }
 
@@ -470,6 +652,7 @@ function okCard(view: UpdateView): string {
 ${activityHtml(view)}
 ${view.activity ? "" : outcomeHtml(view)}
 ${toolResultsHtml(view)}
+${doctorHtml(view)}
 </section>`;
 }
 
@@ -552,9 +735,36 @@ const UPDATE_STYLES = `
   .files li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 2px 14px; }
   .commit { display: flex; flex-direction: column; gap: 4px; }
   .commit pre { margin: 0; color: var(--m-bright); }
-  .problem-group { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid var(--m-border); border-radius: 8px; overflow-wrap: anywhere; }
-  .problem-group ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
   .problem-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+  .fix-group { display: flex; flex-direction: column; border: 1px solid var(--m-border); border-radius: 8px; overflow: hidden; overflow-wrap: anywhere; }
+  .fix-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 10px 14px; background: var(--tone-bg); }
+  .fix-head strong { color: var(--m-bright); }
+  .fix-item { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-top: 1px solid var(--m-border); min-width: 0; }
+  .fix-item .plan { color: var(--m-bright); }
+  .plan-action { font-weight: 600; }
+  .item-note { padding: 6px 10px; border-radius: 4px; background: var(--m-warning-light); color: var(--m-text); }
+  .opts { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; border: 0; min-width: 0; }
+  .opts label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+  .opts input { margin-top: 6px; accent-color: var(--m-primary); }
+  .rec { margin-left: 8px; color: var(--m-success); font-size: 12px; font-weight: 700; }
+  .ai-note { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-left: 3px solid var(--m-primary-light-color); border-radius: 0 6px 6px 0; background: var(--m-primary-light); }
+  details.raw > summary { color: var(--m-dimmed); font-size: 12px; }
+  .review { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border: 1px solid var(--m-border); border-radius: 8px; min-width: 0; overflow-wrap: anywhere; }
+  pre.diff { margin: 0; padding: 8px 0; max-height: 360px; white-space: pre; overflow: auto; font-family: var(--vscode-editor-font-family, monospace); }
+  pre.diff > span { display: block; padding: 0 12px 0 0; min-width: max-content; }
+  pre.diff .del { background: var(--m-error-light); color: var(--m-error); }
+  pre.diff .add { background: var(--m-success-light); color: var(--m-success); }
+  pre.diff .gap { padding-left: 12px; color: var(--m-dimmed); }
+  pre.diff .ln { display: inline-block; width: 3.5em; padding-right: 6px; text-align: right; color: var(--m-dimmed); user-select: none; }
+  pre.diff .sign { display: inline-block; width: 1.5em; user-select: none; }
+  .checks { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+  .checks li { display: flex; gap: 6px; }
+  .checks li.ok > span:first-child { color: var(--m-success); font-weight: 700; }
+  .checks li.warn { color: var(--m-warning); }
+  .checks li.warn > span:first-child { font-weight: 700; }
+  .doctor { display: flex; flex-direction: column; gap: 8px; }
+  .doctor-group { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid var(--m-border); border-radius: 8px; overflow-wrap: anywhere; }
+  .doctor-group ul { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
   .field { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; }
   select { box-sizing: border-box; min-width: 0; max-width: 100%; min-height: 36px; padding: 0 10px; border: 1px solid var(--m-input-border); border-radius: 4px; background: var(--m-card); color: var(--m-text); font: inherit; }
   .note { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-radius: 8px; background: var(--m-warning-light); }
@@ -620,10 +830,10 @@ const toolSelect = document.getElementById('repair-tool');
 // What still works while an action runs: stopping it, links and copies.
 const idle = ['docs', 'cancel-repair', 'copy-commit', 'copy-rollback', 'copy-diagnosis', 'open-scm', 'problem-file'];
 // What starts an action; the host redraws the page when it ends.
-const runs = ['apply', 'update-cli', 'pin-project', 'use-target', 'doctor', 'diagnose', 'repair', 'refresh'];
+const runs = ['apply', 'update-cli', 'pin-project', 'use-target', 'doctor', 'diagnose', 'repair', 'refresh', 'approve', 'discard-review', 'explain', 'doctor-fix'];
 function lock() {
   main.setAttribute('aria-busy', 'true');
-  document.querySelectorAll('[data-send], #repair-tool').forEach(control => {
+  document.querySelectorAll('[data-send], #repair-tool, input[name^="choice-"]').forEach(control => {
     if (idle.includes(control.dataset.send) || !('disabled' in control) || control.dataset.locked) return;
     control.dataset.locked = String(control.disabled);
     control.disabled = true;
@@ -648,9 +858,15 @@ document.querySelectorAll('[data-send]').forEach(control => control.addEventList
   const type = control.dataset.send;
   const message = { type };
   if (control.dataset.index !== undefined) message.index = Number(control.dataset.index);
-  if (type === 'repair') message.tool = toolSelect ? toolSelect.value : control.dataset.tool || '';
+  if (control.dataset.path !== undefined) message.path = control.dataset.path;
+  if (control.dataset.harness !== undefined) message.harness = control.dataset.harness;
+  if (type === 'repair' || type === 'explain') message.tool = toolSelect ? toolSelect.value : control.dataset.tool || '';
   if (runs.includes(type)) lock();
   vscode.postMessage(message);
+}));
+// A pick is remembered by the host; the page is not drawn again for it.
+document.querySelectorAll('input[name^="choice-"]').forEach(input => input.addEventListener('change', () => {
+  if (input.checked) vscode.postMessage({ type: 'choose', path: input.dataset.path, action: input.value });
 }));
 window.addEventListener('message', ({ data: msg }) => {
   if (!msg || typeof msg.type !== 'string') return;

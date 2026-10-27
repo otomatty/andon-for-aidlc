@@ -33,6 +33,9 @@ const CONFIG = [
   "aidlc.settings.json",
   "aidlc.settings.local.json",
 ];
+/** Whether a repair may write this project path; anything else stays the person's to change. */
+export const isRepairConfigPath = (rel: string): boolean =>
+  CONFIG.some((prefix) => rel === prefix || rel.startsWith(`${prefix}/`));
 export type RepairFile = { bytes: Buffer; mode: number };
 export type RepairSnapshot = Map<string, RepairFile>;
 const missing = (error: unknown) => (error as NodeJS.ErrnoException).code === "ENOENT";
@@ -161,10 +164,8 @@ export async function commitRepairFiles(options: {
   check();
   const after = snapshotRepairFiles(options.stage);
   // The official CLI may seed memory in the staging folder; never import those writes.
-  const allowed = (rel: string) =>
-    CONFIG.some((prefix) => rel === prefix || rel.startsWith(`${prefix}/`));
   const changes = [...new Set([...options.before.keys(), ...after.keys()])].filter((rel) => {
-    if (!allowed(rel)) return false;
+    if (!isRepairConfigPath(rel)) return false;
     const old = options.before.get(rel),
       next = after.get(rel);
     return !old || !next || !old.bytes.equals(next.bytes) || old.mode !== next.mode;

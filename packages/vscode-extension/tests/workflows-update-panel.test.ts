@@ -19,8 +19,10 @@ const mocks = vi.hoisted(() => ({
   pinCli: vi.fn(),
   useTargetCli: vi.fn(),
   doctor: vi.fn(),
+  doctorFix: vi.fn(),
   commands: vi.fn(),
   repair: vi.fn(),
+  explain: vi.fn(),
   reapply: vi.fn(),
   probe: vi.fn(),
   clipboard: vi.fn(),
@@ -79,14 +81,20 @@ vi.mock("../src/cli-management.ts", async (importOriginal) => ({
 }));
 vi.mock("../src/cli-environment.ts", () => ({ configureCliEnvironment: vi.fn() }));
 vi.mock("../src/workflows-diagnose.ts", () => ({ diagnoseInstalledWorkflows: mocks.doctor }));
+vi.mock("../src/doctor-fixes.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../src/doctor-fixes.ts")>()),
+  runDoctorFix: mocks.doctorFix,
+}));
 vi.mock("../src/workflows-repair.ts", () => ({
   repairWorkflows: mocks.repair,
+  explainRepair: mocks.explain,
   reapplyLocalPatches: mocks.reapply,
   probeRepairTools: mocks.probe,
   REPAIR_TOOLS: ["claude", "cursor", "copilot"],
 }));
 
 import type { CliManagementState } from "../src/cli-management.ts";
+import type { RepairItem } from "../src/workflows-repair-plan.ts";
 import { applyNativeWorkflowsUpdate } from "../src/workflows-native-update.ts";
 import { type UpdateView, workflowsUpdateHtml } from "../src/workflows-update-html.ts";
 import {
@@ -169,6 +177,51 @@ const problem = {
   detail: "AI-DLC が管理するフックに独自の変更があります",
   guidance: "管理元を確認",
 };
+const item = (over: Partial<RepairItem> = {}): RepairItem => ({
+  path: ".claude/settings.json",
+  harnesses: ["claude"],
+  kind: "ownership",
+  group: "auto",
+  guidance: "公式のファイルと内容が違います。",
+  plan: "公式ファイルと同じ内容です。記録を作り直します。",
+  options: [{ action: "regenerate", label: "作り直す" }],
+  detail: "locally modified or unowned",
+  ...over,
+});
+const custom = item({
+  path: ".claude/agents/dev.md",
+  group: "confirm",
+  plan: "変えた部分を見分けられません。",
+  options: [
+    { action: "fetch-base", label: "旧版を取り寄せて当て直す" },
+    { action: "ai-merge", label: "AI が当て直す" },
+    { action: "replace", label: "公式版に置き換える" },
+  ],
+});
+const broken = item({
+  path: ".cursor/mcp.json",
+  harnesses: ["cursor"],
+  kind: "json",
+  group: "ai",
+  plan: "JSON の書式が壊れています。",
+  options: [{ action: "ai-json", label: "AI に直してもらう" }],
+  detail: "malformed JSON",
+});
+const linked = item({
+  path: ".claude/hooks",
+  kind: "not-file",
+  group: "manual",
+  plan: "リンクを外してください。",
+  options: [],
+  detail: "managed path is not a regular file",
+});
+const checkOf = (items: RepairItem[]) => ({
+  state: "problems" as const,
+  message: `${items.length} 件`,
+  problems: items.map(() => problem),
+  items,
+});
+const claudeOnly = { tools: [{ tool: "claude" as const, label: "Claude Code", available: true }] };
 const okResult = {
   ok: true,
   stage: "complete" as const,
@@ -242,7 +295,7 @@ beforeEach(() => {
   mocks.inspectCli.mockReturnValue(cli);
   mocks.gate.mockReturnValue(olderGate);
   mocks.snapshot.mockResolvedValue(null);
-  mocks.repair.mockResolvedValue({ problems: [], message: "問題は見つかりませんでした。" });
+  mocks.repair.mockResolvedValue({ problems: [], items: [], message: "問題は見つかりませんでした。" });
   mocks.probe.mockResolvedValue([{ tool: "claude", label: "Claude Code", available: true }]);
   mocks.prepareRuntime.mockResolvedValue(okResult);
 });
@@ -288,42 +341,84 @@ describe("update screen", () => {
     const { document, dom } = page(
       view({
         workflows: { ...state, root: "project<script>" },
-        check: {
-          state: "problems",
-          message: "1 件",
-          problems: [{ ...problem, path: '<img src=x onerror="alert(1)">' }],
-        },
+        check: checkOf([item({ path: '<img src=x onerror="alert(1)">', detail: "<b>raw</b>" })]),
       }),
     );
     expect(document.querySelectorAll("img")).toHaveLength(0);
+    expect(document.querySelectorAll("b")).toHaveLength(0);
     expect(document.querySelectorAll("script")).toHaveLength(1);
     expect(document.body.textContent).toContain("project<script>");
     dom.window.close();
   });
 
-  it("stops at the check with the problems, the files to open and an AI repair", () => {
+  it("sorts the files by how they are fixed and fixes them all with one button", () => {
     const { byId, primary, posted, document, dom } = page(
-      view({
-        check: {
-          state: "problems",
-          message: "2 件",
-          problems: [problem, { ...problem, kind: "other", path: "設定全体", detail: "失敗" }],
-        },
-        repairTools: { tools: [{ tool: "claude", label: "Claude Code", available: true }] },
-      }),
+      view({ check: checkOf([item(), custom, broken]), repairTools: claudeOnly }),
     );
     try {
       expect(primary()).toEqual(["repair"]);
       expect(byId("apply")).toBeNull();
-      expect(document.body.textContent).toContain("2 件、確認が必要です。");
+      expect(byId("repair").textContent).toBe(`3 件を直して ${target} に更新`);
+      expect(
+        [...document.querySelectorAll(".fix-group .fix-head .badge")].map((b) => b.textContent),
+      ).toEqual(["自動で直します", "確認してください", "AI が直します"]);
       expect(document.body.textContent).toContain("使う AI：Claude Code（自動で選択）");
-      const open = document.querySelectorAll('[data-send="problem-file"]');
-      expect(open).toHaveLength(1);
-      (open[0] as HTMLButtonElement).click();
-      expect(posted.at(-1)).toEqual({ type: "problem-file", index: 0 });
-      byId<HTMLButtonElement>("repair").click();
-      expect(posted.at(-1)).toEqual({ type: "repair", tool: "claude" });
-      expect(byId<HTMLButtonElement>("diagnose").disabled).toBe(true);
+      const radios = [...document.querySelectorAll<HTMLInputElement>('input[name^="choice-"]')];
+      expect(radios.map((radio) => [radio.value, radio.checked])).toEqual([
+        ["fetch-base", true],
+        ["ai-merge", false],
+        ["replace", false],
+      ]);
+      expect(document.querySelector(".rec")?.closest("label")?.textContent).toContain("旧版");
+      radios[2]!.click();
+      expect(posted.at(-1)).toEqual({ type: "choose", path: ".claude/agents/dev.md", action: "replace" });
+      (document.querySelector('[data-send="problem-file"]') as HTMLButtonElement).click();
+      expect(posted.at(-1)).toEqual({ type: "problem-file", path: ".claude/settings.json" });
+      (document.querySelector('[data-send="explain"]') as HTMLButtonElement).click();
+      expect(posted.at(-1)).toEqual({ type: "explain", path: ".claude/settings.json", tool: "claude" });
+      byId<HTMLButtonElement>("refresh").click();
+      expect(radios[0]!.disabled).toBe(true);
+    } finally {
+      dom.window.close();
+    }
+    const again = page(view({ check: checkOf([item(), custom, broken]), repairTools: claudeOnly }));
+    again.byId<HTMLButtonElement>("repair").click();
+    expect(again.posted.at(-1)).toEqual({ type: "repair", tool: "claude" });
+    expect(again.byId<HTMLButtonElement>("diagnose").disabled).toBe(true);
+    again.dom.window.close();
+  });
+
+  it("asks for hand fixes first and re-checks instead of repairing", () => {
+    const { byId, primary, document, dom } = page(
+      view({ check: checkOf([item(), linked]), repairTools: claudeOnly }),
+    );
+    expect(primary()).toEqual(["diagnose"]);
+    expect(byId("diagnose").textContent).toBe("直したので再チェック");
+    expect(byId("repair")).toBeNull();
+    expect(document.body.textContent).toContain(
+      "手で直す必要がある 1 件を直してから、再チェックしてください。残りの 1 件は、そのあとボタン 1 つで直せます。",
+    );
+    expect(document.querySelector('[data-group="manual"]')?.textContent).toContain(".claude/hooks");
+    dom.window.close();
+  });
+
+  it("leaves AI-only fixes to the person when no AI is available", () => {
+    const { primary, document, dom } = page(
+      view({
+        check: checkOf([custom, broken]),
+        repairTools: { tools: [], message: "AI の検出に失敗しました" },
+      }),
+    );
+    try {
+      expect(primary()).toEqual(["diagnose"]);
+      expect(document.querySelector('[data-group="manual"]')?.textContent).toContain(".cursor/mcp.json");
+      expect(document.querySelector('[data-group="confirm"]')?.textContent).toContain(
+        ".claude/agents/dev.md",
+      );
+      const ai = document.querySelector<HTMLInputElement>('input[value="ai-merge"]');
+      expect(ai?.disabled).toBe(true);
+      expect(document.querySelector('[data-send="explain"]')).toBeNull();
+      expect(document.body.textContent).toContain("AI の検出に失敗しました");
     } finally {
       dom.window.close();
     }
@@ -335,8 +430,7 @@ describe("update screen", () => {
       { tool: "cursor" as const, label: "Cursor", available: true },
       { tool: "copilot" as const, label: "Copilot", available: false, detail: "未導入" },
     ];
-    const check = { state: "problems" as const, message: "1 件", problems: [problem] };
-    const choice = page(view({ check, repairTools: { tools } }));
+    const choice = page(view({ check: checkOf([broken]), repairTools: { tools } }));
     try {
       const select = choice.byId<HTMLSelectElement>("repair-tool");
       expect(select.options).toHaveLength(3);
@@ -347,10 +441,111 @@ describe("update screen", () => {
     } finally {
       choice.dom.window.close();
     }
-    const failed = page(view({ check, repairTools: { tools: [], message: "AI の検出に失敗しました" } }));
-    expect(failed.byId<HTMLButtonElement>("repair").disabled).toBe(true);
-    expect(failed.document.body.textContent).toContain("AI の検出に失敗しました");
-    failed.dom.window.close();
+  });
+
+  it("shows notes, AI explanations and upstream's own words for a file", () => {
+    const { document, dom } = page(
+      view({
+        check: checkOf([{ ...custom, note: "2.7.0 を取り寄せられませんでした：offline", remediation: "move it" }]),
+        repairTools: claudeOnly,
+        explanations: { ".claude/agents/dev.md": { text: "独自の変更があるためです。", error: false } },
+      }),
+    );
+    expect(document.querySelector(".item-note")?.textContent).toContain("offline");
+    expect(document.querySelector(".ai-note")?.textContent).toContain("独自の変更があるためです。");
+    expect(document.querySelector("details.raw")?.textContent).toContain("move it");
+    dom.window.close();
+  });
+
+  it("shows an AI change as a diff with its checks before anything is applied", () => {
+    const { byId, primary, posted, document, dom } = page(
+      view({
+        check: checkOf([item(), broken]),
+        repairTools: claudeOnly,
+        review: [
+          {
+            path: ".cursor/mcp.json",
+            action: "ai-json",
+            tool: "claude",
+            before: '{\n  "a": "x",\n}\n',
+            after: '{\n  "a": "x"\n}\n',
+            summary: "余分なカンマを削除しました。",
+            checks: [
+              { ok: true, text: "JSON として読める" },
+              { ok: false, text: "公式版の 1 行を削除している" },
+            ],
+            originalHash: "h",
+          },
+        ],
+      }),
+    );
+    try {
+      expect(primary()).toEqual(["approve"]);
+      expect(byId("approve").textContent).toBe(`この内容で ${target} に更新`);
+      expect(document.querySelector(".steps > li")?.textContent).toContain("AI が直した内容の確認");
+      expect([...document.querySelectorAll("pre.diff .del")].map((row) => row.textContent)).toEqual([
+        '2-  "a": "x",',
+      ]);
+      expect([...document.querySelectorAll("pre.diff .add")].map((row) => row.textContent)).toEqual([
+        '2+  "a": "x"',
+      ]);
+      expect(document.querySelector(".checks .warn")?.textContent).toContain("1 行を削除");
+      expect(document.body.textContent).toContain("まだプロジェクトには反映していません");
+      byId<HTMLButtonElement>("discard-review").click();
+      expect(posted.at(-1)).toEqual({ type: "discard-review" });
+    } finally {
+      dom.window.close();
+    }
+  });
+
+  it("lists Doctor's findings and runs only the fixes the Guide knows", () => {
+    const report = {
+      version: target,
+      executedAt: "",
+      outcome: "failed" as const,
+      summary: "問題 1 件、警告 1 件",
+      counts: null,
+      rawOutput: "",
+      unparsedOutput: [],
+      checks: [
+        { section: "project" as const, status: "ok" as const, label: "正常", originalLabel: "ok", translated: true },
+        {
+          section: "project" as const,
+          status: "warn" as const,
+          label: "プラグインの構成が古い",
+          fix: "`aidlc engine plugin sync` を実行してください",
+          originalLabel: "Plugins: 1 require sync",
+          originalFix: "run `aidlc engine plugin sync`",
+          translated: true,
+          fixTranslated: true,
+        },
+        {
+          section: "project" as const,
+          status: "fail" as const,
+          label: "日本語訳が未対応の診断項目です。原文を確認してください。",
+          fix: "git で戻してください",
+          originalLabel: "Hooks: broken",
+          originalFix: "run `git checkout -- .claude`",
+          translated: false,
+          fixTranslated: true,
+        },
+      ],
+    };
+    const { posted, document, dom } = page(
+      view({ gate: { ...olderGate, status: "unknown" }, doctorReports: [{ id: "claude", report }] }),
+    );
+    try {
+      const rows = [...document.querySelectorAll(".doctor-group li")];
+      expect(rows).toHaveLength(2);
+      expect(rows[0]?.textContent).toContain("要確認");
+      expect(rows[1]?.textContent).toContain("Hooks: broken");
+      const fixes = [...document.querySelectorAll<HTMLButtonElement>('[data-send="doctor-fix"]')];
+      expect(fixes.map((button) => button.textContent)).toEqual(["プラグインの構成をそろえる"]);
+      fixes[0]!.click();
+      expect(posted.at(-1)).toEqual({ type: "doctor-fix", harness: "claude", index: 1 });
+    } finally {
+      dom.window.close();
+    }
   });
 
   it("lets the update go ahead after a check that could not finish", () => {
@@ -398,19 +593,20 @@ describe("update screen", () => {
   it("gives the buttons back when the host ends an action without redrawing", () => {
     const { byId, receive, document, dom } = page(
       view({
-        check: { state: "problems", message: "1 件", problems: [problem] },
+        check: checkOf([custom]),
         repairTools: { tools: [], message: "AI の検出に失敗しました" },
       }),
     );
     try {
+      const ai = () => document.querySelector<HTMLInputElement>('input[value="ai-merge"]');
       byId<HTMLButtonElement>("refresh").click();
       expect(byId<HTMLButtonElement>("diagnose").disabled).toBe(true);
       receive({ type: "unlock" });
       expect(document.querySelector("main")?.getAttribute("aria-busy")).toBe("false");
       expect(byId<HTMLButtonElement>("refresh").disabled).toBe(false);
       expect(byId<HTMLButtonElement>("diagnose").disabled).toBe(false);
-      // A button that was disabled before the lock stays disabled.
-      expect(byId<HTMLButtonElement>("repair").disabled).toBe(true);
+      // A control that was disabled before the lock stays disabled.
+      expect(ai()?.disabled).toBe(true);
     } finally {
       dom.window.close();
     }
@@ -634,7 +830,11 @@ describe("update panel", () => {
   });
 
   it("stops at the check when it finds problems, and asks again only by pressing update", async () => {
-    mocks.repair.mockResolvedValue({ problems: [problem], message: "1 件の問題があります。" });
+    mocks.repair.mockResolvedValue({
+      problems: [problem],
+      items: [item()],
+      message: "1 件の問題があります。",
+    });
     const { context, receive, shown } = openPanel();
     await openWorkflowsUpdatePanel(context, "project");
     await receive({ type: "apply" });
@@ -644,9 +844,9 @@ describe("update panel", () => {
     expect(document.body.textContent).toContain(".claude/settings.json");
     dom.window.close();
     await receive({ type: "copy-diagnosis" });
-    expect(JSON.parse(mocks.clipboard.mock.lastCall?.[0]).problems[0].path).toBe(
-      ".claude/settings.json",
-    );
+    const copied = JSON.parse(mocks.clipboard.mock.lastCall?.[0]);
+    expect(copied.problems[0].path).toBe(".claude/settings.json");
+    expect(copied.items[0]).toMatchObject({ path: ".claude/settings.json", group: "auto" });
   });
 
   it("checks by itself once when the panel opens, without repairing or updating", async () => {
@@ -671,13 +871,14 @@ describe("update panel", () => {
     await receive({ type: "ready" });
     expect(mocks.repair).not.toHaveBeenCalled();
     mocks.inspectCli.mockReturnValue(cli);
-    mocks.repair.mockResolvedValue({ problems: [problem], message: "1 件" });
+    mocks.repair.mockResolvedValue({ problems: [problem], items: [broken], message: "1 件" });
     mocks.probe.mockRejectedValue(new Error("missing"));
     await receive({ type: "ready" });
     expect(mocks.repair).toHaveBeenCalledOnce();
-    const { document, byId, dom } = shown();
+    const { document, byId, primary, dom } = shown();
     expect(document.body.textContent).toContain("AI の検出に失敗しました");
-    expect(byId<HTMLButtonElement>("repair").disabled).toBe(true);
+    expect(byId("repair")).toBeNull();
+    expect(primary()).toEqual(["diagnose"]);
     dom.window.close();
   });
 
@@ -711,6 +912,7 @@ describe("update panel", () => {
         if (outcome === "disposed") onDidDispose.mock.calls[0]?.[0]();
         return {
           problems: outcome === "remaining" ? [problem] : [],
+          items: outcome === "remaining" ? [item()] : [],
           message: "修正結果",
           backup: "backup",
         };
@@ -739,7 +941,7 @@ describe("update panel", () => {
       const { context, receive, webview } = openPanel();
       await openWorkflowsUpdatePanel(context, "project");
       const patches = [{ path: ".cursor/hooks/a.ts", officialHash: "h", content: "patched" }];
-      mocks.repair.mockResolvedValue({ problems: [], message: "修正結果", patches });
+      mocks.repair.mockResolvedValue({ problems: [], items: [], message: "修正結果", patches });
       mocks.update.mockResolvedValue(
         ok ? { ok: true, target } : { ok: false, reason: "preflight", target },
       );
@@ -761,6 +963,7 @@ describe("update panel", () => {
     await openWorkflowsUpdatePanel(context, "project");
     mocks.repair.mockResolvedValue({
       problems: [],
+      items: [],
       message: "修正結果",
       patches: [{ path: ".cursor/hooks/a.ts", officialHash: "h", content: "patched" }],
     });
@@ -771,36 +974,170 @@ describe("update panel", () => {
     expect(webview.html).toContain("独自パッチを当て直していません: .cursor/hooks/a.ts");
   });
 
-  it("repairs only the host's root with a supported AI and supports cancellation", async () => {
+  it("repairs only the host's root, takes only a supported AI and supports cancellation", async () => {
     const { context, receive } = openPanel();
     await openWorkflowsUpdatePanel(context, "project");
     mocks.repair.mockImplementation(async (opts) => {
       expect(opts.root).toBe("project");
-      expect(opts.tool).toBe("claude");
+      expect(opts.fix.tool).toBe("claude");
       await receive({ type: "cancel-repair" });
       expect(opts.signal.aborted).toBe(true);
-      return { problems: [], message: "中止しました" };
+      return { problems: [], items: [], message: "中止しました" };
     });
     await receive({ type: "repair", root: "attacker", tool: "claude" });
     expect(mocks.repair).toHaveBeenCalledOnce();
+    mocks.repair.mockResolvedValue({ problems: [problem], items: [item()], message: "1 件" });
     await receive({ type: "repair", tool: "unsupported" });
-    expect(mocks.repair).toHaveBeenCalledOnce();
+    expect(mocks.repair).toHaveBeenCalledTimes(2);
+    expect(mocks.repair.mock.lastCall?.[0].fix).toEqual({ choices: {} });
     expect(mocks.update).not.toHaveBeenCalled();
   });
 
-  it("takes the problems an update stopped on into the check", async () => {
+  it("re-checks what stopped the update, so the next step is to fix it", async () => {
     const { context, receive, shown } = openPanel();
     await openWorkflowsUpdatePanel(context, "project");
     mocks.update.mockResolvedValue({ ok: false, reason: "preflight", target, problems: [problem] });
+    mocks.repair
+      .mockResolvedValueOnce({ problems: [], items: [], message: "問題は見つかりませんでした。" })
+      .mockResolvedValue({ problems: [problem], items: [item()], message: "1 件" });
     await receive({ type: "apply" });
+    expect(mocks.repair).toHaveBeenCalledTimes(2);
     const { primary, document, dom } = shown();
     expect(primary()).toEqual(["repair"]);
-    expect(document.querySelector(".outcome.error")?.textContent).toContain("エンジンは未更新");
+    expect(document.querySelector(".outcome.error")?.textContent).toContain(
+      "更新は止まりました。次の 1 件を直すと更新できます",
+    );
     dom.window.close();
     mocks.update.mockResolvedValue({ ok: false, reason: "preflight", target, problems: [] });
     await receive({ type: "apply" });
     await receive({ type: "copy-diagnosis" });
     expect(JSON.parse(mocks.clipboard.mock.lastCall?.[0]).problems).toEqual([]);
+  });
+
+  it("sends the person's picks with the repair, and the recommended one otherwise", async () => {
+    const { context, receive } = openPanel();
+    await openWorkflowsUpdatePanel(context, "project");
+    mocks.repair.mockResolvedValue({ problems: [problem], items: [item(), custom], message: "2 件" });
+    await receive({ type: "ready" });
+    mocks.repair.mockClear();
+    await receive({ type: "repair", tool: "claude" });
+    expect(mocks.repair.mock.lastCall?.[0].fix).toEqual({
+      choices: { ".claude/agents/dev.md": "fetch-base" },
+      tool: "claude",
+    });
+    await receive({ type: "choose", path: ".claude/agents/dev.md", action: "replace" });
+    await receive({ type: "choose", path: ".claude/agents/dev.md", action: "delete" });
+    await receive({ type: "choose", path: ".claude/settings.json", action: "replace" });
+    await receive({ type: "repair", tool: "claude" });
+    expect(mocks.repair.mock.lastCall?.[0].fix.choices).toEqual({
+      ".claude/agents/dev.md": "replace",
+    });
+  });
+
+  it("holds AI changes for approval and updates only after they are approved", async () => {
+    const { context, receive, shown } = openPanel();
+    await openWorkflowsUpdatePanel(context, "project");
+    const reviewed = {
+      path: ".cursor/mcp.json",
+      action: "ai-json",
+      tool: "claude",
+      before: "{,}",
+      after: "{}",
+      summary: "直しました",
+      checks: [{ ok: true, text: "JSON として読める" }],
+      originalHash: "h",
+    };
+    mocks.repair.mockResolvedValue({
+      problems: [problem],
+      items: [broken],
+      message: "AI が直した 1 件を確認してください。",
+      review: [reviewed],
+    });
+    await receive({ type: "repair", tool: "claude" });
+    expect(mocks.update).not.toHaveBeenCalled();
+    let screen = shown();
+    expect(screen.primary()).toEqual(["approve"]);
+    screen.dom.window.close();
+    await receive({ type: "discard-review" });
+    screen = shown();
+    expect(screen.byId("approve")).toBeNull();
+    expect(screen.document.body.textContent).toContain("AI の修正を使わずに戻りました");
+    screen.dom.window.close();
+    await receive({ type: "approve" });
+    expect(mocks.repair).toHaveBeenCalledOnce();
+    await receive({ type: "repair", tool: "claude" });
+    mocks.repair.mockResolvedValue({ problems: [], items: [], message: "1 ファイルを直しました。" });
+    mocks.update.mockResolvedValue({ ok: true, target });
+    await receive({ type: "approve" });
+    expect(mocks.repair.mock.lastCall?.[0].fix).toEqual({
+      choices: {},
+      tool: "claude",
+      approved: [reviewed],
+    });
+    expect(mocks.update).toHaveBeenCalledOnce();
+  });
+
+  it("asks an AI about one listed file and shows the answer or why it failed", async () => {
+    const { context, receive, webview } = openPanel();
+    await openWorkflowsUpdatePanel(context, "project");
+    mocks.repair.mockResolvedValue({ problems: [problem], items: [custom], message: "1 件" });
+    await receive({ type: "ready" });
+    mocks.explain.mockResolvedValue("独自の変更があるためです。");
+    await receive({ type: "explain", path: "../other", tool: "claude" });
+    expect(mocks.explain).not.toHaveBeenCalled();
+    await receive({ type: "explain", path: ".claude/agents/dev.md", tool: "claude" });
+    expect(mocks.explain.mock.lastCall?.[0]).toMatchObject({ path: ".claude/agents/dev.md" });
+    expect(mocks.explain.mock.lastCall?.[1]).toBe("claude");
+    expect(webview.html).toContain("独自の変更があるためです。");
+    mocks.explain.mockRejectedValue(new Error("ログインしてください"));
+    await receive({ type: "explain", path: ".claude/agents/dev.md", tool: "claude" });
+    expect(webview.html).toContain("ログインしてください");
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+
+  it("runs a Doctor fix the Guide knows and diagnoses again", async () => {
+    mocks.gate.mockReturnValue({ ...olderGate, status: "unknown" });
+    const { context, receive, webview } = openPanel();
+    await openWorkflowsUpdatePanel(context, "project");
+    const report = {
+      version: target,
+      executedAt: "",
+      outcome: "warning",
+      summary: "警告 1 件",
+      counts: null,
+      rawOutput: "",
+      unparsedOutput: [],
+      checks: [
+        {
+          section: "project",
+          status: "warn",
+          label: "プラグインの構成が古い",
+          originalLabel: "Plugins: 1 require sync",
+          originalFix: "run `aidlc engine plugin sync`",
+          translated: true,
+        },
+      ],
+    };
+    mocks.doctor.mockImplementation(async (opts) => {
+      opts.onDoctorReport("claude", report);
+      return { ok: true, message: "Doctor の確認が完了しました。" };
+    });
+    await receive({ type: "doctor" });
+    expect(webview.html).toContain("プラグインの構成をそろえる");
+    await receive({ type: "doctor-fix", harness: "claude", index: 0 });
+    expect(mocks.doctorFix).toHaveBeenCalledWith(
+      "project",
+      "claude",
+      expect.objectContaining({ kind: "plugin-sync" }),
+      expect.any(Function),
+      expect.any(Object),
+    );
+    expect(mocks.doctor).toHaveBeenCalledTimes(2);
+    mocks.doctorFix.mockRejectedValue(new Error("失敗しました"));
+    await receive({ type: "doctor-fix", harness: "claude", index: 0 });
+    expect(webview.html).toContain("「プラグインの構成をそろえる」を完了できませんでした");
+    await receive({ type: "doctor-fix", harness: "claude", index: 5 });
+    expect(mocks.doctorFix).toHaveBeenCalledTimes(2);
   });
 
   it("does not offer a commit for an update that did not finish", async () => {
