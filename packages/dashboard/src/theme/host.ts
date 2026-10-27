@@ -35,7 +35,7 @@ export function syncVsCodeTheme(root: HTMLElement, body: Element = document.body
   const dark = isVsCodeDarkBody(body);
   root.classList.toggle("dark", dark);
   root.setAttribute("data-theme", dark ? "dark" : "light");
-  // globals.css swaps the Mantine palette for the editor's own colours here.
+  // globals.css draws lines in the theme's contrast border here.
   if (isVsCodeHighContrastBody(body)) root.setAttribute("data-contrast", "high");
   else root.removeAttribute("data-contrast");
 }

@@ -44,7 +44,7 @@ export const webviewPageStyles = `
   .body { display: flex; flex-direction: column; gap: 12px; padding: 0 18px 20px 56px; min-width: 0; }
   .lead { font-size: 15px; }
   .actions { display: flex; gap: 8px 16px; align-items: center; flex-wrap: wrap; }
-  button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; font: inherit; font-weight: 600; cursor: pointer; border: 1px solid transparent; border-radius: 4px; padding: 0 18px; background: var(--m-primary); color: var(--m-primary-contrast); }
+  button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; font: inherit; font-weight: 600; cursor: pointer; border: 1px solid var(--m-primary-border); border-radius: 4px; padding: 0 18px; background: var(--m-primary); color: var(--m-primary-contrast); }
   button:hover { background: var(--m-primary-hover); }
   button:disabled, input:disabled { opacity: .55; cursor: default; }
   a.text-link, button.text-link { min-height: 0; background: transparent; color: var(--m-primary-light-color); font-weight: 500; border: 0; padding: 0; border-radius: 0; text-decoration: none; }

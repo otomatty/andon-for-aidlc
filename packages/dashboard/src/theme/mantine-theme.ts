@@ -1,12 +1,31 @@
 import {
   Accordion,
   Card,
+  Checkbox,
   Collapse,
   createTheme,
   type CSSVariablesResolver,
+  defaultVariantColorsResolver,
   mergeThemeOverrides,
   Paper,
+  rem,
+  type VariantColorsResolver,
 } from "@mantine/core";
+
+/** Text on the primary colour, white unless the VS Code host maps it (globals.css). */
+const PRIMARY_CONTRAST = "var(--mantine-primary-color-contrast)";
+
+/**
+ * Mantine writes white on every filled colour, inside a transparent border. On
+ * the primary colour the text reads PRIMARY_CONTRAST and the border
+ * `--primary-border` instead, so inside VS Code a filled button is drawn with
+ * all of the theme's button colours, not only its background.
+ */
+export const variantColorResolver: VariantColorsResolver = (input) => {
+  const colors = defaultVariantColorsResolver(input);
+  if (input.variant !== "filled" || input.color !== input.theme.primaryColor) return colors;
+  return { ...colors, color: PRIMARY_CONTRAST, border: `${rem(1)} solid var(--primary-border)` };
+};
 
 /**
  * Mantine theme for the dashboard. Inputs, buttons and menus keep the 4px
@@ -15,17 +34,19 @@ import {
  * at 3.6:1.
  *
  * Fonts stay on the dashboard's own variables, which globals.css points at the
- * editor fonts inside the VS Code webview.
+ * editor fonts inside the VS Code webview, along with the editor theme's colours.
  */
 export const mantineTheme = createTheme({
   primaryColor: "blue",
   primaryShade: { light: 8, dark: 8 },
+  variantColorResolver,
   defaultRadius: "sm",
   fontFamily: "var(--font-sans)",
   fontFamilyMonospace: "var(--font-mono)",
   headings: { fontFamily: "var(--font-sans)" },
   components: {
     Card: Card.extend({ defaultProps: { radius: "md", withBorder: true, shadow: "xs" } }),
+    Checkbox: Checkbox.extend({ defaultProps: { iconColor: PRIMARY_CONTRAST } }),
     Paper: Paper.extend({ defaultProps: { radius: "md" } }),
   },
 });

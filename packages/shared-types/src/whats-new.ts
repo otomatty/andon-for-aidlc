@@ -13,6 +13,12 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "vscode-theme-colors",
+    date: "2026-10-27",
+    title: "VS Code のカラーテーマの色で表示します",
+    body: "ダッシュボードとセットアップ・更新の画面を、VS Code で選んでいるカラーテーマの背景・文字・ボタン・リンクの色で描きます。テーマを切り替えると、画面の色もその場で変わります。ブラウザで開くダッシュボードの配色は、これまでどおりです。",
+  },
+  {
     id: "update-screen-steps",
     date: "2026-10-27",
     title: "AI-DLC の更新画面を整理しました",

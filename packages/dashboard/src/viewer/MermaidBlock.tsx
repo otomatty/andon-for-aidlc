@@ -26,14 +26,22 @@ function isLegacyColor(color: string): boolean {
   return /^(?:#|rgb\(|rgba\(|hsl\(|hsla\()/i.test(color.trim());
 }
 
-/** Mermaid/Khroma cannot parse CSS Color 4 `oklch()`; canvas serializes to hex/rgb. */
+/**
+ * Mermaid/Khroma cannot parse CSS Color 4 colours. Canvas stores `oklch()` as
+ * hex/rgb, but keeps `color(srgb …)`, which a `color-mix()` token (the VS Code
+ * theme's palette in globals.css) computes to, as written: that one is drawn
+ * and read back as rgba.
+ */
 function serializeColor(color: string, fallback: string): string {
   if (isLegacyColor(color)) return color;
   const ctx = document.createElement("canvas").getContext("2d");
   if (ctx === null) return fallback;
   ctx.fillStyle = fallback;
   ctx.fillStyle = color;
-  return isLegacyColor(ctx.fillStyle) ? ctx.fillStyle : fallback;
+  if (isLegacyColor(ctx.fillStyle)) return ctx.fillStyle;
+  ctx.fillRect(0, 0, 1, 1);
+  const [r = 0, g = 0, b = 0, a = 0] = ctx.getImageData(0, 0, 1, 1).data;
+  return `rgba(${r}, ${g}, ${b}, ${Math.round((a / 255) * 1000) / 1000})`;
 }
 
 function isDarkUi(): boolean {

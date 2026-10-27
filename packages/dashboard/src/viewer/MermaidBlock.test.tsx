@@ -206,4 +206,38 @@ describe("MermaidBlock", () => {
       canvasSpy.mockRestore();
     }
   });
+
+  it("reads back a color-mix() token that canvas keeps as color(srgb …)", async () => {
+    const styleSpy = vi.spyOn(window, "getComputedStyle").mockReturnValue({
+      color: "color(srgb 0.1 0.2 0.3)",
+    } as CSSStyleDeclaration);
+    const canvasSpy = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(() => {
+      let fill = "";
+      return {
+        set fillStyle(value: string) {
+          fill = value;
+        },
+        get fillStyle() {
+          return fill;
+        },
+        fillRect: () => undefined,
+        getImageData: () => ({ data: new Uint8ClampedArray([26, 51, 77, 255]) }),
+      } as unknown as CanvasRenderingContext2D;
+    });
+    try {
+      const { MermaidBlock } = await load();
+      render(<MermaidBlock code="graph TD\n A --> B" />);
+      await waitFor(() => {
+        expect(initialize).toHaveBeenCalled();
+      });
+      for (const call of initialize.mock.calls) {
+        const vars = (call[0] as { themeVariables?: Record<string, unknown> }).themeVariables;
+        expect(vars?.signalColor).toBe("rgba(26, 51, 77, 1)");
+        expect(JSON.stringify(vars ?? {})).not.toMatch(/color\(srgb/);
+      }
+    } finally {
+      styleSpy.mockRestore();
+      canvasSpy.mockRestore();
+    }
+  });
 });

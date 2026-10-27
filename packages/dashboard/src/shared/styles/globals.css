@@ -105,6 +105,8 @@
   --popover-foreground: var(--mantine-color-text);
   --primary: var(--mantine-primary-color-filled);
   --primary-foreground: var(--mantine-primary-color-contrast);
+  /* A filled primary button's border (mantine-theme.ts); the VS Code theme may draw one. */
+  --primary-border: transparent;
   /* The selected row, the open Unit and the new entry: Mantine's light variant. */
   --primary-light: var(--mantine-primary-color-light);
   --primary-light-foreground: var(--mantine-primary-color-light-color);
@@ -160,46 +162,167 @@
 }
 
 /*
- * VS Code webview: the editor fonts, and in high contrast themes the editor's
- * own colours in place of Mantine's palette. theme/host.ts sets data-host and
- * data-contrast. The selector outranks Mantine's :root[data-mantine-color-scheme].
+ * VS Code webview: the colours of the editor theme the user has chosen, in
+ * place of Mantine's palette. theme/host.ts sets data-host (and data-contrast in
+ * the high contrast themes); MantineRoot sets data-mantine-color-scheme from the
+ * theme's kind. The colour rules carry data-mantine-color-scheme so they outrank
+ * the variables MantineProvider writes on :root[data-mantine-color-scheme].
+ *
+ * Mantine's components paint surfaces, lines and quiet text straight from its
+ * neutral scale (white and gray 0-9 in light, dark 0-9 in dark), so the scale
+ * itself is rebuilt as steps between the editor background and foreground, at
+ * the distances Mantine's own steps sit between its body and text colours. The
+ * primary colour (blue) takes the button and link colours and red the error
+ * colour. The status colours stay: they encode workflow state, not the editor's look.
  */
 html[data-host="vscode"] {
   --font-sans: var(--vscode-font-family);
   --font-mono: var(--vscode-editor-font-family, var(--vscode-font-family));
 }
 
-html[data-host="vscode"][data-contrast="high"] {
-  --mantine-color-body: var(--vscode-editor-background);
-  --mantine-color-text: var(--vscode-editor-foreground);
-  --mantine-color-dimmed: var(--vscode-descriptionForeground, var(--vscode-editor-foreground));
-  --mantine-color-default: var(--vscode-input-background, var(--vscode-editor-background));
-  --mantine-color-default-hover: var(
-    --vscode-list-hoverBackground,
-    var(--vscode-editor-background)
-  );
-  --mantine-color-default-color: var(--vscode-foreground);
-  --mantine-color-default-border: var(--vscode-contrastBorder, var(--vscode-input-border));
-  --mantine-color-anchor: var(--vscode-textLink-foreground);
-  --mantine-color-error: var(--vscode-errorForeground);
+html[data-host="vscode"][data-mantine-color-scheme] {
+  --editor-bg: var(--vscode-editor-background);
+  --editor-fg: var(--vscode-editor-foreground);
+  --mantine-color-body: var(--editor-bg);
+  --mantine-color-text: var(--editor-fg);
+  --mantine-color-bright: var(--editor-fg);
+  --mantine-color-default-color: var(--editor-fg);
+  --mantine-color-dimmed: var(--vscode-descriptionForeground, var(--editor-fg));
   --mantine-color-placeholder: var(
     --vscode-input-placeholderForeground,
-    var(--vscode-descriptionForeground)
+    var(--mantine-color-dimmed)
   );
-  --mantine-primary-color-filled: var(--vscode-button-background);
-  --mantine-primary-color-filled-hover: var(
+  --mantine-color-anchor: var(--vscode-textLink-foreground);
+  --mantine-color-error: var(--vscode-errorForeground);
+  --ring: var(--vscode-focusBorder);
+  /* Mantine's tooltip is inverted; here it is exactly the editor's text and background. */
+  --tooltip-bg: var(--editor-fg);
+  --tooltip-color: var(--editor-bg);
+  /* mantine-theme.ts draws filled primary text and border from these two. */
+  --mantine-primary-color-contrast: var(--vscode-button-foreground);
+  --primary-border: var(--vscode-button-border, transparent);
+  --mantine-color-blue-filled: var(--vscode-button-background);
+  --mantine-color-blue-filled-hover: var(
     --vscode-button-hoverBackground,
     var(--vscode-button-background)
   );
-  --mantine-primary-color-contrast: var(--vscode-button-foreground);
-  --mantine-primary-color-light: var(--vscode-editor-background);
-  --mantine-primary-color-light-hover: var(
-    --vscode-list-hoverBackground,
-    var(--vscode-editor-background)
+  /*
+   * Tints take the link colour: many dark themes give buttons a muted gray, which
+   * would leave the selected row and the icon tiles without a visible tint. Text
+   * on a tint leans a fifth towards the editor text, which keeps it at about the
+   * contrast the colour has on the bare background.
+   */
+  --mantine-color-blue-light: color-mix(
+    in srgb,
+    var(--vscode-textLink-foreground) 12%,
+    var(--editor-bg)
   );
-  --mantine-primary-color-light-color: var(--vscode-textLink-foreground);
-  --card: var(--vscode-editor-background);
-  --track: var(--mantine-color-default-border);
+  --mantine-color-blue-light-hover: color-mix(
+    in srgb,
+    var(--vscode-textLink-foreground) 18%,
+    var(--editor-bg)
+  );
+  --mantine-color-blue-light-color: color-mix(
+    in srgb,
+    var(--vscode-textLink-foreground) 80%,
+    var(--editor-fg)
+  );
+  --mantine-color-blue-outline: var(--vscode-textLink-foreground);
+  --mantine-color-blue-text: var(--vscode-textLink-foreground);
+  --mantine-color-red-light: color-mix(
+    in srgb,
+    var(--vscode-errorForeground) 12%,
+    var(--editor-bg)
+  );
+  --mantine-color-red-light-hover: color-mix(
+    in srgb,
+    var(--vscode-errorForeground) 18%,
+    var(--editor-bg)
+  );
+  --mantine-color-red-light-color: color-mix(
+    in srgb,
+    var(--vscode-errorForeground) 80%,
+    var(--editor-fg)
+  );
+  --mantine-color-red-outline: var(--vscode-errorForeground);
+  --mantine-color-red-text: var(--vscode-errorForeground);
+}
+
+/* Light: white is the surface, and gray steps from the background to the text. */
+html[data-host="vscode"][data-mantine-color-scheme="light"] {
+  --mantine-color-white: var(--editor-bg);
+  --mantine-color-gray-0: color-mix(in srgb, var(--editor-fg) 3%, var(--editor-bg));
+  --mantine-color-gray-1: color-mix(in srgb, var(--editor-fg) 5%, var(--editor-bg));
+  --mantine-color-gray-2: color-mix(in srgb, var(--editor-fg) 8%, var(--editor-bg));
+  --mantine-color-gray-3: color-mix(in srgb, var(--editor-fg) 11%, var(--editor-bg));
+  --mantine-color-gray-4: color-mix(in srgb, var(--editor-fg) 17%, var(--editor-bg));
+  --mantine-color-gray-5: color-mix(in srgb, var(--editor-fg) 29%, var(--editor-bg));
+  --mantine-color-gray-6: color-mix(in srgb, var(--editor-fg) 44%, var(--editor-bg));
+  --mantine-color-gray-7: color-mix(in srgb, var(--editor-fg) 69%, var(--editor-bg));
+  --mantine-color-gray-8: color-mix(in srgb, var(--editor-fg) 77%, var(--editor-bg));
+  --mantine-color-gray-9: color-mix(in srgb, var(--editor-fg) 86%, var(--editor-bg));
+}
+
+/*
+ * Dark: dark-7 is the background and dark-0 the text. gray still runs from light
+ * to dark, here from the text down to the background, so the gray buttons and
+ * badges keep light text on a dark surface.
+ */
+html[data-host="vscode"][data-mantine-color-scheme="dark"] {
+  --mantine-color-dark-0: var(--editor-fg);
+  --mantine-color-dark-1: color-mix(in srgb, var(--editor-fg) 90%, var(--editor-bg));
+  --mantine-color-dark-2: color-mix(in srgb, var(--editor-fg) 57%, var(--editor-bg));
+  --mantine-color-dark-3: color-mix(in srgb, var(--editor-fg) 42%, var(--editor-bg));
+  --mantine-color-dark-4: color-mix(in srgb, var(--editor-fg) 18%, var(--editor-bg));
+  --mantine-color-dark-5: color-mix(in srgb, var(--editor-fg) 14%, var(--editor-bg));
+  --mantine-color-dark-6: color-mix(in srgb, var(--editor-fg) 6%, var(--editor-bg));
+  --mantine-color-dark-7: var(--editor-bg);
+  --mantine-color-dark-8: color-mix(in srgb, #000 14%, var(--editor-bg));
+  --mantine-color-dark-9: color-mix(in srgb, #000 44%, var(--editor-bg));
+  --mantine-color-gray-0: color-mix(in srgb, var(--editor-bg) 3%, var(--editor-fg));
+  --mantine-color-gray-1: color-mix(in srgb, var(--editor-bg) 5%, var(--editor-fg));
+  --mantine-color-gray-2: color-mix(in srgb, var(--editor-bg) 8%, var(--editor-fg));
+  --mantine-color-gray-3: color-mix(in srgb, var(--editor-bg) 11%, var(--editor-fg));
+  --mantine-color-gray-4: color-mix(in srgb, var(--editor-bg) 17%, var(--editor-fg));
+  --mantine-color-gray-5: color-mix(in srgb, var(--editor-bg) 29%, var(--editor-fg));
+  --mantine-color-gray-6: color-mix(in srgb, var(--editor-bg) 44%, var(--editor-fg));
+  --mantine-color-gray-7: color-mix(in srgb, var(--editor-bg) 69%, var(--editor-fg));
+  --mantine-color-gray-8: color-mix(in srgb, var(--editor-bg) 77%, var(--editor-fg));
+  --mantine-color-gray-9: color-mix(in srgb, var(--editor-bg) 86%, var(--editor-fg));
+  /* Mantine's dark gray light variant is a fixed near-black; lift it from the background instead. */
+  --mantine-color-gray-light: var(--mantine-color-dark-5);
+  --mantine-color-gray-light-hover: var(--mantine-color-dark-4);
+}
+
+/*
+ * High contrast themes: lines in the contrast border, no tinted surfaces, and
+ * the default button and its hover in the theme's input and list hover colours.
+ */
+html[data-host="vscode"][data-contrast="high"][data-mantine-color-scheme] {
+  --mantine-color-default: var(--vscode-input-background, var(--editor-bg));
+  --mantine-color-default-hover: var(--vscode-list-hoverBackground, var(--editor-bg));
+  --mantine-color-disabled: var(--editor-bg);
+  --mantine-color-blue-light: var(--editor-bg);
+  --mantine-color-blue-light-hover: var(--vscode-list-hoverBackground, var(--editor-bg));
+  --mantine-color-gray-light-hover: var(--vscode-list-hoverBackground, var(--editor-bg));
+  /* The menu's hover would otherwise take dark-4, which is the border here. */
+  --menu-item-hover: var(--vscode-list-hoverBackground, var(--editor-bg));
+  --card: var(--editor-bg);
+}
+
+html[data-host="vscode"][data-contrast="high"][data-mantine-color-scheme="light"] {
+  --mantine-color-gray-2: var(--vscode-contrastBorder);
+  --mantine-color-gray-3: var(--vscode-contrastBorder);
+  --mantine-color-gray-4: var(--vscode-contrastBorder);
+}
+
+html[data-host="vscode"][data-contrast="high"][data-mantine-color-scheme="dark"] {
+  --mantine-color-dark-4: var(--vscode-contrastBorder);
+}
+
+/* Mantine draws its focus ring in the primary colour; the editor has its own. */
+html[data-host="vscode"] :is(.mantine-focus-auto:focus-visible, .mantine-focus-always:focus) {
+  outline-color: var(--vscode-focusBorder);
 }
 
 @layer base {

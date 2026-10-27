@@ -91,6 +91,12 @@ Dashboard の部品は Mantine（`@mantine/core` / `@mantine/hooks`）です。�
 Mantine の部品が同じ色を読みます。VS Code の拡張機能が自前の HTML で描くセットアップと更新の
 画面は、`packages/vscode-extension/src/webview-theme.ts` で同じ配色を共有します。
 
+VS Code の中では、どちらも利用者が選んだカラーテーマの色（`--vscode-*` 変数）で描きます。
+Mantine の部品は面・線・補助の文字を灰色の段階（`white`・`gray`・`dark`）から直接読むため、
+`globals.css` はその段階をエディターの背景色と文字色の間の段階に置き換えます。主色（`blue`）は
+ボタンとリンクの色、`red` はエラーの色です。ステージの状態の色はテーマに合わせず、そのまま使います。
+ブラウザで開く Dashboard は Mantine の配色のままです。
+
 以前の shadcn/ui（Base UI・Radix・`class-variance-authority`・`tw-animate-css`、手元に固定した
 `shadcn` 4.21.0 の `tailwind.css` とそのライセンス）は取り除きました。`.oxlintrc.json` の
 `no-restricted-imports` が、これらを Dashboard のソースへ戻すことを止めます。Lint の
@@ -100,7 +106,8 @@ Mantine を更新するときは同じ変更に次を含めます。
 
 1. `@mantine/core` と `@mantine/hooks` を同じ版にそろえ、`bun install` の差分がその 2 つに収まることを見る。
 2. Mantine の変更履歴で、`shared/ui` が使う部品（Modal・Drawer・Menu・Popover・Combobox・Tabs・Accordion・Collapse）の破壊的変更を確認する。
-3. `bun run check` と、ライト・ダーク・ハイコントラストの各テーマで主な画面を目で確かめる。
+3. `shared/ui` が使う部品の CSS（`@mantine/core/styles.layer.css`）が、`globals.css` の置き換えていない色（`white`・`gray`・`dark` の段階と `blue`・`red` 以外）を新しく読むようになっていないか確かめる。
+4. `bun run check` と、ライト・ダーク・ハイコントラストの各テーマ、それに背景や主色の違うテーマ（Monokai・Solarized Light など）で主な画面を目で確かめる。
 
 ## main の保護を有効にする
 

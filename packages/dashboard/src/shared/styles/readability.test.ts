@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { cssRules } from "@tests/css-rules.ts";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -11,24 +12,7 @@ import { describe, expect, it } from "vitest";
 
 const APP_CSS = path.join(path.dirname(fileURLToPath(import.meta.url)), "app.css");
 
-function rules(css: string): Map<string, string[]> {
-  const out = new Map<string, string[]>();
-  const source = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  for (const match of source.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    // Split the selector list on top-level commas only: `:is(p, ul)` is one selector.
-    const selectors = (match[1] ?? "")
-      .split(/,(?![^(]*\))/)
-      .map((s) => s.trim().replace(/\s+/g, " "));
-    const body = (match[2] ?? "")
-      .split(";")
-      .map((d) => d.trim().replace(/\s+/g, " "))
-      .filter((d) => d !== "");
-    for (const selector of selectors) out.set(selector, [...(out.get(selector) ?? []), ...body]);
-  }
-  return out;
-}
-
-const css = rules(readFileSync(APP_CSS, "utf8"));
+const css = cssRules(readFileSync(APP_CSS, "utf8"));
 
 function declarationsOf(selector: string): string[] {
   const found = css.get(selector);
