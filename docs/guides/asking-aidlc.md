@@ -2,7 +2,7 @@
 
 ## Dashboard から質問する
 
-ヘッダーの「ドキュメント」を開くと、トップページに質問欄があります。回答に使う Claude Code、Cursor、GitHub Copilot を選び、質問を入力して「質問する」を押してください。Ctrl+Enter、macOS では Command+Enter でも送信できます。MCP の登録は不要です。
+ヘッダーの「ドキュメント」を開くと、トップページの下部に質問欄があります。右上の「AIに質問する」で質問欄へ移動できます。「ページを探す」で見つからなかったときは「この内容をAIに質問する」を押すと、探した言葉が質問欄に入ります。回答に使う Claude Code、Cursor、GitHub Copilot を選び、質問を入力して「質問する」を押してください。Ctrl+Enter、macOS では Command+Enter でも送信できます。MCP の登録は不要です。
 
 質問と関連する内蔵文書の抜粋を、選んだローカル CLI に渡します。ツール側のログインと利用枠を使用します。Claude Code は安全モードなどに対応した現行 CLI が必要です。Cursor は CLI の `agent` または `cursor-agent` が必要で、文書専用の設定から通常のログインを利用できない環境では `CURSOR_API_KEY` をアプリの起動環境に設定します。API キーの入力・保存機能は Dashboard にありません。「接続を再確認」で CLI の利用状況を再取得できます。
 

@@ -25,6 +25,13 @@ export function isReleaseDoc(path: string): boolean {
   );
 }
 
+/** 更新履歴の概要2ページの表示名。英語のみのページにも日本語の名前を付ける。 */
+export function releaseTitle(path: string): string | undefined {
+  if (path === "overview/release-highlights.md") return "更新のハイライト";
+  if (path === "overview/changelog.md") return "更新履歴一覧";
+  return undefined;
+}
+
 /** 更新履歴を取り除き、空になったディレクトリも一覧から除外する。 */
 export function officialToc(tree: OfficialDocsToc): OfficialDocsToc {
   const filter = (nodes: readonly OfficialDocsTocNode[]): OfficialDocsTocNode[] =>

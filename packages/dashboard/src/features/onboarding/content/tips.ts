@@ -13,7 +13,7 @@ export const AREA_TIPS: Record<OnboardingArea, { text: string; guide?: string }>
     guide: "reading-workflow.md",
   },
   docs: {
-    text: "「ワークフロー」では公式ドキュメントと運用Tips、「拡張機能」では使い方のガイドを読めます。Tips一覧からテーマごとの記事を選べます。質問欄では内蔵の文書をもとにAIへ質問できます。",
+    text: "「ページを探す」でページ名から探すか、「はじめて読むなら」を上から順に読めます。目的別のカードからページを直接開けます。見つからないときは、下の質問欄で内蔵の文書をもとにAIへ質問できます。",
     guide: "asking-aidlc.md",
   },
   customization: {

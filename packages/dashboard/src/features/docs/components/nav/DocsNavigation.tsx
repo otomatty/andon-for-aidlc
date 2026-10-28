@@ -19,6 +19,7 @@ import {
   isReleaseDoc,
   officialToc,
   releaseEntries,
+  releaseTitle,
 } from "@/features/docs/utils/docs-navigation.ts";
 
 interface DocsNavigationProps {
@@ -115,11 +116,7 @@ export function DocsNavigation({
                           data-testid={`docs-toc-${entry.path}`}
                           onClick={() => onSelectPath(entry.path)}
                         >
-                          {entry.path === "overview/release-highlights.md"
-                            ? "更新のハイライト"
-                            : entry.path === "overview/changelog.md"
-                              ? "更新履歴一覧"
-                              : entry.title}
+                          {releaseTitle(entry.path) ?? entry.title}
                         </NavListButton>
                       </li>
                     ))}

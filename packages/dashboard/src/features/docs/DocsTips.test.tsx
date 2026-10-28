@@ -91,7 +91,7 @@ describe("bundled Tips articles", () => {
     });
     expect(await screen.findByTestId("docs-chat")).toBeTruthy();
     expect(await screen.findByText("保存された回答です。")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Tips一覧を開く" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^運用Tipsをすべて見る/ })).toBeNull();
     await openNavigation();
     await userEvent.click(screen.getByRole("button", { name: "運用Tips" }));
     await userEvent.click(await screen.findByTestId("docs-guide-aidlc-workflows-tips.md"));
@@ -109,7 +109,7 @@ describe("bundled Tips articles", () => {
 
   it("opens separate articles, related reading and the index, with Tips in workflow navigation", async () => {
     showTips();
-    await userEvent.click(await screen.findByRole("button", { name: "Tips一覧を開く" }));
+    await userEvent.click(await screen.findByRole("button", { name: /^運用Tipsをすべて見る/ }));
     await userEvent.click(
       await screen.findByRole("link", { name: "「Claude Codeのhooksを修復する」を読む" }),
     );

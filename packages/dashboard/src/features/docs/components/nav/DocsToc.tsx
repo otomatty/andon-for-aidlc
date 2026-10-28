@@ -36,7 +36,7 @@ export function flattenToc(tree: OfficialDocsToc): TocEntry[] {
  * `OFFICIAL_DOCS_SECTIONS` (upstream's own reading order) and this table only
  * supplies the Japanese titles — there is no second ordering to keep in step.
  */
-const BOOK_TITLES: Readonly<Record<OfficialDocsSection, string>> = {
+export const BOOK_TITLES: Readonly<Record<OfficialDocsSection, string>> = {
   overview: "ドキュメント概要",
   guide: "ユーザーガイド",
   "harness-engineering": "ハーネスエンジニアガイド",

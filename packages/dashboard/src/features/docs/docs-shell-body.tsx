@@ -67,6 +67,7 @@ export function DocsShell(): ReactNode {
   const [shellLandKey, setShellLandKey] = useState(0);
   const [applyKey, setApplyKey] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [homeQuery, setHomeQuery] = useState("");
   const articleRef = useRef<HTMLElement>(null);
   const gated = useVersionGate() !== null;
   const qa = useDocsQa(open && !gated, locale);
@@ -124,6 +125,7 @@ export function DocsShell(): ReactNode {
       setCategory("workflow");
       setRequestedAnchor(undefined);
       setDrawerOpen(false);
+      setHomeQuery("");
       return;
     }
     if (deepLink !== null) {
@@ -377,8 +379,13 @@ export function DocsShell(): ReactNode {
             {selection === null ? (
               <DocsShellQuestionSurface
                 qa={qa}
+                tocView={tocView}
+                guidesView={guidesView}
+                query={homeQuery}
+                onQueryChange={setHomeQuery}
+                onSelectPath={onSelectPath}
+                onSelectGuide={onSelectGuide}
                 onOpenCategory={onOpenCategory}
-                onOpenGuide={onSelectGuide}
                 onCitation={(citation, turn) => {
                   void onCitation(citation, turn);
                 }}

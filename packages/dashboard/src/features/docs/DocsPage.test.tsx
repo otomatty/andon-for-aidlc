@@ -420,20 +420,32 @@ describe("DocsShell — walking skeleton", () => {
     expect(paths.some((path) => path.startsWith("/api/guides/"))).toBe(false);
   });
 
-  it.each([
-    ["ワークフローのドキュメントを探す", "ワークフロー"],
-    ["拡張機能のドキュメントを探す", "拡張機能"],
-  ])("opens the matching sidebar category from %s on the home page", async (action, category) => {
+  it("opens pages straight from the home search and shelves, without the drawer", async () => {
     stubOfficialDocsApi();
     render(<Harness />);
     await openDocs();
 
-    await userEvent.click(
-      within(await screen.findByTestId("docs-home")).getByRole("button", { name: action }),
-    );
+    const home = within(await screen.findByTestId("docs-home"));
+    await userEvent.type(await home.findByRole("searchbox", { name: "ページを探す" }), "concepts");
+    await userEvent.click(await home.findByTestId("docs-home-result"));
+    await waitFor(() => {
+      expect(screen.getByTestId("docs-article").textContent).toContain("Concept body.");
+    });
+    expect(screen.queryByTestId("docs-drawer")).toBeNull();
 
-    expect(await screen.findByTestId("docs-drawer")).toBeTruthy();
-    expect(screen.getByRole("tab", { name: category }).getAttribute("aria-selected")).toBe("true");
+    await openDocsDrawer();
+    await userEvent.click(screen.getByRole("button", { name: "トップページへ" }));
+    const back = within(await screen.findByTestId("docs-home"));
+    // The search survives the trip to the article and back.
+    expect(back.getByRole<HTMLInputElement>("searchbox", { name: "ページを探す" }).value).toBe(
+      "concepts",
+    );
+    await userEvent.clear(back.getByRole("searchbox", { name: "ページを探す" }));
+    const extension = within(back.getByRole("region", { name: "拡張機能の使い方" }));
+    await userEvent.click(extension.getByRole("button", { name: "拡張機能のはじめかた" }));
+    await waitFor(() => {
+      expect(screen.getByTestId("docs-article").textContent).toContain("Extension setup body");
+    });
   });
 
   it("keeps the docs page open when its navigation menu closes and restores focus on page close", async () => {

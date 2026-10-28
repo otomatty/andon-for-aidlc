@@ -13,6 +13,13 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "docs-home-for-readers",
+    date: "2026-10-28",
+    title: "ドキュメントのトップページを、読みたいページへすぐ行ける形にしました",
+    body: "「ページを探す」にページ名の一部を入れると、公式ドキュメント・運用Tips・拡張機能の使い方をまとめて探せます。初めての方向けに「はじめて読むなら」で読む順番を示し、「目的から選ぶ」ではユーザーガイドや運用Tipsなどのよく読まれるページを、一覧を開かずに直接開けます。AIへの質問欄はページの下部に移し、見つからなかった言葉をそのまま質問できます。",
+    action: { label: "ドキュメントを開く", target: "docs" },
+  },
+  {
     id: "unified-disclosures",
     date: "2026-10-28",
     title: "開いて閉じる欄の見た目と操作をそろえました",
@@ -117,7 +124,7 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
     id: "aidlc-workflows-tips",
     date: "2026-09-30",
     title: "AI-DLCの運用Tipsを読めるようになりました",
-    body: "「ドキュメント」の「Tips一覧を開く」から、ルールの読み込み、hooksの復旧、Boltの進め方などを記事ごとに読めます。関連記事へのリンクや5 Boltの図解、2.8.1・2.10.0の違いも掲載しています。",
+    body: "「ドキュメント」の「運用Tips」から、ルールの読み込み、hooksの復旧、Boltの進め方などを記事ごとに読めます。関連記事へのリンクや5 Boltの図解、2.8.1・2.10.0の違いも掲載しています。",
     action: { label: "ドキュメントを開く", target: "docs" },
   },
   {

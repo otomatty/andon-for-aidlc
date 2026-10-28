@@ -1,10 +1,16 @@
-import type { DocsQaCitation, DocsQaJob } from "@aidlc-guide/shared-types";
+import type {
+  DocsQaCitation,
+  DocsQaJob,
+  MarkdownItem,
+  OfficialDocsToc,
+} from "@aidlc-guide/shared-types";
 import type { ReactNode } from "react";
 import { DocsHome } from "@/features/docs/components/DocsHome.tsx";
 import { DocsChat } from "@/features/docs/DocsChat.tsx";
 import type { DocsQaState } from "@/features/docs/hooks/useDocsQa.ts";
 import type { DocsCategory } from "@/features/docs/types.ts";
 import { useVersionGate } from "@/services/version-gate.ts";
+import type { ViewState } from "@/store/state.ts";
 
 /** Home keeps the entry only; turns move the user onto the chat screen. */
 export function docsShellShowsChat(
@@ -16,13 +22,17 @@ export function docsShellShowsChat(
 export function DocsShellQuestionSurface({
   qa,
   onCitation,
-  onOpenCategory,
-  onOpenGuide,
+  ...home
 }: {
   qa: DocsQaState;
   onCitation: (citation: DocsQaCitation, turn: DocsQaJob) => void;
+  tocView: ViewState<OfficialDocsToc> | null;
+  guidesView: ViewState<MarkdownItem[]> | null;
+  query: string;
+  onQueryChange: (query: string) => void;
+  onSelectPath: (path: string) => void;
+  onSelectGuide: (name: string) => void;
   onOpenCategory: (category: DocsCategory) => void;
-  onOpenGuide: (name: string) => void;
 }): ReactNode {
   // While the version check blocks the workspace, the docs stay readable but
   // questions (an AI integration) wait for the update.
@@ -30,8 +40,7 @@ export function DocsShellQuestionSurface({
   if (gated)
     return (
       <DocsHome
-        onOpenCategory={onOpenCategory}
-        onOpenGuide={onOpenGuide}
+        {...home}
         questionPanel={
           <p className="text-sm text-muted-foreground" data-testid="docs-questions-gated">
             ドキュメントへの質問は、aidlc-workflows
@@ -45,8 +54,8 @@ export function DocsShellQuestionSurface({
   }
   return (
     <DocsHome
-      onOpenCategory={onOpenCategory}
-      onOpenGuide={onOpenGuide}
+      {...home}
+      onAsk={qa.setDraft}
       questionPanel={<DocsChat mode="entry" qa={qa} onCitation={onCitation} />}
     />
   );
