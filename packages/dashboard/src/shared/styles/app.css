@@ -739,3 +739,35 @@
   outline: 2px solid var(--ring);
   outline-offset: -2px;
 }
+
+/*
+ * A chat answer's `[n]` markers render as links (DocsChatTurn's AnswerText);
+ * they read as small numbered chips, the way chat apps mark a citation, and
+ * open that source beside the conversation.
+ */
+.docs-chat-answer a[href^="#docs-citation-"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  margin-inline: 0.125rem;
+  padding-inline: 0.375rem;
+  border-radius: 9999px;
+  background: var(--primary-light);
+  color: var(--primary-light-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  vertical-align: 0.1em;
+}
+
+.docs-chat-answer a[href^="#docs-citation-"]:hover {
+  text-decoration: underline;
+}
+
+.docs-chat-answer a[href^="#docs-citation-"]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}

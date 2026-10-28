@@ -13,7 +13,7 @@ export const AREA_TIPS: Record<OnboardingArea, { text: string; guide?: string }>
     guide: "reading-workflow.md",
   },
   docs: {
-    text: "「ページを探す」でページ名から探すか、「はじめて読むなら」を上から順に読めます。目的別のカードからページを直接開けます。見つからないときは、下の質問欄で内蔵の文書をもとにAIへ質問できます。",
+    text: "「ページを探す」でページ名から探すか、「はじめて読むなら」を上から順に読めます。目的別のカードからページを直接開けます。見つからないときは「AIに質問する」から、チャット画面で内蔵の文書をもとにAIへ質問できます。",
     guide: "asking-aidlc.md",
   },
   customization: {

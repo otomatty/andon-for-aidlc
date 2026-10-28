@@ -66,7 +66,7 @@ async function openNavigation(): Promise<void> {
 }
 
 describe("bundled Tips articles", () => {
-  it("opens Tips from the menu after the host restores a conversation, preserving the history", async () => {
+  it("opens Tips from the menu after the host restores a conversation, preserving the history behind the home", async () => {
     showTips();
     act(() => {
       window.dispatchEvent(
@@ -89,6 +89,10 @@ describe("bundled Tips articles", () => {
         }),
       );
     });
+    // The restored conversation waits behind the home's way back into it.
+    expect(await screen.findByRole("button", { name: /前回の会話の続き/ })).toBeTruthy();
+    expect(screen.queryByText("保存された回答です。")).toBeNull();
+    await userEvent.click(screen.getByTestId("docs-home-resume"));
     expect(await screen.findByTestId("docs-chat")).toBeTruthy();
     expect(await screen.findByText("保存された回答です。")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^運用Tipsをすべて見る/ })).toBeNull();
@@ -101,6 +105,7 @@ describe("bundled Tips articles", () => {
     );
     await openNavigation();
     await userEvent.click(screen.getByTestId("docs-home-link"));
+    await userEvent.click(await screen.findByTestId("docs-home-resume"));
     expect(await screen.findByText("保存された回答です。")).toBeTruthy();
     expect(screen.getByRole<HTMLTextAreaElement>("textbox", { name: "続けて質問する" }).value).toBe(
       "次に確認することは？",

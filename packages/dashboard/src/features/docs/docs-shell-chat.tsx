@@ -2,30 +2,37 @@ import type {
   DocsQaCitation,
   DocsQaJob,
   MarkdownItem,
+  OfficialDocsLocale,
   OfficialDocsToc,
 } from "@aidlc-guide/shared-types";
 import type { ReactNode } from "react";
+import { DocsChatView } from "@/features/docs/components/chat/DocsChatView.tsx";
+import { DocsComposer, focusDocsQuestion } from "@/features/docs/components/chat/DocsComposer.tsx";
 import { DocsHome } from "@/features/docs/components/DocsHome.tsx";
-import { DocsChat } from "@/features/docs/DocsChat.tsx";
 import type { DocsQaState } from "@/features/docs/hooks/useDocsQa.ts";
 import type { DocsCategory } from "@/features/docs/types.ts";
+import type { DocLinks } from "@/features/docs/use-docs-article-links.ts";
 import { useVersionGate } from "@/services/version-gate.ts";
 import type { ViewState } from "@/store/state.ts";
 
-/** Home keeps the entry only; turns move the user onto the chat screen. */
-export function docsShellShowsChat(
-  qa: Pick<DocsQaState, "turns" | "busy" | "submitting">,
-): boolean {
-  return qa.turns.length > 0 || qa.busy || qa.submitting;
-}
-
+/** The docs landing, or the question screen while it is open. */
 export function DocsShellQuestionSurface({
   qa,
-  onCitation,
+  locale,
+  chatOpen,
+  onOpenChat,
+  onCloseChat,
+  onOpenDocument,
+  docLinks,
   ...home
 }: {
   qa: DocsQaState;
-  onCitation: (citation: DocsQaCitation, turn: DocsQaJob) => void;
+  locale: OfficialDocsLocale;
+  chatOpen: boolean;
+  onOpenChat: () => void;
+  onCloseChat: () => void;
+  onOpenDocument: (citation: DocsQaCitation, turn: DocsQaJob) => void;
+  docLinks: DocLinks;
   tocView: ViewState<OfficialDocsToc> | null;
   guidesView: ViewState<MarkdownItem[]> | null;
   query: string;
@@ -49,14 +56,40 @@ export function DocsShellQuestionSurface({
         }
       />
     );
-  if (docsShellShowsChat(qa)) {
-    return <DocsChat mode="chat" qa={qa} onCitation={onCitation} />;
-  }
+  if (chatOpen)
+    return (
+      <DocsChatView
+        qa={qa}
+        locale={locale}
+        docLinks={docLinks}
+        onBack={onCloseChat}
+        onOpenDocument={onOpenDocument}
+      />
+    );
+  const openChat = (): void => {
+    onOpenChat();
+    focusDocsQuestion();
+  };
+  const first = qa.turns[0];
   return (
     <DocsHome
       {...home}
-      onAsk={qa.setDraft}
-      questionPanel={<DocsChat mode="entry" qa={qa} onCitation={onCitation} />}
+      onOpenChat={openChat}
+      onAsk={(draft) => {
+        qa.setDraft(draft);
+        openChat();
+      }}
+      conversation={first ? { first: first.question, count: qa.turns.length, busy: qa.busy } : null}
+      questionPanel={
+        <DocsComposer
+          qa={qa}
+          label="質問"
+          onSubmit={() => {
+            onOpenChat();
+            void qa.submit();
+          }}
+        />
+      }
     />
   );
 }

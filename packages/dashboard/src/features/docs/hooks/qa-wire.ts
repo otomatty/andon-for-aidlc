@@ -169,6 +169,16 @@ export function useDocsQa(open: boolean, locale: OfficialDocsLocale) {
     }
   };
 
+  /** Starts a new conversation. A reply still in flight keeps the old one. */
+  const reset = (): void => {
+    if (activeId !== null || submittingRef.current) return;
+    setTurns([]);
+    setDraft("");
+    setTarget(undefined);
+    setError(null);
+    setPollFailed(false);
+  };
+
   const refresh = () => {
     setError(null);
     setPollFailed(false);
@@ -189,6 +199,7 @@ export function useDocsQa(open: boolean, locale: OfficialDocsLocale) {
     busy: submitting || activeId !== null,
     submit,
     cancel,
+    reset,
     refresh,
   };
 }

@@ -31,7 +31,7 @@ Preconditions:
 
 ## Gotchas
 
-- Docs Q&A (`docs-question-panel`) can spawn Claude/Cursor CLIs. Skip ask/cancel unless the recipe is specifically Q&A; a timeout there is not a docs-reader failure.
+- Docs Q&A has its own chat screen (`[data-testid="docs-chat"]`, opened by `AIに質問する` or the home's `[data-testid="docs-home-resume"]`); its message box is `[data-testid="docs-composer"]`. Asking can spawn Claude/Cursor CLIs. Skip ask/cancel unless the recipe is specifically Q&A; a timeout there is not a docs-reader failure. A cited source opens beside the conversation as `[data-testid="docs-source-panel"]`; its `ドキュメントで開く` opens the full article with `回答に戻る`.
 - Locale toggle (`locale-control`) switches en/ja. Assert the article heading you opened, not a remembered English title after a toggle.
 - Release TOC rows (`overview/release-highlights.md`, `overview/changelog.md`) show aliased Japanese labels. Proof is a non-empty `docs-article-h1` after the click, not identical strings and not a `data-active` row (the drawer has already closed).
 - Untranslated pages show `[data-testid="untranslated-notice"]`. That is a valid article state, not a load failure.

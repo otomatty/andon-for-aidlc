@@ -6,7 +6,16 @@ import type {
   DocsQaRequest,
   DocsQaToolStatus,
 } from "@aidlc-guide/shared-types";
-import { act, cleanup, render, renderHook, screen, waitFor, within } from "@tests/render.tsx";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+  within,
+} from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DocsShell } from "@/features/docs/DocsPage.tsx";
@@ -238,6 +247,15 @@ async function ask(question = "Cursor で始めるには？"): Promise<void> {
   await userEvent.click(button);
 }
 
+/** The cited source opened beside the conversation. */
+function sourcePanel(): HTMLElement {
+  return screen.getByTestId("docs-source-panel");
+}
+
+function panelHighlights(): HTMLElement[] {
+  return Array.from(sourcePanel().querySelectorAll<HTMLElement>('[data-doc-evidence="true"]'));
+}
+
 function highlighted(): HTMLElement[] {
   return Array.from(
     screen.getByTestId("docs-article").querySelectorAll<HTMLElement>('[data-doc-evidence="true"]'),
@@ -266,7 +284,14 @@ describe("document questions and verified source navigation", () => {
     showDocs();
     await ask();
     await userEvent.click(await screen.findByRole("button", { name: `参照 1: ${tip.title}` }));
+    await waitFor(() =>
+      expect(panelHighlights().map((node) => node.textContent)).toEqual([tip.quote]),
+    );
+    await userEvent.click(
+      within(sourcePanel()).getByRole("button", { name: "ドキュメントで開く" }),
+    );
     await waitFor(() => expect(highlighted().map((node) => node.textContent)).toEqual([tip.quote]));
+    expect(screen.queryByTestId("docs-chat")).toBeNull();
     await userEvent.click(screen.getByTestId("docs-menu"));
     expect(screen.getByRole("tab", { name: "ワークフロー" }).getAttribute("aria-selected")).toBe(
       "true",
@@ -351,19 +376,35 @@ describe("document questions and verified source navigation", () => {
     );
   });
 
-  it("opens the inline guide citation at the exact duplicate paragraph and restores draft and scroll", async () => {
+  it("opens the inline guide citation beside the answer, then the full document, and restores draft and scroll", async () => {
     const api = stubApi();
     showDocs();
     await ask();
     await screen.findByText("回答が完了しました");
     const draft = "ログイン後の設定も知りたい";
     await userEvent.type(screen.getByRole("textbox", { name: "続けて質問する" }), draft);
-    const scroll = screen.getByTestId("app-scroll");
-    scroll.scrollTop = 420;
     await userEvent.click(
       await within(screen.getByTestId("docs-answer")).findByRole("link", {
         name: "1",
       }),
+    );
+    await waitFor(() =>
+      expect(panelHighlights().map((node) => node.textContent)).toEqual([GUIDE.quote]),
+    );
+    const panelSurface = within(sourcePanel()).getByTestId("markdown-surface");
+    const panelDuplicates = within(panelSurface).getAllByText(GUIDE.quote);
+    expect(panelHighlights()).toEqual([panelDuplicates[1]]);
+    expect(document.activeElement).toBe(panelDuplicates[1]);
+    expect(api.postJson).toHaveBeenCalledWith("/api/docs-qa/evidence", GUIDE);
+    // The conversation stays put while a source is open beside it.
+    expect(screen.getByRole<HTMLTextAreaElement>("textbox", { name: "続けて質問する" }).value).toBe(
+      draft,
+    );
+
+    const scroll = screen.getByTestId("app-scroll");
+    scroll.scrollTop = 420;
+    await userEvent.click(
+      within(sourcePanel()).getByRole("button", { name: "ドキュメントで開く" }),
     );
     await waitFor(() =>
       expect(highlighted().map((node) => node.textContent)).toEqual([GUIDE.quote]),
@@ -371,10 +412,8 @@ describe("document questions and verified source navigation", () => {
     const surface = screen.getByTestId("markdown-surface");
     const duplicates = within(surface).getAllByText(GUIDE.quote);
     expect(highlighted()).toEqual([duplicates[1]]);
-    expect(document.activeElement).toBe(duplicates[1]);
-    expect(api.postJson).toHaveBeenCalledWith("/api/docs-qa/evidence", GUIDE);
     expect(api.getJson).toHaveBeenCalledWith(`/api/guides/${GUIDE.target.path}`);
-    expect(screen.queryByTestId("docs-question-panel")).toBeNull();
+    expect(screen.queryByTestId("docs-chat")).toBeNull();
     scroll.scrollTop = 0;
     await userEvent.click(screen.getByRole("button", { name: "回答に戻る" }));
     expect(screen.getByRole<HTMLTextAreaElement>("textbox", { name: "続けて質問する" }).value).toBe(
@@ -397,20 +436,23 @@ describe("document questions and verified source navigation", () => {
       { question: "拡張機能の初期設定は？", tool: "copilot", locale: "ja", history: [] },
     ]);
     const answer = screen.getByTestId("docs-answer");
-    expect(within(answer).getByText("質問 1 · GitHub Copilot")).toBeTruthy();
+    expect(within(answer).getByText("内蔵ドキュメントから回答 · GitHub Copilot")).toBeTruthy();
     await userEvent.type(
       screen.getByRole("textbox", { name: "続けて質問する" }),
       "設定後の操作は？",
     );
     await userEvent.click(await within(answer).findByRole("link", { name: "1" }));
     await waitFor(() =>
-      expect(highlighted().map((node) => node.textContent)).toEqual([GUIDE.quote]),
+      expect(panelHighlights().map((node) => node.textContent)).toEqual([GUIDE.quote]),
     );
     expect(api.postJson).toHaveBeenCalledWith("/api/docs-qa/evidence", GUIDE);
-    expect(document.activeElement).toBe(highlighted()[0]);
-    await userEvent.click(screen.getByRole("button", { name: "回答に戻る" }));
+    expect(document.activeElement).toBe(panelHighlights()[0]);
+    await userEvent.click(screen.getByRole("button", { name: "出典を閉じる" }));
+    expect(screen.queryByTestId("docs-source-panel")).toBeNull();
     expect(
-      within(screen.getByTestId("docs-answer")).getByText("質問 1 · GitHub Copilot"),
+      within(screen.getByTestId("docs-answer")).getByText(
+        "内蔵ドキュメントから回答 · GitHub Copilot",
+      ),
     ).toBeTruthy();
     expect(screen.getByRole("combobox", { name: "回答に使うツール" }).textContent).toContain(
       "GitHub Copilot",
@@ -420,13 +462,39 @@ describe("document questions and verified source navigation", () => {
     );
   });
 
-  it("uses the actual source locale and switches between English and Japanese references on the same path", async () => {
+  it("shows each source in its own language beside the answer without changing the reader's locale", async () => {
+    const api = stubApi({ citations: [OFFICIAL_EN, OFFICIAL_JA] });
+    showDocs();
+    await ask();
+    await userEvent.click(
+      await screen.findByRole("button", { name: `参照 2: ${OFFICIAL_EN.title}` }),
+    );
+    await waitFor(() =>
+      expect(panelHighlights().map((node) => node.textContent)).toEqual([OFFICIAL_EN.quote]),
+    );
+    expect(screen.getByTestId("locale-control").getAttribute("data-locale")).toBe("ja");
+    await userEvent.click(screen.getByRole("button", { name: "参照 3 を表示" }));
+    await waitFor(() =>
+      expect(panelHighlights().map((node) => node.textContent)).toEqual([OFFICIAL_JA.quote]),
+    );
+    expect(api.postJson).toHaveBeenCalledWith("/api/docs-qa/evidence", OFFICIAL_JA);
+    await userEvent.click(screen.getByRole("button", { name: "参照 2 を表示" }));
+    await waitFor(() =>
+      expect(panelHighlights().map((node) => node.textContent)).toEqual([OFFICIAL_EN.quote]),
+    );
+    expect(screen.getByTestId("locale-control").getAttribute("data-locale")).toBe("ja");
+  });
+
+  it("opens the full document in the source's locale and switches between English and Japanese references on the same path", async () => {
     const api = stubApi({ citations: [OFFICIAL_EN, OFFICIAL_JA] });
     showDocs();
     expect(screen.getByTestId("locale-control").getAttribute("data-locale")).toBe("ja");
     await ask();
     await userEvent.click(
       await screen.findByRole("button", { name: `参照 2: ${OFFICIAL_EN.title}` }),
+    );
+    await userEvent.click(
+      await within(sourcePanel()).findByRole("button", { name: "ドキュメントで開く" }),
     );
     await waitFor(() =>
       expect(highlighted().map((node) => node.textContent)).toEqual([OFFICIAL_EN.quote]),
@@ -453,10 +521,12 @@ describe("document questions and verified source navigation", () => {
     await ask();
     await userEvent.click(await screen.findByRole("button", { name: `参照 1: ${GUIDE.title}` }));
     expect(await screen.findByText("回答後に文書が更新されています")).toBeTruthy();
-    expect(screen.getByTestId("markdown-surface").textContent).toContain("移動した本文です。");
-    expect(highlighted()).toEqual([]);
+    expect(within(sourcePanel()).getByTestId("markdown-surface").textContent).toContain(
+      "移動した本文です。",
+    );
+    expect(panelHighlights()).toEqual([]);
     await userEvent.click(screen.getByText("回答時の引用文を見る"));
-    expect(screen.getByTestId("docs-article").textContent).toContain(GUIDE.quote);
+    expect(sourcePanel().textContent).toContain(GUIDE.quote);
     await userEvent.click(screen.getByRole("button", { name: "最新の文書で回答を更新" }));
     await waitFor(() => expect(api.requests).toHaveLength(2));
     expect(api.requests[1]?.question).toBe("Cursor で始めるには？");
@@ -516,6 +586,9 @@ describe("document questions and verified source navigation", () => {
     await ask();
     await userEvent.click(
       await screen.findByRole("button", { name: `参照 2: ${OFFICIAL_EN.title}` }),
+    );
+    await userEvent.click(
+      await within(sourcePanel()).findByRole("button", { name: "ドキュメントで開く" }),
     );
     await waitFor(() => expect(highlighted()).toHaveLength(1));
     expect(screen.getByTestId("locale-control").getAttribute("data-locale")).toBe("en");
@@ -736,6 +809,205 @@ describe("document questions and verified source navigation", () => {
     expect(api.requests[1]?.target).toEqual(OFFICIAL_EN.target);
     // The answer language stays Japanese while the scope identifies English source text.
     expect(api.requests[1]?.locale).toBe("ja");
+  });
+
+  it("opens an empty conversation from the home and starts it from a suggested question", async () => {
+    const api = stubApi();
+    showDocs();
+    await userEvent.click(screen.getByRole("button", { name: "AIに質問する" }));
+    const chat = await screen.findByTestId("docs-chat");
+    expect(within(chat).getByRole("heading", { name: "新しい会話" })).toBeTruthy();
+    expect(
+      within(chat).getByRole("heading", { name: "ドキュメントについて質問する" }),
+    ).toBeTruthy();
+    expect(screen.queryByTestId("docs-home")).toBeNull();
+    expect(await screen.findByText("利用できます")).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: "Unit と Bolt はどう違いますか？" }));
+    expect(await screen.findByText("回答が完了しました")).toBeTruthy();
+    expect(api.requests).toEqual([
+      { question: "Unit と Bolt はどう違いますか？", tool: "claude", locale: "ja", history: [] },
+    ]);
+    expect(
+      within(chat).getByRole("heading", { level: 2, name: "Unit と Bolt はどう違いますか？" }),
+    ).toBeTruthy();
+  });
+
+  it("keeps the conversation behind the home until the reader starts a new one", async () => {
+    stubApi();
+    showDocs();
+    await ask();
+    await screen.findByText("回答が完了しました");
+    await userEvent.click(screen.getByRole("button", { name: "ドキュメントのトップへ" }));
+    expect(await screen.findByTestId("docs-home")).toBeTruthy();
+    const resume = screen.getByTestId("docs-home-resume");
+    expect(resume.textContent).toContain("「Cursor で始めるには？」");
+    await userEvent.click(resume);
+    expect(screen.getByTestId("docs-answer").textContent).toContain(
+      "設定を確認してから開始します。",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "新しい会話" }));
+    expect(screen.queryByTestId("docs-answer")).toBeNull();
+    expect(screen.getByRole("heading", { name: "ドキュメントについて質問する" })).toBeTruthy();
+    expect(screen.getByRole<HTMLTextAreaElement>("textbox", { name: "質問" }).value).toBe("");
+    await userEvent.click(screen.getByRole("button", { name: "ドキュメントのトップへ" }));
+    expect(await screen.findByTestId("docs-home")).toBeTruthy();
+    expect(screen.queryByTestId("docs-home-resume")).toBeNull();
+  });
+
+  it("takes an unmatched page search to the chat with the words already in the box", async () => {
+    stubApi();
+    showDocs();
+    await userEvent.type(
+      await screen.findByRole("searchbox", { name: "ページを探す" }),
+      "承認の取り消し",
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "この内容をAIに質問する" }));
+    expect(await screen.findByTestId("docs-chat")).toBeTruthy();
+    expect(screen.getByRole<HTMLTextAreaElement>("textbox", { name: "質問" }).value).toBe(
+      "承認の取り消し",
+    );
+  });
+
+  it("starts over only once no reply is in flight", async () => {
+    stubApi({ keepRunning: true });
+    const { result } = renderHook(() => useDocsQa(true, "ja"));
+    act(() => result.current.setTarget(GUIDE.target));
+    await act(async () => {
+      await result.current.submit("質問");
+    });
+    expect(result.current.busy).toBe(true);
+    act(() => result.current.reset());
+    expect(result.current.turns).toHaveLength(1);
+    await act(async () => {
+      await result.current.cancel();
+    });
+    act(() => {
+      result.current.setDraft("書きかけ");
+    });
+    act(() => result.current.reset());
+    expect(result.current.turns).toEqual([]);
+    expect(result.current.draft).toBe("");
+    expect(result.current.target).toBeUndefined();
+  });
+
+  it("opens a bundled page linked from a source beside the chat, and keeps unknown links in the app", async () => {
+    const tip: DocsQaCitation = {
+      ...GUIDE,
+      target: { kind: "guide", path: "aidlc-tip-hooks.md", locale: "ja" },
+      title: "Claude Codeのhooksを修復する",
+    };
+    const api = stubApi({
+      citations: [tip],
+      evidence: async (citation) => ({
+        ...evidenceFor(citation),
+        markdown: `# ${tip.title}\n\n${tip.quote}\n\n[はじめかた](./getting-started.md) と [未収録](./missing.md)\n`,
+      }),
+    });
+    showDocs();
+    await ask();
+    await userEvent.click(await screen.findByRole("button", { name: `参照 1: ${tip.title}` }));
+    const missing = await within(sourcePanel()).findByRole("link", { name: "未収録" });
+    // A relative URL the bundle lacks must not navigate the webview away from the app.
+    expect(fireEvent.click(missing)).toBe(false);
+    expect(screen.getByTestId("docs-chat")).toBeTruthy();
+    await userEvent.click(within(sourcePanel()).getByRole("link", { name: "はじめかた" }));
+    await waitFor(() =>
+      expect(screen.getByTestId("docs-article-h1").textContent).toBe(GUIDE.title),
+    );
+    expect(api.getJson).toHaveBeenCalledWith(`/api/guides/${GUIDE.target.path}`);
+    expect(screen.queryByTestId("docs-chat")).toBeNull();
+  });
+
+  it("opens a page linked from an English source in English, so its anchor still matches", async () => {
+    const api = stubApi({
+      citations: [OFFICIAL_EN],
+      evidence: async (citation) => ({
+        ...evidenceFor(citation),
+        markdown: `# ${OFFICIAL_EN.title}\n\n## Getting started\n\n${OFFICIAL_EN.quote}\n\n[See getting started](#getting-started)\n`,
+      }),
+    });
+    showDocs();
+    expect(screen.getByTestId("locale-control").getAttribute("data-locale")).toBe("ja");
+    await ask();
+    await userEvent.click(
+      await screen.findByRole("button", { name: `参照 2: ${OFFICIAL_EN.title}` }),
+    );
+    await userEvent.click(
+      await within(sourcePanel()).findByRole("link", { name: "See getting started" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("locale-control").getAttribute("data-locale")).toBe("en"),
+    );
+    await waitFor(() =>
+      expect(
+        api.getJson.mock.calls.some(([route]) =>
+          route.startsWith(`/api/official-docs/en/${OFFICIAL_EN.target.path}`),
+        ),
+      ).toBe(true),
+    );
+    expect(
+      api.getJson.mock.calls.some(([route]) =>
+        route.startsWith(`/api/official-docs/ja/${OFFICIAL_EN.target.path}`),
+      ),
+    ).toBe(false);
+  });
+
+  it("answers a question about a source opened full page in the reader's language", async () => {
+    const api = stubApi({ citations: [OFFICIAL_EN] });
+    showDocs();
+    await ask();
+    await userEvent.click(
+      await screen.findByRole("button", { name: `参照 2: ${OFFICIAL_EN.title}` }),
+    );
+    await userEvent.click(
+      await within(sourcePanel()).findByRole("button", { name: "ドキュメントで開く" }),
+    );
+    await waitFor(() => expect(highlighted()).toHaveLength(1));
+    expect(screen.getByTestId("locale-control").getAttribute("data-locale")).toBe("en");
+    await userEvent.click(screen.getByRole("button", { name: "この文書について質問" }));
+    expect(screen.getByTestId("locale-control").getAttribute("data-locale")).toBe("ja");
+    expect(screen.getByText(`この文書: ${OFFICIAL_EN.target.path}`)).toBeTruthy();
+    await userEvent.type(
+      screen.getByRole("textbox", { name: "続けて質問する" }),
+      "この設定の前提は？",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "質問する" }));
+    await waitFor(() => expect(api.requests).toHaveLength(2));
+    expect(api.requests[1]?.target).toEqual(OFFICIAL_EN.target);
+    expect(api.requests[1]?.locale).toBe("ja");
+  });
+
+  it("keeps following the newest answer when it arrives taller than the follow margin", async () => {
+    stubApi({ phases: ["answering", "completed"] });
+    showDocs();
+    const scroll = screen.getByTestId("app-scroll");
+    let height = 1000;
+    Object.defineProperty(scroll, "clientHeight", { configurable: true, get: () => 500 });
+    Object.defineProperty(scroll, "scrollHeight", { configurable: true, get: () => height });
+    await ask();
+    await screen.findByText("文書をもとに回答を作成しています…");
+    // The reader is at the bottom; then the whole answer lands at once.
+    scroll.scrollTop = 500;
+    fireEvent.scroll(scroll);
+    height = 1400;
+    expect(await screen.findByText("回答が完了しました")).toBeTruthy();
+    await waitFor(() => expect(scroll.scrollTop).toBe(1400));
+  });
+
+  it("stops following once the reader scrolls up to an earlier answer", async () => {
+    stubApi({ phases: ["answering", "completed"] });
+    showDocs();
+    const scroll = screen.getByTestId("app-scroll");
+    let height = 1000;
+    Object.defineProperty(scroll, "clientHeight", { configurable: true, get: () => 500 });
+    Object.defineProperty(scroll, "scrollHeight", { configurable: true, get: () => height });
+    await ask();
+    await screen.findByText("文書をもとに回答を作成しています…");
+    scroll.scrollTop = 100;
+    fireEvent.scroll(scroll);
+    height = 1400;
+    expect(await screen.findByText("回答が完了しました")).toBeTruthy();
+    expect(scroll.scrollTop).toBe(100);
   });
 
   it("keeps questions available and does not mention shared mode", async () => {

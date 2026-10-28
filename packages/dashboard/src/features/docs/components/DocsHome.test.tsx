@@ -5,7 +5,7 @@ import { type ReactNode, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ViewState } from "@/store/state.ts";
 import { homeDocs, homeShelves, searchHomeDocs } from "@/features/docs/utils/docs-home.ts";
-import { DocsHome } from "./DocsHome.tsx";
+import { DocsHome, type DocsHomeConversation } from "./DocsHome.tsx";
 
 const originalScrollIntoView = Element.prototype.scrollIntoView;
 
@@ -68,14 +68,17 @@ function success<T>(value: T): ViewState<T> {
 function Harness({
   tocView = success(TOC),
   ask = true,
+  conversation = null,
   handlers,
 }: {
   tocView?: ViewState<OfficialDocsToc>;
   ask?: boolean;
+  conversation?: DocsHomeConversation | null;
   handlers: {
     onSelectPath: (path: string) => void;
     onSelectGuide: (name: string) => void;
     onOpenCategory: (category: "workflow" | "extension") => void;
+    onOpenChat: () => void;
     onAsk: (draft: string) => void;
   };
 }): ReactNode {
@@ -89,8 +92,10 @@ function Harness({
       onSelectPath={handlers.onSelectPath}
       onSelectGuide={handlers.onSelectGuide}
       onOpenCategory={handlers.onOpenCategory}
+      conversation={conversation}
       {...(ask
         ? {
+            onOpenChat: handlers.onOpenChat,
             onAsk: handlers.onAsk,
             questionPanel: <textarea id="docs-question" aria-label="質問" />,
           }
@@ -104,6 +109,7 @@ function handlers() {
     onSelectPath: vi.fn(),
     onSelectGuide: vi.fn(),
     onOpenCategory: vi.fn(),
+    onOpenChat: vi.fn(),
     onAsk: vi.fn(),
   };
 }
@@ -202,6 +208,27 @@ describe("DocsHome", () => {
     expect(screen.getByRole("region", { name: "はじめて読むなら" })).toBeTruthy();
   });
 
+  it("opens the chat screen from the header, and offers the kept conversation only when there is one", async () => {
+    const h = handlers();
+    const { rerender } = render(<Harness handlers={h} />);
+
+    expect(screen.queryByTestId("docs-home-resume")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "AIに質問する" }));
+    expect(h.onOpenChat).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <Harness
+        handlers={h}
+        conversation={{ first: "Unit と Bolt はどう違いますか？", count: 2, busy: true }}
+      />,
+    );
+    const resume = screen.getByTestId("docs-home-resume");
+    expect(resume.textContent).toContain("「Unit と Bolt はどう違いますか？」 ほか 1 件");
+    expect(resume.textContent).toContain("回答を作成中");
+    await userEvent.click(resume);
+    expect(h.onOpenChat).toHaveBeenCalledTimes(2);
+  });
+
   it("hands an unmatched search to the question box", async () => {
     const h = handlers();
     render(<Harness handlers={h} />);
@@ -214,9 +241,16 @@ describe("DocsHome", () => {
 
   it("offers no question path while questions are unavailable", async () => {
     const h = handlers();
-    render(<Harness handlers={h} ask={false} />);
+    render(
+      <Harness
+        handlers={h}
+        ask={false}
+        conversation={{ first: "Unit と Bolt はどう違いますか？", count: 1, busy: false }}
+      />,
+    );
 
-    expect(screen.queryByTestId("docs-home-ask-jump")).toBeNull();
+    expect(screen.queryByTestId("docs-home-open-chat")).toBeNull();
+    expect(screen.queryByTestId("docs-home-resume")).toBeNull();
     await userEvent.type(screen.getByRole("searchbox", { name: "ページを探す" }), "zzzz");
     expect(screen.queryByRole("button", { name: "この内容をAIに質問する" })).toBeNull();
   });

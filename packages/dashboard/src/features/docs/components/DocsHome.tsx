@@ -2,6 +2,7 @@ import type { MarkdownItem, OfficialDocsToc } from "@aidlc-guide/shared-types";
 import {
   ArrowRight,
   BookOpen,
+  ChevronRightIcon,
   FileTextIcon,
   History,
   LibraryBig,
@@ -56,16 +57,52 @@ const SHELF_ICONS: Readonly<Record<ShelfId, LucideIcon>> = {
 /** Results stop here; the count above them still says how many matched. */
 const MAX_RESULTS = 30;
 
-const DOCS_HOME_ASK_ID = "docs-home-ask";
-
 /** Still waiting on the request; a failed catalog is settled, not pending. */
 function pending(view: ViewState<unknown> | null): boolean {
   return view === null || view.kind === "loading";
 }
 
-function focusQuestion(): void {
-  document.getElementById(DOCS_HOME_ASK_ID)?.scrollIntoView({ block: "start" });
-  document.getElementById("docs-question")?.focus({ preventScroll: true });
+/** The conversation kept from before, as the home's way back into it. */
+export interface DocsHomeConversation {
+  first: string;
+  count: number;
+  busy: boolean;
+}
+
+function ResumeConversation({
+  conversation,
+  onOpen,
+}: {
+  conversation: DocsHomeConversation;
+  onOpen: () => void;
+}): ReactNode {
+  const more = conversation.count > 1 ? ` ほか ${conversation.count - 1} 件` : "";
+  return (
+    <button
+      type="button"
+      data-testid="docs-home-resume"
+      className="flex w-full cursor-pointer flex-wrap items-center justify-between gap-3 rounded-lg border-2 border-primary bg-primary-light px-4 py-3 text-left text-foreground transition-colors hover:bg-primary-light/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none motion-reduce:transition-none"
+      onClick={onOpen}
+    >
+      <span className="flex min-w-0 items-center gap-3">
+        <MessageCircleIcon
+          aria-hidden="true"
+          className="size-5 shrink-0 text-primary-light-foreground"
+        />
+        <span className="flex min-w-0 flex-col">
+          <span className="text-sm font-bold">前回の会話の続き</span>
+          <span className="truncate text-sm text-muted-foreground">
+            {`「${conversation.first}」${more}`}
+            {conversation.busy ? " · 回答を作成中" : ""}
+          </span>
+        </span>
+      </span>
+      <span className="flex items-center gap-1 text-sm font-bold text-primary-light-foreground">
+        会話を開く
+        <ChevronRightIcon aria-hidden="true" className="size-4" />
+      </span>
+    </button>
+  );
 }
 
 function DocRow({ doc, onOpen }: { doc: HomeDoc; onOpen: (doc: HomeDoc) => void }): ReactNode {
@@ -223,13 +260,7 @@ function SearchResults({
             </EmptyDescription>
           </EmptyHeader>
           {onAsk ? (
-            <Button
-              variant="outline"
-              onClick={() => {
-                onAsk(query.trim());
-                requestAnimationFrame(focusQuestion);
-              }}
-            >
+            <Button variant="outline" onClick={() => onAsk(query.trim())}>
               <MessageCircleIcon data-icon="inline-start" />
               この内容をAIに質問する
             </Button>
@@ -266,8 +297,9 @@ function SearchResults({
 /**
  * The docs landing, laid out for someone who came to read: find a page by
  * name, follow the reading order when new, or open a shelf's first pages
- * directly. Asking the AI stays on the page, below the reading paths, for
- * when none of those finds the answer.
+ * directly. Asking the AI has its own chat screen; the home only opens it,
+ * resumes the conversation kept from before, or starts one from below the
+ * reading paths for when none of those finds the answer.
  */
 export function DocsHome({
   tocView,
@@ -277,7 +309,9 @@ export function DocsHome({
   onSelectPath,
   onSelectGuide,
   onOpenCategory,
+  onOpenChat,
   onAsk,
+  conversation,
   questionPanel,
 }: {
   tocView: ViewState<OfficialDocsToc> | null;
@@ -287,8 +321,10 @@ export function DocsHome({
   onSelectPath: (path: string) => void;
   onSelectGuide: (name: string) => void;
   onOpenCategory: (category: DocsCategory) => void;
-  /** Absent while questions are unavailable. */
+  /** Absent, like `onAsk`, while questions are unavailable. */
+  onOpenChat?: () => void;
   onAsk?: (draft: string) => void;
+  conversation?: DocsHomeConversation | null;
   questionPanel?: ReactNode;
 }): ReactNode {
   const toc = tocView === null ? null : viewValue(tocView);
@@ -340,13 +376,16 @@ export function DocsHome({
               の使い方を、この画面から読めます。
             </p>
           </div>
-          {onAsk ? (
-            <Button variant="outline" data-testid="docs-home-ask-jump" onClick={focusQuestion}>
+          {onOpenChat ? (
+            <Button variant="outline" data-testid="docs-home-open-chat" onClick={onOpenChat}>
               <MessageCircleIcon data-icon="inline-start" />
               AIに質問する
             </Button>
           ) : null}
         </div>
+        {onOpenChat && conversation ? (
+          <ResumeConversation conversation={conversation} onOpen={onOpenChat} />
+        ) : null}
         <div role="search" className="max-w-2xl">
           <Field>
             <FieldLabel htmlFor="docs-home-search">ページを探す</FieldLabel>
@@ -413,15 +452,19 @@ export function DocsHome({
 
       {questionPanel ? (
         <section
-          id={DOCS_HOME_ASK_ID}
-          className="flex scroll-mt-4 flex-col gap-3 border-t border-border pt-8"
-          aria-label="AIに質問する"
+          className="flex flex-col gap-3 border-t border-border pt-8"
+          aria-labelledby="docs-home-ask-title"
         >
-          {onAsk ? (
-            <p className="text-sm text-muted-foreground">
-              読みたいページが見つからないときは、内蔵ドキュメントをもとにAIが出典付きで答えます。
-            </p>
-          ) : null}
+          <div className="flex flex-col gap-1">
+            <h2 id="docs-home-ask-title" className="text-section-title font-bold">
+              AIに質問する
+            </h2>
+            {onAsk ? (
+              <p className="text-sm text-muted-foreground">
+                読みたいページが見つからないときは、内蔵ドキュメントをもとにAIが出典付きで答えます。
+              </p>
+            ) : null}
+          </div>
           {questionPanel}
         </section>
       ) : null}

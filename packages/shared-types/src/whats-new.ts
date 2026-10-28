@@ -13,6 +13,13 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "docs-chat-screen",
+    date: "2026-10-28",
+    title: "ドキュメントへの質問を、チャット画面で行えるようにしました",
+    body: "「ドキュメント」の「AIに質問する」から、チャットアプリと同じ形の画面で質問できます。入力欄は画面の下に固定し、回答の作成中は進み具合を表示します。回答の番号を押すと、会話の横に出典が開き、根拠の箇所を強調します。トップページに戻っても会話は残り、「前回の会話の続き」から再開できます。「新しい会話」で最初から始められます。",
+    action: { label: "ドキュメントを開く", target: "docs" },
+  },
+  {
     id: "docs-home-for-readers",
     date: "2026-10-28",
     title: "ドキュメントのトップページを、読みたいページへすぐ行ける形にしました",

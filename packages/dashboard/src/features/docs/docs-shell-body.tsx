@@ -38,13 +38,14 @@ import { SourceVersionBadge } from "@/features/docs/components/SourceVersionBadg
 import { UntranslatedNotice } from "@/features/docs/components/UntranslatedNotice.tsx";
 import { DocVideoCard } from "@/features/docs/components/video/DocVideoCard.tsx";
 import { DocsShellQuestionSurface } from "@/features/docs/docs-shell-chat.tsx";
+import { focusDocsQuestion } from "@/features/docs/components/chat/DocsComposer.tsx";
 import { useDocsQa } from "@/features/docs/hooks/useDocsQa.ts";
 import { DocumentSkeleton } from "@/shared/loading/DocumentSkeleton.tsx";
 import { PanelShell } from "@/shell/PanelShell.tsx";
 import { LoadingSequence } from "@/shared/loading/LoadingSequence.tsx";
 import { DocsArticleBody } from "@/features/docs/docs-article-body.tsx";
 import { DocsCitationBar } from "@/features/docs/docs-ref-bar.tsx";
-import { useDocsArticleLinks } from "@/features/docs/use-docs-article-links.ts";
+import { type DocLinks, useDocLinks } from "@/features/docs/use-docs-article-links.ts";
 import { OnboardingTip } from "@/features/onboarding/components/OnboardingTip.tsx";
 import { useVersionGate } from "@/services/version-gate.ts";
 
@@ -68,6 +69,7 @@ export function DocsShell(): ReactNode {
   const [applyKey, setApplyKey] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [homeQuery, setHomeQuery] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
   const articleRef = useRef<HTMLElement>(null);
   const gated = useVersionGate() !== null;
   const qa = useDocsQa(open && !gated, locale);
@@ -126,6 +128,7 @@ export function DocsShell(): ReactNode {
       setRequestedAnchor(undefined);
       setDrawerOpen(false);
       setHomeQuery("");
+      setChatOpen(false);
       return;
     }
     if (deepLink !== null) {
@@ -143,6 +146,7 @@ export function DocsShell(): ReactNode {
         setCategory("workflow");
       }
       setDrawerOpen(false);
+      setChatOpen(false);
       setRequestedAnchor(normalizeRequestedAnchor(deepLink.anchor));
       setShellLandKey((n) => n + 1);
       setApplyKey((n) => n + 1);
@@ -150,21 +154,22 @@ export function DocsShell(): ReactNode {
     }
   }, [open, deepLink, dispatch]);
 
-  useDocsArticleLinks({
-    open,
-    articleRef,
-    selection,
+  // Links in the open article, and in a source opened beside the chat, land here.
+  const docLinks: DocLinks = {
     knownPaths,
     guideNames,
-    setReference,
-    evidenceRequest,
-    setSelection,
-    setCategory,
-    setRequestedAnchor,
-    setApplyKey,
-    setDrawerOpen,
-    normalizeRequestedAnchor,
-  });
+    onFollow: ({ selection: next, anchor, locale: linkLocale }) => {
+      if (linkLocale !== undefined && next.kind === "official")
+        dispatch({ type: "official-docs-locale", locale: linkLocale });
+      clearReference();
+      setSelection(next);
+      setCategory(next.kind === "guide" ? guideCategory(next.name) : "workflow");
+      setRequestedAnchor(normalizeRequestedAnchor(anchor));
+      setApplyKey((n) => n + 1);
+      setDrawerOpen(false);
+    },
+  };
+  useDocLinks(articleRef, selection, docLinks);
 
   useEffect(() => {
     if (returnKey === 0 || !answerPosition.current) return;
@@ -205,6 +210,7 @@ export function DocsShell(): ReactNode {
     setSelection(null);
     setRequestedAnchor(undefined);
     setDrawerOpen(false);
+    setChatOpen(false);
     setShellLandKey((n) => n + 1);
     articleRef.current?.scrollIntoView({ block: "start" });
   };
@@ -258,6 +264,7 @@ export function DocsShell(): ReactNode {
     clearReference();
     setSelection(null);
     setRequestedAnchor(undefined);
+    setChatOpen(true);
     setReturnKey((key) => key + 1);
   };
 
@@ -268,15 +275,26 @@ export function DocsShell(): ReactNode {
         ? { kind: "guide", path: selection.name, locale: "ja" }
         : { kind: "official", path: selection.path, locale },
     );
-    onHome();
-    requestAnimationFrame(() => document.getElementById("docs-question")?.focus());
+    // A cited source opened full page switched the locale to its own; the
+    // question keeps that source as its scope but is answered in the reader's.
+    if (reference && answerPosition.current)
+      dispatch({ type: "official-docs-locale", locale: answerPosition.current.locale });
+    clearReference();
+    setSelection(null);
+    setRequestedAnchor(undefined);
+    setDrawerOpen(false);
+    setChatOpen(true);
+    articleRef.current?.scrollIntoView({ block: "start" });
+    focusDocsQuestion();
   };
 
   const sourceVersion = page?.sourceVersion ?? manifest?.sourceVersion ?? null;
   const isGuide = selection?.kind === "guide";
   const title =
     selection === null
-      ? "\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8"
+      ? chatOpen
+        ? "AIに質問する"
+        : "\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8"
       : isGuide
         ? (guide?.title ?? "\u62e1\u5f35\u6a5f\u80fd")
         : (page?.title ?? "\u516c\u5f0f\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8");
@@ -341,7 +359,7 @@ export function DocsShell(): ReactNode {
         </>
       }
     >
-      {selection === null ? (
+      {selection === null && !chatOpen ? (
         <div className="mb-4">
           <OnboardingTip area="docs" />
         </div>
@@ -379,6 +397,17 @@ export function DocsShell(): ReactNode {
             {selection === null ? (
               <DocsShellQuestionSurface
                 qa={qa}
+                locale={locale}
+                chatOpen={chatOpen}
+                onOpenChat={() => setChatOpen(true)}
+                onCloseChat={() => {
+                  setChatOpen(false);
+                  articleRef.current?.scrollIntoView({ block: "start" });
+                }}
+                onOpenDocument={(citation, turn) => {
+                  void onCitation(citation, turn);
+                }}
+                docLinks={docLinks}
                 tocView={tocView}
                 guidesView={guidesView}
                 query={homeQuery}
@@ -386,9 +415,6 @@ export function DocsShell(): ReactNode {
                 onSelectPath={onSelectPath}
                 onSelectGuide={onSelectGuide}
                 onOpenCategory={onOpenCategory}
-                onCitation={(citation, turn) => {
-                  void onCitation(citation, turn);
-                }}
               />
             ) : reference?.error ? null : reference === null && articleView?.kind === "error" ? (
               <AreaError detail={articleView.detail} />
