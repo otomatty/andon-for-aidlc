@@ -9,6 +9,7 @@ import type { ExportSelection } from "@/features/customization/types.ts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -114,12 +115,14 @@ export function ImportDialog({
                   />
                 </Field>
               ) : null}
-              <details>
-                <summary>内容を見る</summary>
-                <pre className="whitespace-pre-wrap wrap-break-word text-xs">
-                  {entry.item.content}
-                </pre>
-              </details>
+              <Collapsible>
+                <CollapsibleTrigger variant="disclosure">内容を見る</CollapsibleTrigger>
+                <CollapsibleContent>
+                  <pre className="whitespace-pre-wrap wrap-break-word text-xs">
+                    {entry.item.content}
+                  </pre>
+                </CollapsibleContent>
+              </Collapsible>
             </FieldGroup>
           ))}
         </FieldSet>

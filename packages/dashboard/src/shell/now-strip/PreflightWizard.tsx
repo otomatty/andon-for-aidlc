@@ -2,6 +2,7 @@ import { PREFLIGHT_TEXT_MAX, type PreflightPayload } from "@aidlc-guide/shared-t
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getTransport } from "@/services/transport/types.ts";
 import { vsCodeApi } from "@/services/vscode-api.ts";
 
@@ -161,25 +162,29 @@ export function PreflightWizard({
                 承認ゲート {plan.gateCount} 回 / 実行 {plan.executeCount} / 合計 {plan.totalCount}{" "}
                 ステージ / {plan.depth} / {plan.skeleton}
               </p>
-              <details>
-                <summary className="cursor-pointer text-sm">フェーズ別ステージ一覧</summary>
-                <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm">
-                  {plan.phases.flatMap((phase) =>
-                    phase.stages.map((stage) => (
-                      <li key={stage.slug} className="flex flex-wrap items-center gap-2">
-                        <span>
-                          {stage.number} {stage.name}
-                        </span>
-                        <Badge variant={stage.decision === "EXECUTE" ? "default" : "outline"}>
-                          {stage.decision}
-                        </Badge>
-                        <span className="text-muted-foreground">{stage.leadAgent}</span>
-                        <span className="text-muted-foreground">{stage.produces.join(", ")}</span>
-                      </li>
-                    )),
-                  )}
-                </ul>
-              </details>
+              <Collapsible>
+                <CollapsibleTrigger variant="disclosure" className="text-sm">
+                  フェーズ別ステージ一覧
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm">
+                    {plan.phases.flatMap((phase) =>
+                      phase.stages.map((stage) => (
+                        <li key={stage.slug} className="flex flex-wrap items-center gap-2">
+                          <span>
+                            {stage.number} {stage.name}
+                          </span>
+                          <Badge variant={stage.decision === "EXECUTE" ? "default" : "outline"}>
+                            {stage.decision}
+                          </Badge>
+                          <span className="text-muted-foreground">{stage.leadAgent}</span>
+                          <span className="text-muted-foreground">{stage.produces.join(", ")}</span>
+                        </li>
+                      )),
+                    )}
+                  </ul>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           )}
         </>

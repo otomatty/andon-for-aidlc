@@ -13,6 +13,12 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "unified-disclosures",
+    date: "2026-10-28",
+    title: "開いて閉じる欄の見た目と操作をそろえました",
+    body: "効果測定の「記録の内訳」やカスタマイズの「詳細設定」など、開いて閉じる欄を、向きが変わる矢印付きのボタンにそろえました。ステージ一覧では、フェーズの見出しの間を ↑↓ キーで移動できます。プラグインの「追加・変更されるファイル」も、ほかの一覧と同じ枠で表示します。",
+  },
+  {
     id: "update-repair-plan",
     date: "2026-10-27",
     title: "更新を止めたファイルを、ボタン 1 つで直せるようにしました",

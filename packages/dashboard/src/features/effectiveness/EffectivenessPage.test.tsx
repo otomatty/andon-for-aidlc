@@ -231,6 +231,7 @@ describe("effectiveness observations", () => {
     }));
     render(<Harness open />);
     const row = within(await screen.findByTestId("effectiveness-card-実行先不明"));
+    await userEvent.click(row.getByText("記録の内訳・注意 1 件"));
     expect(row.getByText(/人の入力: 判別不可（実行先未記録）/)).toBeTruthy();
   });
   it("loads only while open and stops responding to audit pushes after close", async () => {
@@ -300,6 +301,7 @@ describe("effectiveness observations", () => {
     render(<Harness open />);
     const complete = within(await screen.findByTestId("effectiveness-card-完成案件"));
     expect(complete.getByText("0 件")).toBeTruthy();
+    await userEvent.click(complete.getByText("記録の内訳"));
     expect(complete.getByText(/案件内の品質チェック（通常・単独実行の合計）/)).toBeTruthy();
     expect(screen.getByText("通常・単独実行を含む、検証結果の証跡がある合格")).toBeTruthy();
     const active = within(screen.getByTestId("effectiveness-card-進行案件"));
@@ -310,6 +312,7 @@ describe("effectiveness observations", () => {
     const unknown = within(screen.getByTestId("effectiveness-card-完了日時不明"));
     expect(unknown.queryByText("進行中の経過")).toBeNull();
     expect(unknown.getAllByText("未記録").length).toBeGreaterThan(0);
+    await userEvent.click(unknown.getByText("記録の内訳"));
     expect(unknown.getByText(/^監査イベント: 未記録/)).toBeTruthy();
     expect(complete.getByText(/^監査イベント: 20 件/)).toBeTruthy();
     expect(
@@ -329,6 +332,7 @@ describe("effectiveness observations", () => {
     render(<Harness open />);
     const row = within(await screen.findByTestId("effectiveness-card-対応不明の検査"));
     expect(row.getByText("品質チェック").nextElementSibling?.textContent).toBe("未記録");
+    await userEvent.click(row.getByText("記録の内訳・注意 1 件"));
     expect(row.getByText("sensor receipt missing correlation fields")).toBeTruthy();
     expect(screen.getByText("記録あり 0 / 1 件")).toBeTruthy();
     expect(row.queryByText(/失敗 0/)).toBeNull();
@@ -343,11 +347,12 @@ describe("effectiveness observations", () => {
     stubMetrics(() => ({ ok: true, value: payload([unknown, zero]) }));
     render(<Harness open />);
     const missing = within(await screen.findByTestId("effectiveness-card-指摘数不明"));
+    await userEvent.click(missing.getByText("記録の内訳"));
     expect(missing.getByText(/指摘数は未記録/)).toBeTruthy();
     expect(missing.queryByText(/指摘 0 件/)).toBeNull();
-    expect(
-      within(screen.getByTestId("effectiveness-card-指摘ゼロ")).getByText(/指摘 0 件/),
-    ).toBeTruthy();
+    const measured = within(screen.getByTestId("effectiveness-card-指摘ゼロ"));
+    await userEvent.click(measured.getByText("記録の内訳"));
+    expect(measured.getByText(/指摘 0 件/)).toBeTruthy();
   });
   it("shows the four workflow metrics without review or usage details", async () => {
     const row = intent("完成案件", {
@@ -422,7 +427,9 @@ describe("effectiveness observations", () => {
     render(<Harness open />);
     const row = await screen.findByTestId("effectiveness-card-検査記録");
     expect(screen.getByText("一部の記録を集計できません")).toBeTruthy();
-    expect(screen.getByText("集計の注意 1 件").closest("details")?.open).toBe(false);
+    const notes = screen.getByRole("button", { name: "集計の注意 1 件" });
+    expect(notes.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByText("unreadable shard")).toBeNull();
     await userEvent.click(within(row).getByText(/記録の内訳/));
     expect(within(row).getByText(/省略と証跡不足は合格に含めません/)).toBeTruthy();
     expect(within(row).getByText("sensor receipt missing correlation fields")).toBeTruthy();
@@ -527,6 +534,7 @@ describe("effectiveness observations", () => {
     render(<Harness open />);
     const row = within(await screen.findByTestId("effectiveness-card-除外のみ"));
     expect(row.getByText("承認待ち").nextElementSibling?.textContent).toBe("未記録");
+    await userEvent.click(row.getByText(/記録の内訳/));
     expect(row.getByText(/集計除外 2 区間/)).toBeTruthy();
     const summary = within(screen.getByRole("region", { name: "比較対象の集計" }));
     expect(summary.getByText("記録あり 0 / 1 件。計測中の待機なし。")).toBeTruthy();

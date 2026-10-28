@@ -113,6 +113,7 @@ describe("PreflightWizard", () => {
     // プレビュー ≠ 約束 の注記(spec §4)。
     expect(screen.getByText(/これは見通しです/)).toBeDefined();
     // EXECUTE/SKIP はテキストラベル(色のみ禁止)。
+    await user.click(screen.getByRole("button", { name: "フェーズ別ステージ一覧" }));
     expect(screen.getByText("EXECUTE")).toBeDefined();
   });
 

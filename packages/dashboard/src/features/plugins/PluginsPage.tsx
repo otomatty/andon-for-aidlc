@@ -10,6 +10,12 @@ import {
 } from "@aidlc-guide/shared-types";
 import { ArrowLeftIcon, ChevronRightIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -185,18 +191,28 @@ function StageFlow({ stages }: { stages: BundledPluginStage[] }): ReactNode {
   );
 }
 
-function FileList({ title, files }: { title: string; files: string[] }): ReactNode {
+function FileList({
+  value,
+  title,
+  files,
+}: {
+  value: string;
+  title: string;
+  files: string[];
+}): ReactNode {
   return (
-    <details className="border-b text-sm last:border-b-0">
-      <summary className="cursor-pointer px-4 py-3 hover:bg-muted">
+    <AccordionItem value={value}>
+      <AccordionTrigger>
         {title}（{files.length} 件）
-      </summary>
-      <ul className="flex flex-col gap-0.5 px-4 pb-3 font-mono text-xs wrap-anywhere">
-        {files.map((file) => (
-          <li key={file}>{file}</li>
-        ))}
-      </ul>
-    </details>
+      </AccordionTrigger>
+      <AccordionContent>
+        <ul className="flex flex-col gap-0.5 font-mono text-xs wrap-anywhere">
+          {files.map((file) => (
+            <li key={file}>{file}</li>
+          ))}
+        </ul>
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 
@@ -455,10 +471,10 @@ function PluginDetail({
 
       <Section title="追加・変更されるファイル">
         <div data-testid="plugin-files" className="flex flex-col gap-1.5">
-          <div className="overflow-hidden rounded-md border bg-card">
-            <FileList title="追加されるファイル" files={plugin.files.added} />
-            <FileList title="変更されるファイル" files={plugin.files.changed} />
-          </div>
+          <Accordion variant="contained" multiple>
+            <FileList value="added" title="追加されるファイル" files={plugin.files.added} />
+            <FileList value="changed" title="変更されるファイル" files={plugin.files.changed} />
+          </Accordion>
           <p className="text-xs text-muted-foreground">
             アプリケーションのコードは変えません。変わるのは AI-DLC の設定（
             <code className="font-mono">.claude/</code>

@@ -1,5 +1,6 @@
 import { Collapse } from "@mantine/core";
 import { useUncontrolled } from "@mantine/hooks";
+import { ChevronRightIcon } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -7,6 +8,7 @@ import {
   type ComponentPropsWithRef,
   type ReactNode,
 } from "react";
+import { cn } from "@/lib/utils";
 import { Slot, type SlotProps } from "./slot.tsx";
 
 type CollapsibleState = { open: boolean; toggle: () => void; panelId: string };
@@ -43,16 +45,41 @@ function Collapsible({
   );
 }
 
-function CollapsibleTrigger(props: SlotProps) {
+const TRIGGER_VARIANTS = {
+  default: "",
+  /** A `<summary>`'s place: a small inline toggle led by its triangle. */
+  disclosure:
+    "inline-flex w-fit cursor-pointer items-center gap-1 rounded-sm text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+} as const;
+
+function CollapsibleTrigger({
+  className,
+  variant = "default",
+  children,
+  ...props
+}: SlotProps & { className?: string; variant?: keyof typeof TRIGGER_VARIANTS }) {
   const { open, toggle, panelId } = useCollapsible();
   return (
     <Slot
       data-slot="collapsible-trigger"
       aria-expanded={open}
       aria-controls={open ? panelId : undefined}
+      className={cn(TRIGGER_VARIANTS[variant], className)}
       onClick={toggle}
       {...props}
-    />
+    >
+      {variant === "disclosure" ? (
+        <>
+          <ChevronRightIcon
+            aria-hidden="true"
+            className={cn("size-4 shrink-0 transition-transform", open && "rotate-90")}
+          />
+          {children}
+        </>
+      ) : (
+        children
+      )}
+    </Slot>
   );
 }
 

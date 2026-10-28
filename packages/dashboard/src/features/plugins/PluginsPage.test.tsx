@@ -135,6 +135,13 @@ describe("PluginsPanel", () => {
     const files = within(detail).getByTestId("plugin-files");
     expect(files.textContent).toContain("追加されるファイル（2 件）");
     expect(files.textContent).toContain("変更されるファイル（1 件）");
+    expect(files.textContent).not.toContain(".claude/agents/focus-builder-agent.md");
+    await userEvent.click(
+      within(files).getByRole("button", { name: "追加されるファイル（2 件）" }),
+    );
+    await userEvent.click(
+      within(files).getByRole("button", { name: "変更されるファイル（1 件）" }),
+    );
     expect(files.textContent).toContain(".claude/agents/focus-builder-agent.md");
     expect(files.textContent).toContain("アプリケーションのコードは変えません");
 

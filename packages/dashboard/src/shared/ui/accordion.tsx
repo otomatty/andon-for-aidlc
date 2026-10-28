@@ -19,7 +19,21 @@ const LOOKS = {
     content: "px-4 pt-0 pb-3 text-sm",
     chevron: "text-muted-foreground",
   },
+  /**
+   * Rows divided by rules inside the caller's own frame, each header a full
+   * row: the stage rail's phases.
+   */
+  rail: {
+    item: "border-b border-border last:border-b-0",
+    control: "gap-3 px-4 py-3 hover:bg-muted",
+    label: "p-0",
+    content: "px-4 pt-1 pb-4",
+    chevron: "text-muted-foreground",
+  },
 };
+
+/** The Mantine variant each look draws on; `rail` draws its rules itself. */
+const MANTINE_VARIANT = { default: "default", contained: "contained", rail: "default" } as const;
 
 /**
  * Mantine's Accordion with the open items always as an array, one item at a
@@ -28,6 +42,7 @@ const LOOKS = {
 function Accordion({
   variant = "default",
   multiple = false,
+  order,
   value,
   defaultValue,
   onValueChange,
@@ -36,6 +51,8 @@ function Accordion({
 }: {
   variant?: keyof typeof LOOKS;
   multiple?: boolean;
+  /** Wraps each trigger in a heading of this level. */
+  order?: 2 | 3 | 4 | 5 | 6;
   value?: string[];
   defaultValue?: string[];
   onValueChange?: (value: string[]) => void;
@@ -46,7 +63,8 @@ function Accordion({
     "data-slot": "accordion",
     keepMounted: false,
     chevronPosition: "right" as const,
-    variant,
+    variant: MANTINE_VARIANT[variant],
+    order,
     radius: "md" as const,
     className: cn("flex w-full flex-col", className),
     classNames: LOOKS[variant],

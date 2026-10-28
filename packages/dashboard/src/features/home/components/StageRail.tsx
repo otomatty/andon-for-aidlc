@@ -16,8 +16,14 @@ import type { ViewState } from "@/store/state.ts";
 import { AreaError } from "@/shared/atoms.tsx";
 import { StageRailSkeleton } from "@/features/home/components/StageRailSkeleton.tsx";
 import { type ModelLoadState, StageModelLabel } from "./StageModelLabel.tsx";
-import { ChevronDownIcon } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { type ChipStatus, StatusChip } from "@/shared/ui/StatusChip.tsx";
 import { Timeline, TimelineItem } from "@/shared/ui/timeline.tsx";
 import { ActiveUnitTag, UnitGroupToggle, UnitProgress, UnitStepRow } from "./StageRailUnits.tsx";
@@ -488,36 +494,42 @@ function StageRailImpl({
                   open && "border-primary",
                 )}
               >
-                <UnitGroupToggle
-                  {...roving(groupIndex)}
-                  unit={unit}
+                <Collapsible
                   open={open}
-                  working={working}
-                  onToggle={() => {
+                  onOpenChange={(next) => {
                     setFocused(groupIndex);
-                    setToggled((prev) => ({ ...prev, [unit.unit]: !open }));
+                    setToggled((prev) => ({ ...prev, [unit.unit]: next }));
                   }}
-                />
-                {open ? (
-                  <Timeline className="mx-4 my-3">
-                    {unit.steps.map((step) => {
-                      const index = take();
-                      return (
-                        <UnitStepRow
-                          key={step.stage}
-                          {...roving(index)}
-                          unit={unit.unit}
-                          step={step}
-                          isCurrent={unit.unit === focusUnit && step.stage === highlighted}
-                          onSelect={() => {
-                            setFocused(index);
-                            onSelect(step.stage);
-                          }}
-                        />
-                      );
-                    })}
-                  </Timeline>
-                ) : null}
+                >
+                  <UnitGroupToggle
+                    {...roving(groupIndex)}
+                    unit={unit}
+                    open={open}
+                    working={working}
+                  />
+                  <CollapsibleContent>
+                    {open ? (
+                      <Timeline className="mx-4 my-3">
+                        {unit.steps.map((step) => {
+                          const index = take();
+                          return (
+                            <UnitStepRow
+                              key={step.stage}
+                              {...roving(index)}
+                              unit={unit.unit}
+                              step={step}
+                              isCurrent={unit.unit === focusUnit && step.stage === highlighted}
+                              onSelect={() => {
+                                setFocused(index);
+                                onSelect(step.stage);
+                              }}
+                            />
+                          );
+                        })}
+                      </Timeline>
+                    ) : null}
+                  </CollapsibleContent>
+                </Collapsible>
               </li>
             );
           })}
@@ -540,64 +552,59 @@ function StageRailImpl({
 
   return (
     <nav className={RAIL} aria-label="ステージ一覧">
-      {sections.map((section) => {
-        const panelId = `stage-rail-phase-${section.phase}`;
-        return (
-          <section
-            className="border-b last:border-b-0"
+      <Accordion
+        variant="rail"
+        multiple
+        order={3}
+        value={sections.filter((section) => section.open).map((section) => section.phase)}
+        onValueChange={(open) =>
+          setPhaseToggled((prev) => {
+            const next = { ...prev };
+            for (const section of sections)
+              if (open.includes(section.phase) !== section.open)
+                next[section.phase] = !section.open;
+            return next;
+          })
+        }
+      >
+        {sections.map((section) => (
+          <AccordionItem
             key={section.phase}
+            value={section.phase}
+            role="region"
             aria-label={section.phase}
           >
-            <h3 className="m-0">
-              <button
-                type="button"
-                className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left hover:bg-muted"
-                aria-expanded={section.open}
-                aria-controls={section.open ? panelId : undefined}
-                data-testid={`stage-rail-phase-${section.phase}`}
-                onClick={() =>
-                  setPhaseToggled((prev) => ({ ...prev, [section.phase]: !section.open }))
-                }
-              >
-                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                  <span className="font-semibold">{PHASE_LABEL[section.phase]}</span>
-                  <PhaseSummary stages={section.stages} />
-                  {section.phase === "CONSTRUCTION" && iteration !== null ? (
-                    <>
-                      <Badge variant="info" data-testid="construction-iteration">
-                        進め方: {iteration}
-                      </Badge>
-                      <span className="text-xs font-normal text-muted-foreground">
-                        {ITERATION_HINT[iteration]}
-                      </span>
-                    </>
-                  ) : null}
-                </span>
-                <ChevronDownIcon
-                  aria-hidden="true"
-                  className={cn(
-                    "size-4 shrink-0 text-muted-foreground transition-transform",
-                    section.open && "rotate-180",
+            <AccordionTrigger data-testid={`stage-rail-phase-${section.phase}`}>
+              <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                <span className="font-semibold">{PHASE_LABEL[section.phase]}</span>
+                <PhaseSummary stages={section.stages} />
+                {section.phase === "CONSTRUCTION" && iteration !== null ? (
+                  <>
+                    <Badge variant="info" data-testid="construction-iteration">
+                      進め方: {iteration}
+                    </Badge>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {ITERATION_HINT[iteration]}
+                    </span>
+                  </>
+                ) : null}
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              {/* Only an open phase's rows hold a place in the roving focus order. */}
+              {!section.open ? null : layout === "grouped" && section.phase === "CONSTRUCTION" ? (
+                groupedBody(section.stages)
+              ) : (
+                <Timeline>
+                  {section.entries.map((entry) =>
+                    entry.kind === "stage" ? stageRow(entry.stage, take()) : null,
                   )}
-                />
-              </button>
-            </h3>
-            {section.open ? (
-              <div id={panelId} className="px-4 pt-1 pb-4">
-                {layout === "grouped" && section.phase === "CONSTRUCTION" ? (
-                  groupedBody(section.stages)
-                ) : (
-                  <Timeline>
-                    {section.entries.map((entry) =>
-                      entry.kind === "stage" ? stageRow(entry.stage, take()) : null,
-                    )}
-                  </Timeline>
-                )}
-              </div>
-            ) : null}
-          </section>
-        );
-      })}
+                </Timeline>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </nav>
   );
 }

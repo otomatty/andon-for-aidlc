@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Field,
   FieldDescription,
@@ -518,63 +519,71 @@ function StageAssignments({
   const field =
     item.kind === "sensor" ? "sensors" : item.kind === "scope" ? "scopes" : "support_agents";
   return (
-    <details>
-      <summary>この設定を使うステージ（{stages.length}件から選択）</summary>
-      <FieldGroup className="py-4">
-        {stages.map((stage) => (
-          <FieldGroup key={stage.id}>
-            <Field orientation="horizontal">
-              <Checkbox
-                id={`assignment-${item.id}-${stage.id}`}
-                checked={listField(stage.content, field).includes(runtime)}
-                disabled={disabled}
-                onCheckedChange={(checked) =>
-                  onChange({
-                    ...stage,
-                    content: setSourceField(
-                      stage.content,
-                      field,
-                      checked
-                        ? [...new Set([...listField(stage.content, field), runtime])]
-                        : listField(stage.content, field).filter((value) => value !== runtime),
-                    ),
-                  })
-                }
-              />
-              <FieldLabel htmlFor={`assignment-${item.id}-${stage.id}`}>
-                {stage.title}
-                {item.kind === "agent" ? " の協働担当" : ""}
-              </FieldLabel>
-            </Field>
-            {item.kind === "agent" ? (
-              <div className="flex flex-col gap-2">
-                {[
-                  { key: "lead_agent", label: "主担当" },
-                  { key: "reviewer", label: "レビュー担当" },
-                ].map((role) => (
-                  <Field key={role.key} orientation="horizontal">
-                    <Checkbox
-                      id={`assignment-${role.key}-${item.id}-${stage.id}`}
-                      disabled={disabled}
-                      checked={textField(stage.content, role.key) === runtime}
-                      onCheckedChange={(checked) =>
-                        onChange({
-                          ...stage,
-                          content: setSourceField(stage.content, role.key, checked ? runtime : ""),
-                        })
-                      }
-                    />
-                    <FieldLabel htmlFor={`assignment-${role.key}-${item.id}-${stage.id}`}>
-                      {stage.title} の{role.label}
-                    </FieldLabel>
-                  </Field>
-                ))}
-              </div>
-            ) : null}
-          </FieldGroup>
-        ))}
-      </FieldGroup>
-    </details>
+    <Collapsible>
+      <CollapsibleTrigger variant="disclosure">
+        この設定を使うステージ（{stages.length}件から選択）
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <FieldGroup className="py-4">
+          {stages.map((stage) => (
+            <FieldGroup key={stage.id}>
+              <Field orientation="horizontal">
+                <Checkbox
+                  id={`assignment-${item.id}-${stage.id}`}
+                  checked={listField(stage.content, field).includes(runtime)}
+                  disabled={disabled}
+                  onCheckedChange={(checked) =>
+                    onChange({
+                      ...stage,
+                      content: setSourceField(
+                        stage.content,
+                        field,
+                        checked
+                          ? [...new Set([...listField(stage.content, field), runtime])]
+                          : listField(stage.content, field).filter((value) => value !== runtime),
+                      ),
+                    })
+                  }
+                />
+                <FieldLabel htmlFor={`assignment-${item.id}-${stage.id}`}>
+                  {stage.title}
+                  {item.kind === "agent" ? " の協働担当" : ""}
+                </FieldLabel>
+              </Field>
+              {item.kind === "agent" ? (
+                <div className="flex flex-col gap-2">
+                  {[
+                    { key: "lead_agent", label: "主担当" },
+                    { key: "reviewer", label: "レビュー担当" },
+                  ].map((role) => (
+                    <Field key={role.key} orientation="horizontal">
+                      <Checkbox
+                        id={`assignment-${role.key}-${item.id}-${stage.id}`}
+                        disabled={disabled}
+                        checked={textField(stage.content, role.key) === runtime}
+                        onCheckedChange={(checked) =>
+                          onChange({
+                            ...stage,
+                            content: setSourceField(
+                              stage.content,
+                              role.key,
+                              checked ? runtime : "",
+                            ),
+                          })
+                        }
+                      />
+                      <FieldLabel htmlFor={`assignment-${role.key}-${item.id}-${stage.id}`}>
+                        {stage.title} の{role.label}
+                      </FieldLabel>
+                    </Field>
+                  ))}
+                </div>
+              ) : null}
+            </FieldGroup>
+          ))}
+        </FieldGroup>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -897,46 +906,50 @@ export function ItemEditor({
             />
           ) : null}
           {structured && ADVANCED[item.kind]?.length ? (
-            <details>
-              <summary>詳細設定</summary>
-              <FieldGroup className="py-4">
-                {ADVANCED[item.kind]?.map((spec) => (
-                  <SourceControl
-                    key={spec.key}
-                    spec={spec}
-                    item={item}
-                    items={items}
-                    onChange={update}
-                    disabled={!editable}
-                  />
-                ))}
-              </FieldGroup>
-            </details>
+            <Collapsible>
+              <CollapsibleTrigger variant="disclosure">詳細設定</CollapsibleTrigger>
+              <CollapsibleContent>
+                <FieldGroup className="py-4">
+                  {ADVANCED[item.kind]?.map((spec) => (
+                    <SourceControl
+                      key={spec.key}
+                      spec={spec}
+                      item={item}
+                      items={items}
+                      onChange={update}
+                      disabled={!editable}
+                    />
+                  ))}
+                </FieldGroup>
+              </CollapsibleContent>
+            </Collapsible>
           ) : null}
           {!item.binary ? (
-            <details>
-              <summary>原文</summary>
-              <FieldGroup className="py-4">
-                <TextControl
-                  label="設定の原文"
-                  value={item.content}
-                  multiline
-                  disabled={!editable}
-                  hint="フォームが対応していない設定やコメントも、この原文に保持されます。"
-                  onChange={(content) => {
-                    const heading =
-                      item.kind === "rule-section"
-                        ? /^\uFEFF?##[ \t]+([^\r\n]+)/.exec(content)?.[1]
-                        : undefined;
-                    update({
-                      ...item,
-                      content,
-                      ...(heading ? { target: { ...target, heading } } : {}),
-                    });
-                  }}
-                />
-              </FieldGroup>
-            </details>
+            <Collapsible>
+              <CollapsibleTrigger variant="disclosure">原文</CollapsibleTrigger>
+              <CollapsibleContent>
+                <FieldGroup className="py-4">
+                  <TextControl
+                    label="設定の原文"
+                    value={item.content}
+                    multiline
+                    disabled={!editable}
+                    hint="フォームが対応していない設定やコメントも、この原文に保持されます。"
+                    onChange={(content) => {
+                      const heading =
+                        item.kind === "rule-section"
+                          ? /^\uFEFF?##[ \t]+([^\r\n]+)/.exec(content)?.[1]
+                          : undefined;
+                      update({
+                        ...item,
+                        content,
+                        ...(heading ? { target: { ...target, heading } } : {}),
+                      });
+                    }}
+                  />
+                </FieldGroup>
+              </CollapsibleContent>
+            </Collapsible>
           ) : null}
           {editable ? (
             <div className="flex flex-wrap gap-2">

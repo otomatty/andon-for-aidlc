@@ -8,6 +8,7 @@ import { ArrowLeftIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { DocsQaState } from "@/features/docs/hooks/useDocsQa.ts";
 
 type Reference = {
@@ -68,14 +69,18 @@ export function DocsCitationBar({
             ))
           : null}
       </div>
-      <details className="text-sm text-muted-foreground">
-        <summary className="cursor-pointer">
-          {"\u56de\u7b54\u6642\u306e\u5f15\u7528\u6587\u3092\u898b\u308b"}
-        </summary>
-        <blockquote className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap border-l-2 pl-3">
-          {reference.citation.quote}
-        </blockquote>
-      </details>
+      <div className="text-sm text-muted-foreground">
+        <Collapsible>
+          <CollapsibleTrigger variant="disclosure">
+            {"\u56de\u7b54\u6642\u306e\u5f15\u7528\u6587\u3092\u898b\u308b"}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <blockquote className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap border-l-2 pl-3">
+              {reference.citation.quote}
+            </blockquote>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
       {reference.error ? (
         <Alert variant="destructive">
           <AlertDescription>{reference.error}</AlertDescription>

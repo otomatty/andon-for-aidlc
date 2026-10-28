@@ -6,6 +6,7 @@ import type {
 } from "@aidlc-guide/shared-types";
 import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatStageLabel } from "@/data/stage-numbers.ts";
 import { STATUS_PRESENTATION, StatusChip } from "@/shared/ui/StatusChip.tsx";
 import { TimelineItem } from "@/shared/ui/timeline.tsx";
@@ -107,48 +108,53 @@ function Chevron({ open }: { open: boolean }): ReactNode {
   );
 }
 
-/** A Unit's heading under unit-major: opens and closes its steps. */
+/**
+ * A Unit's heading under unit-major: opens and closes its steps. It goes
+ * inside the Unit's `<Collapsible>`; its arrow keys stay the rail's.
+ */
 export function UnitGroupToggle({
   unit,
   open,
   working,
-  onToggle,
   ...roving
 }: RovingProps & {
   unit: UnitWalkUnit;
   open: boolean;
   /** The step this Unit is on, when it is the state file's open Unit. */
   working: { stage: string; paused: boolean } | null;
-  onToggle: () => void;
 }): ReactNode {
   return (
-    <button
-      type="button"
-      ref={roving.register}
-      className={cn(
-        "flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-sm hover:bg-muted",
-        open && "bg-primary-light",
-      )}
-      aria-expanded={open}
-      tabIndex={roving.tabbable ? 0 : -1}
-      onClick={onToggle}
-      onKeyDown={roving.onKeyDown}
-      data-testid={`unit-group-${unit.unit}`}
-    >
-      <Chevron open={open} />
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span>
-          Unit{" "}
-          <span className={cn("font-mono", open ? "font-bold" : "font-medium")}>{unit.unit}</span>
-        </span>
-        {working === null ? null : (
-          <span className="text-xs font-normal text-muted-foreground">
-            {formatStageLabel(working.stage)} を{working.paused ? "一時停止中" : "作業中"}
+    <CollapsibleTrigger
+      render={
+        <button
+          type="button"
+          ref={roving.register}
+          className={cn(
+            "flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-sm hover:bg-muted",
+            open && "bg-primary-light",
+          )}
+          tabIndex={roving.tabbable ? 0 : -1}
+          onKeyDown={roving.onKeyDown}
+          data-testid={`unit-group-${unit.unit}`}
+        >
+          <Chevron open={open} />
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span>
+              Unit{" "}
+              <span className={cn("font-mono", open ? "font-bold" : "font-medium")}>
+                {unit.unit}
+              </span>
+            </span>
+            {working === null ? null : (
+              <span className="text-xs font-normal text-muted-foreground">
+                {formatStageLabel(working.stage)} を{working.paused ? "一時停止中" : "作業中"}
+              </span>
+            )}
           </span>
-        )}
-      </span>
-      <StatusChip status={unit.status} />
-    </button>
+          <StatusChip status={unit.status} />
+        </button>
+      }
+    />
   );
 }
 

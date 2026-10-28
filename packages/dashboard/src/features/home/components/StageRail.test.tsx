@@ -22,6 +22,12 @@ describe("StageRail (FR-4.2 / FR-4.5)", () => {
     expect(screen.getByTestId("stage-rail-item-intent-capture")).toBeDefined();
   });
 
+  it("heads each phase with a level-3 heading holding its toggle", () => {
+    render(<StageRail state={state} onSelect={noop} onRetry={noop} />);
+    const heading = screen.getByRole("heading", { level: 3, name: /Ideation/ });
+    expect(within(heading).getByTestId("stage-rail-phase-IDEATION")).toBeDefined();
+  });
+
   it("counts a run stage that was skipped as done in the phase summary", () => {
     const value = workflow({
       currentStage: "code-generation",

@@ -2,6 +2,7 @@ import type { IntentEffectiveness } from "@aidlc-guide/shared-types";
 import { type ReactNode, useId } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAppState } from "@/store/context.tsx";
 import { viewValue } from "@/store/state.ts";
 import { EFFECTIVENESS_METRIC_GRID } from "@/features/effectiveness/utils/layout.ts";
@@ -32,44 +33,52 @@ function Evidence({ row }: { row: IntentEffectiveness }): ReactNode {
       ? "判別不可（実行先未記録）"
       : MISSING);
   return (
-    <details className="w-full min-w-0 whitespace-normal text-sm">
-      <summary className="w-fit cursor-pointer text-sm font-medium text-primary-light-foreground hover:underline">
-        記録の内訳{row.warnings.length > 0 ? `・注意 ${row.warnings.length} 件` : ""}
-      </summary>
-      <div className="mt-2 flex flex-col gap-2 text-muted-foreground wrap-anywhere">
-        <p>{row.name}</p>
-        <p>
-          開始: {row.startedAt ?? MISSING}
-          <br />
-          完了: {row.completedAt ?? MISSING}
-        </p>
-        <p>
-          監査イベント: {row.auditEventCount === null ? MISSING : `${row.auditEventCount} 件`}
-          。人の入力: {humanInputs}。修正: {row.revisions ?? MISSING}。
-        </p>
-        {wait === null ? null : (
-          <p>
-            承認待ち: 確定 {wait.completedIntervals} 区間、待機中 {wait.pendingIntervals}{" "}
-            区間、集計除外 {wait.excludedIntervals} 区間。
-          </p>
-        )}
-        {sensors === null ? null : (
-          <p>
-            案件内の品質チェック（通常・単独実行の合計）: 合格証跡あり {sensors.verifiedPassed}{" "}
-            件、失敗 {sensors.failed} 件、省略 {sensors.skipped} 件、証跡不足 {sensors.incomplete}{" "}
-            件。{sensors.findings === null ? "指摘数は未記録" : `指摘 ${sensors.findings} 件`}。
-            省略と証跡不足は合格に含めません。
-          </p>
-        )}
-        {row.warnings.length > 0 ? (
-          <ul className="flex list-disc flex-col gap-1 pl-4">
-            {[...new Set(row.warnings)].map((warning) => (
-              <li key={warning}>{warning}</li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
-    </details>
+    <div className="w-full min-w-0 whitespace-normal text-sm">
+      <Collapsible>
+        <CollapsibleTrigger
+          variant="disclosure"
+          className="text-sm font-medium text-primary-light-foreground hover:underline"
+        >
+          記録の内訳{row.warnings.length > 0 ? `・注意 ${row.warnings.length} 件` : ""}
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="mt-2 flex flex-col gap-2 text-muted-foreground wrap-anywhere">
+            <p>{row.name}</p>
+            <p>
+              開始: {row.startedAt ?? MISSING}
+              <br />
+              完了: {row.completedAt ?? MISSING}
+            </p>
+            <p>
+              監査イベント: {row.auditEventCount === null ? MISSING : `${row.auditEventCount} 件`}
+              。人の入力: {humanInputs}。修正: {row.revisions ?? MISSING}。
+            </p>
+            {wait === null ? null : (
+              <p>
+                承認待ち: 確定 {wait.completedIntervals} 区間、待機中 {wait.pendingIntervals}{" "}
+                区間、集計除外 {wait.excludedIntervals} 区間。
+              </p>
+            )}
+            {sensors === null ? null : (
+              <p>
+                案件内の品質チェック（通常・単独実行の合計）: 合格証跡あり {sensors.verifiedPassed}{" "}
+                件、失敗 {sensors.failed} 件、省略 {sensors.skipped} 件、証跡不足{" "}
+                {sensors.incomplete} 件。
+                {sensors.findings === null ? "指摘数は未記録" : `指摘 ${sensors.findings} 件`}。
+                省略と証跡不足は合格に含めません。
+              </p>
+            )}
+            {row.warnings.length > 0 ? (
+              <ul className="flex list-disc flex-col gap-1 pl-4">
+                {[...new Set(row.warnings)].map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
   );
 }
 

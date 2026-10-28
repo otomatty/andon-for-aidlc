@@ -4,6 +4,7 @@ import { type ReactNode, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useFetchView } from "@/hooks/useFetchView.ts";
 import { fetchEffectiveness } from "@/services/api.ts";
 import { useAppState, useDispatch } from "@/store/context.tsx";
@@ -119,16 +120,20 @@ function Comparison({
         <Alert>
           <AlertTitle>一部の記録を集計できません</AlertTitle>
           <AlertDescription>
-            <details>
-              <summary className="cursor-pointer">集計の注意 {warnings.length} 件</summary>
-              <ul className="mt-2 flex list-disc flex-col gap-1 pl-4">
-                {warnings.map((warning) => (
-                  <li key={warning} className="wrap-anywhere">
-                    {warning}
-                  </li>
-                ))}
-              </ul>
-            </details>
+            <Collapsible>
+              <CollapsibleTrigger variant="disclosure">
+                集計の注意 {warnings.length} 件
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <ul className="mt-2 flex list-disc flex-col gap-1 pl-4">
+                  {warnings.map((warning) => (
+                    <li key={warning} className="wrap-anywhere">
+                      {warning}
+                    </li>
+                  ))}
+                </ul>
+              </CollapsibleContent>
+            </Collapsible>
           </AlertDescription>
         </Alert>
       ) : null}
