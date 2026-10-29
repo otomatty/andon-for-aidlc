@@ -13,6 +13,13 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "welcome-screenshots-refresh",
+    date: "2026-10-29",
+    title: "「はじめに」の画像を、今の画面で撮り直しました",
+    body: "「はじめに」で見られる画面の例を、新しくなったダッシュボードの画面に差し替えました。拡張の中と同じ表示で撮り、画面だけを大きく写しているので、文字も読みやすくなっています。画像を軽くしたため、拡張のファイルも小さくなりました。",
+    action: { label: "はじめにを開く", target: "welcome" },
+  },
+  {
     id: "docs-chat-screen",
     date: "2026-10-28",
     title: "ドキュメントへの質問を、チャット画面で行えるようにしました",

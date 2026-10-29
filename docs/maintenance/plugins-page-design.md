@@ -353,6 +353,6 @@ bun .claude/tools/aidlc-plugin-build.ts plugins/focus claude packages/vscode-ext
 | 紹介画面 | `welcome.ts` の `MORE` で「ドキュメント」の次に置いた。画像の撮り方が他と違うため、`note` を画像の下に表示するようにした |
 | 更新情報 | `whats-new.ts` の `plugins-page`。ボタンは「プラグインを開く」                                                           |
 | ツアー   | メニューの説明に「プラグイン」を足した                                                                                   |
-| 画像     | `docs/introducing/images/07-plugins.jpg`。撮り方は `docs/introducing/README.md` の撮影記録                               |
+| 画像     | `docs/introducing/images/07-plugins.webp`。撮り方は `docs/introducing/README.md` の撮影記録                              |
 
-画像はブラウザ版の表示（導入ボタンなし）を撮った。拡張の画面は VS Code のテーマ変数を前提にしており、ブラウザで拡張を装うと配色が崩れるため、装って撮ることはしなかった。Cursor で撮り直す場合は、同じファイル名で置き換え、撮影記録と `welcome.ts` の `note` を直す。
+最初の画像はブラウザ版の表示（導入ボタンなし）を撮った。拡張の画面は VS Code のテーマ変数を前提にしており、変数がないまま拡張を装うと配色が崩れるためである。2026年10月29日の撮り直しでは、VS Code 標準の Light Modern テーマの値を `--vscode-*` 変数に設定し、ほかの画像と同じく拡張の中の表示（導入ボタンあり）を撮った。撮り直す場合は、同じファイル名で置き換え、撮影記録と `welcome.ts` の `note` を直す。

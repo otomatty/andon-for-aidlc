@@ -86,7 +86,7 @@ describe("はじめに page", () => {
         /完了した案件の表示例です。あなたのプロジェクトの状態ではありません。/,
       ),
     ).toBeDefined();
-    expect(within(page).getByText(/2026年9月18日時点の実際の画面です/)).toBeDefined();
+    expect(within(page).getByText(/2026年10月29日時点の実際の画面です/)).toBeDefined();
   });
 
   it("focuses its heading so keyboard and screen reader users start at the top", () => {
@@ -158,7 +158,7 @@ describe("はじめに page", () => {
     expect(probe()).toMatchObject({ route: "effectiveness" });
   });
 
-  it("introduces the plugins page with how its image was taken, and opens it", async () => {
+  it("introduces the plugins page with where installing works, and opens it", async () => {
     renderWelcome();
     const more = screen.getByRole("region", { name: "必要になったら使う機能" });
     const triggers = within(more)
@@ -168,7 +168,7 @@ describe("はじめに page", () => {
       triggers.findIndex((text) => text.startsWith("ドキュメント")) + 1,
     );
     await userEvent.click(within(more).getByRole("button", { name: /^プラグイン/ }));
-    expect(await within(more).findByText(/ブラウザで表示した画面/)).toBeDefined();
+    expect(await within(more).findByText(/拡張の中でだけ表示します/)).toBeDefined();
     await userEvent.click(await within(more).findByRole("button", { name: "プラグインを開く" }));
     expect(probe()).toMatchObject({ route: "plugins" });
   });

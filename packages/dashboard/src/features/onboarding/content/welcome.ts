@@ -3,13 +3,13 @@
  * screenshots are the same real captures the introduction document uses, so
  * replacing a file under docs/introducing/images updates both.
  */
-import workflowImage from "../../../../../../docs/introducing/images/01-workflow.jpg";
-import stageImage from "../../../../../../docs/introducing/images/02-stage-guide.jpg";
-import artifactImage from "../../../../../../docs/introducing/images/02b-artifact.jpg";
-import documentsImage from "../../../../../../docs/introducing/images/03-documents.jpg";
-import customizationImage from "../../../../../../docs/introducing/images/04-customization.jpg";
-import effectivenessImage from "../../../../../../docs/introducing/images/05-effectiveness.jpg";
-import pluginsImage from "../../../../../../docs/introducing/images/07-plugins.jpg";
+import workflowImage from "../../../../../../docs/introducing/images/01-workflow.webp";
+import stageImage from "../../../../../../docs/introducing/images/02-stage-guide.webp";
+import artifactImage from "../../../../../../docs/introducing/images/02b-artifact.webp";
+import documentsImage from "../../../../../../docs/introducing/images/03-documents.webp";
+import customizationImage from "../../../../../../docs/introducing/images/04-customization.webp";
+import effectivenessImage from "../../../../../../docs/introducing/images/05-effectiveness.webp";
+import pluginsImage from "../../../../../../docs/introducing/images/07-plugins.webp";
 
 export interface WelcomeShot {
   id: string;
@@ -34,7 +34,7 @@ export interface WelcomeFeature extends WelcomeShot {
 export const SHOT_WIDTH = 1536;
 export const SHOT_HEIGHT = 960;
 
-export const CAPTURED_ON = "2026年9月18日";
+export const CAPTURED_ON = "2026年10月29日";
 
 export const BASICS: readonly WelcomeShot[] = [
   {
@@ -45,7 +45,7 @@ export const BASICS: readonly WelcomeShot[] = [
       "左上の Space で作業スペース、その隣で案件を選ぶと、現在のステージと工程ごとの状態が並びます。",
     what: "現在のステージを開くと、フェーズや完了数、残り時間も確認できます。",
     alt: "現在のステージと、工程ごとの状態を並べたステージ一覧の画面",
-    note: "完了した案件の表示例です。あなたのプロジェクトの状態ではありません。画像は Space 切り替え追加前の画面です。",
+    note: "完了した案件の表示例です。あなたのプロジェクトの状態ではありません。",
   },
   {
     id: "stage",
@@ -87,8 +87,8 @@ export const MORE: readonly WelcomeFeature[] = [
       "Jira のチケットからテストを先に書いて実装まで進めるなど、目的に合った進め方を追加できます。",
     where: "右上のメニューの「プラグイン」から開きます。",
     what: "導入前に、必要な準備と、変わるステージ・成果物の図の例を確認できます。導入したプラグインは無効にすることもできます。",
-    alt: "focus プラグインで変わるステージの一覧と、成果物の図の見本を表示したプラグイン画面",
-    note: "画像は2026年10月15日にブラウザで表示した画面です（ほかの画像は Cursor で撮影）。導入ボタンは VS Code / Cursor の拡張の中でだけ表示します。",
+    alt: "focus プラグインの導入状態と導入ボタン、変わるステージの一覧を表示したプラグイン画面",
+    note: "導入ボタンは VS Code / Cursor の拡張の中でだけ表示します。ブラウザ版の Dashboard では内容の確認だけができます。",
     open: "プラグインを開く",
   },
   {
