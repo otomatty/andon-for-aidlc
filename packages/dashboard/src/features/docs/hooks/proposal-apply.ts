@@ -45,6 +45,8 @@ export function useProposalApply() {
       if (!proposal.canApply || pending.current.has(turnId)) return;
       pending.current.add(turnId);
       record(turnId, { status: "applying" });
+      // Once the save is accepted, a later failure leaves its outcome unknown.
+      let accepted = false;
       try {
         let operation = await customizationApi.save({
           requestId: customizationRequestId(),
@@ -52,6 +54,7 @@ export function useProposalApply() {
           expectedConfigurationRevision: proposal.configurationRevision,
           changes: proposal.changes,
         });
+        accepted = true;
         for (let poll = 0; operation.status === "running" && poll < POLL_LIMIT; poll += 1) {
           await wait(POLL_MS);
           operation = await customizationApi.operation(operation.id);
@@ -74,6 +77,15 @@ export function useProposalApply() {
             ...(operation.status === "running" ? { uncertain: true } : {}),
           });
       } catch (cause) {
+        if (accepted) {
+          record(turnId, {
+            status: "failed",
+            message: "保存の結果を確認できません。カスタマイズ画面で状態を確認してください。",
+            diagnostics: [],
+            uncertain: true,
+          });
+          return;
+        }
         const changed =
           cause instanceof CustomizationError && cause.reason === "configuration-changed";
         record(turnId, {

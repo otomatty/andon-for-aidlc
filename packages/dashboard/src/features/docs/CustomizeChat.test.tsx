@@ -60,6 +60,8 @@ function stubApi(
   options: {
     tools?: DocsQaToolStatus[];
     proposal?: CustomizationProposal;
+    /** The save is accepted but its result cannot be read back. */
+    lostOperation?: boolean;
   } = {},
 ) {
   const requests: DocsQaRequest[] = [];
@@ -87,6 +89,7 @@ function stubApi(
     else if (route.startsWith("/api/official-docs/toc/"))
       value = { overview: [], guide: [], reference: [] };
     else if (route === "/api/guides") value = [];
+    else if (route.startsWith("/api/customization/operation?id=")) return { reached: false };
     else throw new Error(`Unexpected GET ${route}`);
     return { reached: true, body: { ok: true, value } };
   });
@@ -111,7 +114,7 @@ function stubApi(
       value = {
         id: "operation-1",
         requestId: (body as { requestId: string }).requestId,
-        status: "completed",
+        status: options.lostOperation ? "running" : "completed",
         kind: "apply",
         message: "設定を保存しました。",
       };
@@ -248,6 +251,20 @@ describe("customizing by conversation", () => {
     expect(previous).toContain('"previousProposal"');
     expect(previous).toContain('"status":"applied"');
     expect(previous).toContain("Two approvals and a green CI.");
+  });
+
+  it("does not offer a second apply when the save was accepted but its result is unknown", async () => {
+    const api = stubApi({ lostOperation: true });
+    showChat("customize");
+    await send("レビューに CI を必須に");
+    const card = await screen.findByTestId("docs-proposal");
+    await userEvent.click(within(card).getByRole("button", { name: "この変更を適用" }));
+    expect(
+      (await within(card).findByTestId("docs-proposal-error", {}, { timeout: 3000 })).textContent,
+    ).toContain("保存の結果を確認できません");
+    expect(within(card).queryByRole("button", { name: "この変更を適用" })).toBeNull();
+    expect(within(card).getByRole("button", { name: "カスタマイズ画面で確認" })).toBeTruthy();
+    expect(api.saves).toHaveLength(1);
   });
 
   it("returns to the active space when the chosen one is cleared", async () => {
