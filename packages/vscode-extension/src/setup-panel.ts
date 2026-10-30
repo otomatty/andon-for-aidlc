@@ -28,7 +28,8 @@ import {
   type SetupRunner,
 } from "./native-setup.ts";
 import { setupHtml } from "./setup-html.ts";
-import { inspectSetup, needsSetup, type SetupPreference, setupStateKey } from "./setup-state.ts";
+import { type SetupPreference, setupStateKey } from "./setup-preference.ts";
+import { inspectSetup, needsSetup } from "./setup-state.ts";
 import { installWorkflows, type WorkflowsHarnessInstallResult } from "./workflows-install.ts";
 import { workflowsRepairKey } from "./workflows-operation.ts";
 import { harnessVersionRel } from "./workflows-version.ts";

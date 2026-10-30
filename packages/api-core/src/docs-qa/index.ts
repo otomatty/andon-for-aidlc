@@ -2,11 +2,14 @@ import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import { readQuestionEvidence, retrieveQuestionContext } from "@andon/official-docs";
 import type {
+  CustomizationCatalog,
+  CustomizationValidation,
   DocsQaCitation,
   DocsQaEvidence,
   DocsQaJob,
   DocsQaRequest,
   DocsQaResult,
+  DocsQaTool,
   DocsQaToolStatus,
 } from "@andon/shared-types";
 import {
@@ -17,8 +20,16 @@ import {
   publicError,
   runCli,
 } from "../ai-cli/process";
+import { CustomizationError } from "../customization/model.ts";
 import { answerText, citedSources, questionPrompt } from "./prompt";
 import { createScratch } from "../ai-cli/scratch";
+import {
+  CUSTOMIZE_MAX_TEXT,
+  customizationContext,
+  customizePrompt,
+  parseProposal,
+  settleProposal,
+} from "./customize.ts";
 import { parseQuestion } from "./validation";
 
 export interface DocsQaService {
@@ -37,7 +48,15 @@ export interface DocsQaDependencies {
   run: typeof runCli;
   scratch: typeof createScratch;
   timeoutMs: number;
+  /** A customize turn writes whole files and so may take longer. */
+  customizeTimeoutMs: number;
   now(): number;
+}
+
+/** The part of the customization service a customize turn reads and checks with. */
+export interface DocsQaCustomization {
+  catalog(spaceId?: string): Promise<CustomizationCatalog>;
+  check(body: Record<string, unknown>): Promise<CustomizationValidation>;
 }
 
 interface StoredJob {
@@ -53,8 +72,16 @@ const active = (job: DocsQaJob) =>
 const ok = <T>(value: T): DocsQaResult<T> => ({ ok: true, value: structuredClone(value) });
 const error = <T>(reason: string): DocsQaResult<T> => ({ error: true, reason });
 
+const ALL_TOOLS: readonly DocsQaTool[] = ["claude", "cursor", "copilot"];
+
 export function createDocsQaService(config: {
   docsRoot: string;
+  /**
+   * The tools the host lets the chat use, e.g. those chosen in Setup.
+   * Read on every request so a later choice applies; omitted: every tool.
+   */
+  selectedTools?: () => readonly DocsQaTool[];
+  customization?: DocsQaCustomization;
   dependencies?: Partial<DocsQaDependencies>;
 }): DocsQaService {
   const deps: DocsQaDependencies = {
@@ -64,8 +91,16 @@ export function createDocsQaService(config: {
     run: runCli,
     scratch: createScratch,
     timeoutMs: 120_000,
+    customizeTimeoutMs: 240_000,
     now: Date.now,
     ...config.dependencies,
+  };
+  const selected = (tool: DocsQaTool): boolean => {
+    try {
+      return (config.selectedTools?.() ?? ALL_TOOLS).includes(tool);
+    } catch {
+      return true;
+    }
   };
   const jobs = new Map<string, StoredJob>();
   let disposed = false;
@@ -82,7 +117,7 @@ export function createDocsQaService(config: {
   };
   const tools = async (): Promise<CliCapability[]> => {
     if (disposed)
-      return (["claude", "cursor", "copilot"] as const).map((tool) => ({
+      return ALL_TOOLS.map((tool) => ({
         tool,
         label: LABELS[tool],
         available: false,
@@ -99,16 +134,148 @@ export function createDocsQaService(config: {
       });
     return probing;
   };
+  type Scratch = Awaited<ReturnType<typeof createScratch>>;
+  type Turn = {
+    entry: StoredJob;
+    request: DocsQaRequest;
+    command: string;
+    running(): boolean;
+    /** Creates the CLI's temporary directory; the caller removes it. */
+    scratch(): Promise<Scratch>;
+  };
+  const answerDocs = async ({ entry, request, command, running, scratch }: Turn) => {
+    const { job, abort } = entry;
+    const context = await deps.retrieve(config.docsRoot, request);
+    if (!running()) return;
+    job.phase = "reading";
+    let size = 0;
+    job.citations = context.citations
+      .filter((citation) => {
+        size += citation.quote.length;
+        return size <= 48_000;
+      })
+      .slice(0, 8);
+    entry.issued = structuredClone(job.citations);
+    if (!job.citations.length) {
+      job.phase = "completed";
+      job.answer =
+        request.locale === "ja"
+          ? "内蔵ドキュメントから、この質問を確認できる記述が見つかりませんでした。ツール名やステージ名を含めて質問するか、対象の文書を開いて「この文書について質問」をお試しください。"
+          : "The bundled documentation did not contain a source that could confirm this answer. Include a tool or stage name, or open a document and ask about that page.";
+      return;
+    }
+    const temporary = await scratch();
+    if (!running()) return;
+    job.phase = "answering";
+    job.sourcesKind = "citations";
+    const supplied = structuredClone(job.citations);
+    const text = await deps.run({
+      command,
+      args: cliArguments(request.tool),
+      tool: request.tool,
+      cwd: temporary.cwd,
+      env: temporary.env,
+      prompt: questionPrompt(request, supplied),
+      signal: abort.signal,
+      onText: (text) => {
+        if (running()) job.answer = answerText(text, supplied);
+      },
+    });
+    if (!running()) return;
+    job.answer = answerText(text, supplied);
+    job.citations = citedSources(job.answer, supplied);
+    if (!job.answer || !job.citations.length) {
+      job.answer =
+        request.locale === "ja"
+          ? "内蔵ドキュメントに基づく回答を確認できませんでした。質問の範囲を絞って再試行してください。"
+          : "A sourced answer could not be confirmed from the bundled documentation. Try a more specific question.";
+      job.citations = supplied;
+      job.sourcesKind = "related";
+    }
+    job.phase = "completed";
+  };
+  const answerCustomize = async ({ entry, request, command, running, scratch }: Turn) => {
+    const { job, abort } = entry;
+    const customization = config.customization;
+    if (!customization) {
+      job.phase = "error";
+      job.error = "カスタマイズを利用できません。Andon を更新してください。";
+      return;
+    }
+    const catalog = await customization.catalog(request.spaceId);
+    if (!running()) return;
+    job.phase = "reading";
+    const context = customizationContext(catalog, request);
+    const temporary = await scratch();
+    if (!running()) return;
+    job.phase = "answering";
+    const text = await deps.run({
+      command,
+      args: cliArguments(request.tool),
+      tool: request.tool,
+      cwd: temporary.cwd,
+      env: temporary.env,
+      prompt: customizePrompt(request, catalog, context),
+      signal: abort.signal,
+      maxText: CUSTOMIZE_MAX_TEXT,
+      // The raw answer is JSON; the reply is shown once it has been read.
+      onText: () => {},
+    });
+    if (!running()) return;
+    const draft = parseProposal(text, catalog, context.full);
+    let proposal = draft.proposal;
+    if (
+      proposal &&
+      catalog.capabilities.canApply &&
+      !proposal.diagnostics.some((entry) => entry.severity === "error")
+    ) {
+      const checked = await customization.check({
+        spaceId: catalog.spaceId,
+        expectedConfigurationRevision: catalog.configurationRevision,
+        changes: proposal.changes,
+      });
+      if (!running()) return;
+      proposal = {
+        ...proposal,
+        diagnostics: [
+          ...proposal.diagnostics,
+          ...checked.diagnostics,
+          ...(checked.valid
+            ? []
+            : [
+                {
+                  severity: "error" as const,
+                  code: "validation-failed",
+                  message: "設定の整合性を確認できませんでした。",
+                },
+              ]),
+        ],
+      };
+    }
+    job.answer =
+      draft.reply ||
+      (request.locale === "ja"
+        ? "AI の回答を読み取れませんでした。依頼を具体的にして再試行してください。"
+        : "The AI answer could not be read. Make the request more specific and retry.");
+    if (proposal) job.proposal = settleProposal(proposal, catalog);
+    job.phase = "completed";
+  };
   const run = async (entry: StoredJob, request: DocsQaRequest) => {
     const { job, abort } = entry;
-    let scratch: Awaited<ReturnType<typeof createScratch>> | undefined;
+    let temporary: Scratch | undefined;
     const running = () => !disposed && !abort.signal.aborted && active(job);
-    entry.timer = setTimeout(() => {
-      if (!running()) return;
-      job.phase = "error";
-      job.error = "回答の生成が時間内に終わりませんでした。質問の範囲を絞って再試行してください。";
-      abort.abort();
-    }, deps.timeoutMs);
+    const customize = request.mode === "customize";
+    entry.timer = setTimeout(
+      () => {
+        if (!running()) return;
+        job.phase = "error";
+        job.error = customize
+          ? "変更案の作成が時間内に終わりませんでした。依頼を小さく分けて再試行してください。"
+          : "回答の生成が時間内に終わりませんでした。質問の範囲を絞って再試行してください。";
+        abort.abort();
+      },
+      customize ? deps.customizeTimeoutMs : deps.timeoutMs,
+    );
     entry.timer.unref?.();
     try {
       const capability = (await tools()).find((candidate) => candidate.tool === request.tool);
@@ -119,64 +286,27 @@ export function createDocsQaService(config: {
           capability?.detail ?? "CLI が利用できません。アプリを再起動して確認してください。";
         return;
       }
-      const context = await deps.retrieve(config.docsRoot, request);
-      if (!running()) return;
-      job.phase = "reading";
-      let size = 0;
-      job.citations = context.citations
-        .filter((citation) => {
-          size += citation.quote.length;
-          return size <= 48_000;
-        })
-        .slice(0, 8);
-      entry.issued = structuredClone(job.citations);
-      if (!job.citations.length) {
-        job.phase = "completed";
-        job.answer =
-          request.locale === "ja"
-            ? "内蔵ドキュメントから、この質問を確認できる記述が見つかりませんでした。ツール名やステージ名を含めて質問するか、対象の文書を開いて「この文書について質問」をお試しください。"
-            : "The bundled documentation did not contain a source that could confirm this answer. Include a tool or stage name, or open a document and ask about that page.";
-        return;
-      }
-      scratch = await deps.scratch(request.tool);
-      if (!running()) return;
-      job.phase = "answering";
-      job.sourcesKind = "citations";
-      const supplied = structuredClone(job.citations);
-      const text = await deps.run({
+      const turn: Turn = {
+        entry,
+        request,
         command: capability.command,
-        args: cliArguments(request.tool),
-        tool: request.tool,
-        cwd: scratch.cwd,
-        env: scratch.env,
-        prompt: questionPrompt(request, supplied),
-        signal: abort.signal,
-        onText: (text) => {
-          if (running()) job.answer = answerText(text, supplied);
-        },
-      });
-      if (!running()) return;
-      job.answer = answerText(text, supplied);
-      job.citations = citedSources(job.answer, supplied);
-      if (!job.answer || !job.citations.length) {
-        job.answer =
-          request.locale === "ja"
-            ? "内蔵ドキュメントに基づく回答を確認できませんでした。質問の範囲を絞って再試行してください。"
-            : "A sourced answer could not be confirmed from the bundled documentation. Try a more specific question.";
-        job.citations = supplied;
-        job.sourcesKind = "related";
-      }
-      job.phase = "completed";
+        running,
+        scratch: async () => (temporary = await deps.scratch(request.tool)),
+      };
+      await (customize ? answerCustomize(turn) : answerDocs(turn));
     } catch (failure) {
       if (running()) {
         job.phase = "error";
         job.answer = "";
-        job.error = publicError(failure, request.tool);
+        job.error =
+          failure instanceof CustomizationError
+            ? failure.message
+            : publicError(failure, request.tool);
       }
     } finally {
       clearTimeout(entry.timer);
       try {
-        await scratch?.cleanup();
+        await temporary?.cleanup();
       } catch {
         /* Temporary cleanup must not replace the answer/error. */
       }
@@ -186,17 +316,21 @@ export function createDocsQaService(config: {
     async tools(recheck = false) {
       // An explicit UI recheck must discover a newly installed or updated CLI.
       if (recheck) capabilities = undefined;
-      return (await tools()).map(({ tool, label, available, detail }) => ({
-        tool,
-        label,
-        available,
-        ...(detail ? { detail } : {}),
-      }));
+      const all = await tools();
+      return all
+        .filter(({ tool }) => selected(tool))
+        .map(({ tool, label, available, detail }) => ({
+          tool,
+          label,
+          available,
+          ...(detail ? { detail } : {}),
+        }));
     },
     async start(body) {
       if (disposed) return error("disposed");
       const request = parseQuestion(body);
       if (!request) return error("bad-request");
+      if (!selected(request.tool)) return error("tool-not-selected");
       if (Array.from(jobs.values()).some((entry) => active(entry.job))) return error("busy");
       prune();
       const entry: StoredJob = {
@@ -207,6 +341,7 @@ export function createDocsQaService(config: {
           question: request.question,
           tool: request.tool,
           locale: request.locale,
+          ...(request.mode ? { mode: request.mode } : {}),
           ...(request.target ? { target: structuredClone(request.target) } : {}),
           phase: "searching",
           answer: "",

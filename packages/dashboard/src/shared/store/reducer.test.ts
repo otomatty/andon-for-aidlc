@@ -312,6 +312,22 @@ describe("reducer / local actions", () => {
   });
 });
 
+describe("reducer / AI chat link", () => {
+  it("carries a one-shot chat target into the docs route", () => {
+    const next = reducer(initialState, {
+      type: "docs-shell",
+      open: true,
+      locale: "ja",
+      chat: { mode: "customize", space: "team" },
+    });
+    expect(next.route).toEqual({
+      name: "docs",
+      deepLink: { locale: "ja", chat: { mode: "customize", space: "team" } },
+    });
+    expect(reducer(next, { type: "docs-shell", open: true }).route).toEqual({ name: "docs" });
+  });
+});
+
 describe("reducer / settings navigation", () => {
   const routes: [string, Action][] = [
     ["stage", { type: "select", selection: { kind: "stage", slug: "code-generation" } }],

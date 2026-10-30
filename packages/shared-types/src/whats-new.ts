@@ -13,6 +13,13 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "chat-customize",
+    date: "2026-10-30",
+    title: "AI チャットでカスタマイズを相談できるようにしました",
+    body: "ドキュメントの質問と同じチャット画面で「カスタマイズ」に切り替えると、AI が現在の設定を読んで変更案を差分つきで示し、確認して「この変更を適用」を押すと保存します。カスタマイズ画面の「AIと相談」からも開けます。回答に使うツールは、拡張で選んだツールだけを表示します。",
+    action: { label: "カスタマイズを開く", target: "customization" },
+  },
+  {
     id: "workflows-2-11-2",
     date: "2026-10-30",
     title: "aidlc-workflows 2.11.2 に対応しました",

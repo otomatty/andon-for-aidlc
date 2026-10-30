@@ -136,6 +136,29 @@ export class CustomizationService {
       expectedConfigurationRevision: snapshot.baseConfigurationRevision,
     };
   }
+  /** Validates unsaved changes as a save would, without planning or writing them. */
+  async check(body: Record<string, unknown>): Promise<CustomizationValidation> {
+    const snapshot = await this.snapshot(body);
+    const local = localDiagnostics(snapshot.items);
+    if (local.some((entry) => entry.severity === "error"))
+      return { valid: false, diagnostics: local };
+    try {
+      return await this.engine.call<CustomizationValidation>(
+        "validate",
+        this.engineRequest(snapshot),
+      );
+    } catch (error) {
+      if (
+        !(error instanceof CustomizationError) ||
+        !["engine-capability-missing", "engine-unavailable"].includes(error.code)
+      )
+        throw error;
+      return {
+        valid: true,
+        diagnostics: [{ severity: "warning", code: error.code, message: error.message }],
+      };
+    }
+  }
   async save(body: Record<string, unknown>): Promise<CustomizationOperation> {
     this.assertEditable();
     if (!localIdentifier(body.requestId)) return fail("bad-request", "保存操作のIDが不正です。");

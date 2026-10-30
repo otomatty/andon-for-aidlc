@@ -26,7 +26,6 @@ import { ScopeDescription } from "./ScopeDescription";
 import { StageDescription } from "./StageDescription";
 import {
   frontmatter,
-  KIND_LABELS,
   listField,
   ruleBody,
   setJsonField,
@@ -38,6 +37,7 @@ import {
   sourceField,
   textField,
 } from "@/features/customization/utils/source-fields";
+import { KIND_LABELS } from "@/features/customization/utils/kind-labels.ts";
 import { isStandard } from "@/features/customization/utils/workflow-model";
 
 type FieldSpec = {

@@ -1,35 +1,62 @@
-import type { DocsQaCitation, DocsQaJob, DocsQaPhase } from "@andon/shared-types";
-import { BookOpenIcon, CheckIcon, CopyIcon, LoaderCircleIcon, PencilIcon } from "lucide-react";
+import type { DocsQaCitation, DocsQaJob, DocsQaMode, DocsQaPhase } from "@andon/shared-types";
+import {
+  BookOpenIcon,
+  CheckIcon,
+  CopyIcon,
+  LoaderCircleIcon,
+  PencilIcon,
+  SlidersHorizontalIcon,
+} from "lucide-react";
 import { type ReactNode, Suspense, useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MarkdownSurface } from "@/viewer/lazy-markdown.ts";
 import { DocumentSkeleton } from "@/shared/loading/DocumentSkeleton.tsx";
+import type { ProposalApply } from "@/features/docs/hooks/proposal-apply.ts";
 import { isRunning } from "@/features/docs/hooks/useDocsQa.ts";
+import { CustomizationProposalCard } from "./CustomizationProposalCard.tsx";
 import { TOOL_LABELS } from "./DocsComposer.tsx";
 
-const PHASE_LABELS: Record<DocsQaPhase, string> = {
-  searching: "関連する文書を検索しています…",
-  reading: "参照する箇所を確認しています…",
-  answering: "文書をもとに回答を作成しています…",
-  completed: "回答が完了しました",
-  cancelled: "回答を停止しました",
-  error: "回答を作成できませんでした",
+const PHASE_LABELS: Record<DocsQaMode, Record<DocsQaPhase, string>> = {
+  docs: {
+    searching: "関連する文書を検索しています…",
+    reading: "参照する箇所を確認しています…",
+    answering: "文書をもとに回答を作成しています…",
+    completed: "回答が完了しました",
+    cancelled: "回答を停止しました",
+    error: "回答を作成できませんでした",
+  },
+  customize: {
+    searching: "現在の設定を読み込んでいます…",
+    reading: "関係する設定を確認しています…",
+    answering: "変更案を作成して検証しています…",
+    completed: "回答が完了しました",
+    cancelled: "回答を停止しました",
+    error: "変更案を作成できませんでした",
+  },
 };
 
 /** What each running phase has already finished, shown above the current one. */
-const DONE_STEPS: Record<"searching" | "reading" | "answering", string[]> = {
-  searching: [],
-  reading: ["関連する文書を検索しました"],
-  answering: ["関連する文書を検索しました", "参照する箇所を確認しました"],
+const DONE_STEPS: Record<DocsQaMode, Record<"searching" | "reading" | "answering", string[]>> = {
+  docs: {
+    searching: [],
+    reading: ["関連する文書を検索しました"],
+    answering: ["関連する文書を検索しました", "参照する箇所を確認しました"],
+  },
+  customize: {
+    searching: [],
+    reading: ["現在の設定を読み込みました"],
+    answering: ["現在の設定を読み込みました", "関係する設定を確認しました"],
+  },
 };
 
 function Progress({ turn }: { turn: DocsQaJob }): ReactNode {
   const running = isRunning(turn);
+  const mode = turn.mode ?? "docs";
   const done =
     turn.phase === "searching" || turn.phase === "reading" || turn.phase === "answering"
-      ? DONE_STEPS[turn.phase]
+      ? DONE_STEPS[mode][turn.phase]
       : [];
   return (
     <div className="flex flex-col gap-0.5 text-sm text-muted-foreground">
@@ -55,7 +82,7 @@ function Progress({ turn }: { turn: DocsQaJob }): ReactNode {
             className="size-3.5 animate-spin text-primary motion-reduce:animate-none"
           />
         ) : null}
-        {PHASE_LABELS[turn.phase]}
+        {PHASE_LABELS[mode][turn.phase]}
       </p>
     </div>
   );
@@ -134,6 +161,9 @@ export function DocsChatTurn({
   canEdit,
   onCitation,
   onEdit,
+  applied,
+  onApply,
+  onOpenCustomization,
 }: {
   turn: DocsQaJob;
   index: number;
@@ -143,8 +173,13 @@ export function DocsChatTurn({
   canEdit: boolean;
   onCitation: (citation: DocsQaCitation) => void;
   onEdit: () => void;
+  /** How applying this turn's proposal went, if it was applied. */
+  applied?: ProposalApply;
+  onApply?: () => void;
+  onOpenCustomization?: () => void;
 }): ReactNode {
   const running = isRunning(turn);
+  const customize = turn.mode === "customize";
   return (
     <div
       id={`docs-answer-${turn.id}`}
@@ -175,9 +210,13 @@ export function DocsChatTurn({
             aria-hidden="true"
             className="flex size-6 items-center justify-center rounded-md bg-primary-light text-primary-light-foreground"
           >
-            <BookOpenIcon className="size-3.5" />
+            {customize ? (
+              <SlidersHorizontalIcon className="size-3.5" />
+            ) : (
+              <BookOpenIcon className="size-3.5" />
+            )}
           </span>
-          {`内蔵ドキュメントから回答 · ${TOOL_LABELS[turn.tool]}`}
+          {`${customize ? "現在の設定をもとに相談" : "内蔵ドキュメントから回答"} · ${TOOL_LABELS[turn.tool]}`}
         </p>
         <Progress turn={turn} />
         {turn.answer ? <AnswerText turn={turn} onCitation={onCitation} /> : null}
@@ -185,6 +224,14 @@ export function DocsChatTurn({
           <Alert variant="destructive">
             <AlertDescription>{turn.error}</AlertDescription>
           </Alert>
+        ) : null}
+        {turn.proposal && onApply ? (
+          <CustomizationProposalCard
+            proposal={turn.proposal}
+            result={applied}
+            onApply={onApply}
+            {...(onOpenCustomization ? { onOpenCustomization } : {})}
+          />
         ) : null}
         {turn.citations.length > 0 ? (
           <section

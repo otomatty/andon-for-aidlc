@@ -11,6 +11,7 @@ import {
   watchSelection,
 } from "@andon/reader-core";
 import type {
+  DocsQaTool,
   IntentList,
   Matrix,
   MatrixCell,
@@ -58,6 +59,11 @@ export interface GuideServiceConfig {
    * explicit `null` switches checking off (tests on bare fixtures).
    */
   versionGate?: (() => VersionGate) | null;
+  /**
+   * The AI tools the chat offers — the host's tool choice (the extension's
+   * Setup). Omitted, every supported tool is offered.
+   */
+  chatTools?: () => readonly DocsQaTool[];
 }
 
 export interface GuideService {
@@ -89,14 +95,16 @@ export function createGuideService(config: GuideServiceConfig = {}): GuideServic
     const gate = gateCheck.current();
     return gate === null || gate.status === "ok";
   };
-  const docsQa = createDocsQaService({
-    docsRoot: officialDocsRoot,
-  });
   const customization = createCustomizationService({
     workspaceRoot,
     ...(config.customizationEngine ? { engine: config.customizationEngine } : {}),
     ...(config.canEdit ? { canEdit: config.canEdit } : {}),
     onChange: () => hub.broadcast({ type: "customization-changed" }),
+  });
+  const docsQa = createDocsQaService({
+    docsRoot: officialDocsRoot,
+    customization,
+    ...(config.chatTools ? { selectedTools: config.chatTools } : {}),
   });
   let pin: string | null = config.initialSelected ?? null;
   let pinSpace: string | null = null;

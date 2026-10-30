@@ -17,6 +17,7 @@ import {
 } from "@andon/shared-types";
 import {
   type AppRoute,
+  type DocsChatLink,
   type DocsDeepLink,
   HOME_ROUTE,
   routeSelection,
@@ -73,6 +74,8 @@ export type Action =
       anchor?: string;
       /** An extension guide opened inside the existing docs shell. UI only. */
       guide?: string;
+      /** Opens the AI chat instead of a page. UI only. */
+      chat?: DocsChatLink;
     }
   | { type: "official-docs-locale"; locale: OfficialDocsLocale }
   | { type: "open-agent"; id: string }
@@ -351,6 +354,7 @@ function docsRoute(
     ...(action.path !== undefined && action.path !== "" ? { path: action.path } : {}),
     ...(action.guide !== undefined && action.guide !== "" ? { guide: action.guide } : {}),
     ...(action.anchor !== undefined && action.anchor !== "" ? { anchor: action.anchor } : {}),
+    ...(action.chat !== undefined ? { chat: action.chat } : {}),
   };
   return [{ name: "docs", deepLink }, { officialDocsLocale: action.locale }];
 }

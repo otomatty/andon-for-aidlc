@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { TextControl } from "@/features/customization/components/editor/ItemEditor";
-import { itemLocation, KIND_LABELS } from "@/features/customization/utils/source-fields";
+import { KIND_LABELS } from "@/features/customization/utils/kind-labels.ts";
+import { itemLocation } from "@/features/customization/utils/source-fields";
 
 export function ImportDialog({
   plan,

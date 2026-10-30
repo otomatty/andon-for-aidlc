@@ -41,6 +41,7 @@ function setup(overrides: Partial<DocsQaDependencies> = {}) {
     }),
     scratch: vi.fn(async () => ({ cwd: "/isolated", env: {}, cleanup: vi.fn(async () => {}) })),
     timeoutMs: 120_000,
+    customizeTimeoutMs: 240_000,
     now: Date.now,
     ...overrides,
   };

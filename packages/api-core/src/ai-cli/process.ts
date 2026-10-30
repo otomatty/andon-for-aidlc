@@ -126,6 +126,8 @@ export interface CliRunOptions {
   prompt: string;
   signal: AbortSignal;
   onText(text: string): void;
+  /** Longest answer accepted, in characters. Defaults to a docs answer's budget. */
+  maxText?: number;
   /** Persist ownership before supplying any prompt to the child. */
   onSpawn?(pid: number): Promise<void>;
 }
@@ -147,6 +149,7 @@ export class AnswerStream {
   constructor(
     private readonly tool: DocsQaTool,
     private readonly onText: (text: string) => void,
+    private readonly maxText = MAX_ANSWER,
   ) {
     this.copilot = tool === "copilot" ? new CopilotOutput() : undefined;
   }
@@ -203,7 +206,7 @@ export class AnswerStream {
     ) {
       this.text += messageText(event.message);
     }
-    if (this.text.length > MAX_ANSWER) throw new Error("output-limit");
+    if (this.text.length > this.maxText) throw new Error("output-limit");
     this.onText(this.text);
   }
 }
@@ -227,7 +230,9 @@ export function runCli(options: CliRunOptions): Promise<string> {
     let bytes = 0;
     let failure: Error | undefined;
     let finished = false;
-    const parser = new AnswerStream(options.tool, options.onText);
+    const parser = new AnswerStream(options.tool, options.onText, options.maxText);
+    // Streamed vendors repeat the text in deltas, the final message and the result.
+    const maxOutput = Math.max(MAX_OUTPUT, (options.maxText ?? 0) * 12);
     const stop = (error: Error) => {
       if (finished) return;
       failure ??= error;
@@ -252,7 +257,7 @@ export function runCli(options: CliRunOptions): Promise<string> {
     child.stdout.on("data", (chunk: string) => {
       if (failure) return;
       bytes += Buffer.byteLength(chunk);
-      if (bytes > MAX_OUTPUT) {
+      if (bytes > maxOutput) {
         stop(new Error("output-limit"));
         return;
       }

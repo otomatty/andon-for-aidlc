@@ -32,7 +32,8 @@ export function RouteOutlet({
 }: {
   visitedCustomization: boolean;
 }): ReactNode {
-  const { route, customizationRefresh, spaceSwitchPending, intents } = useAppState();
+  const { route, customizationRefresh, spaceSwitchPending, intents, officialDocsLocale } =
+    useAppState();
   const dispatch = useDispatch();
   const activeSpace = viewValue(intents)?.space;
   const onSwitchBlockedChange = useCallback(
@@ -68,6 +69,14 @@ export function RouteOutlet({
                 switching={spaceSwitchPending}
                 onSwitchBlockedChange={onSwitchBlockedChange}
                 onSettings={() => dispatch({ type: "settings", open: true })}
+                onAskAi={(space) =>
+                  dispatch({
+                    type: "docs-shell",
+                    open: true,
+                    locale: officialDocsLocale,
+                    chat: { mode: "customize", space },
+                  })
+                }
                 tip={<OnboardingTip area="customization" />}
               />
             </LoadingSuspense>

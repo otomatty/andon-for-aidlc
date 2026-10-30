@@ -1,5 +1,6 @@
 import type {
   DocsQaJob,
+  DocsQaMode,
   DocsQaTarget,
   DocsQaTool,
   DocsQaToolStatus,
@@ -8,6 +9,7 @@ import type {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { docsQaAskHistory } from "@/features/docs/hooks/docs-qa-history.ts";
 import { useDocsConversationBridge } from "@/features/docs/hooks/docs-conversation-bridge.ts";
+import { useProposalApply } from "@/features/docs/hooks/proposal-apply.ts";
 import { DocsQaError, docsQaApi } from "@/services/docs-qa.ts";
 
 export function isRunning(job: DocsQaJob): boolean {
@@ -29,6 +31,9 @@ function missingJob(error: unknown): boolean {
 /** Kept mounted in DocsShell, including while the user reads a cited document. */
 export function useDocsQa(open: boolean, locale: OfficialDocsLocale) {
   const [draft, setDraft] = useState("");
+  const [mode, setMode] = useState<DocsQaMode>("docs");
+  /** The space a customize turn works on; undefined: the active one. */
+  const [space, setSpace] = useState<string | undefined>();
   const [tool, setTool] = useState<DocsQaTool>("claude");
   const [tools, setTools] = useState<DocsQaToolStatus[] | null>(null);
   const [turns, setTurns] = useState<DocsQaJob[]>([]);
@@ -42,6 +47,7 @@ export function useDocsQa(open: boolean, locale: OfficialDocsLocale) {
   const cancelRequested = useRef(false);
   const mounted = useRef(true);
   const lastRefreshKey = useRef(0);
+  const proposals = useProposalApply();
   useDocsConversationBridge(turns, draft, setTurns, setDraft);
 
   useEffect(() => {
@@ -60,7 +66,14 @@ export function useDocsQa(open: boolean, locale: OfficialDocsLocale) {
     void docsQaApi
       .tools(recheck)
       .then((value) => {
-        if (!stale) setTools(value);
+        if (stale) return;
+        setTools(value);
+        // Only the tools chosen in the extension are offered; keep the choice among them.
+        setTool((current) =>
+          value.some((entry) => entry.tool === current)
+            ? current
+            : ((value.find((entry) => entry.available) ?? value[0])?.tool ?? current),
+        );
       })
       .catch((cause: unknown) => {
         if (!stale) {
@@ -119,7 +132,7 @@ export function useDocsQa(open: boolean, locale: OfficialDocsLocale) {
 
   const submit = async (
     question = draft,
-    original?: Pick<DocsQaJob, "locale" | "target">,
+    original?: Pick<DocsQaJob, "locale" | "target" | "mode">,
   ): Promise<void> => {
     if (activeId !== null || submittingRef.current || question.trim() === "") return;
     submittingRef.current = true;
@@ -128,14 +141,18 @@ export function useDocsQa(open: boolean, locale: OfficialDocsLocale) {
     setError(null);
     setPollFailed(false);
     try {
+      const turnMode = original ? (original.mode ?? "docs") : mode;
+      const scope = original ? original.target : target;
       const job = await docsQaApi.ask({
         question: question.trim(),
         tool,
         locale: original?.locale ?? locale,
-        ...((original ? original.target : target)
-          ? { target: original ? original.target : target }
-          : {}),
-        history: docsQaAskHistory(turns),
+        ...(turnMode === "customize"
+          ? { mode: "customize" as const, ...(space ? { spaceId: space } : {}) }
+          : scope
+            ? { target: scope }
+            : {}),
+        history: docsQaAskHistory(turns, (id) => proposals.results[id]?.status),
       });
       if (!mounted.current) return;
       receive(job);
@@ -177,6 +194,7 @@ export function useDocsQa(open: boolean, locale: OfficialDocsLocale) {
     setTarget(undefined);
     setError(null);
     setPollFailed(false);
+    proposals.clear();
   };
 
   const refresh = () => {
@@ -188,6 +206,11 @@ export function useDocsQa(open: boolean, locale: OfficialDocsLocale) {
   return {
     draft,
     setDraft,
+    mode,
+    setMode,
+    space,
+    setSpace,
+    proposals,
     tool,
     setTool,
     tools,

@@ -1,4 +1,13 @@
+import type {
+  CustomizationChange,
+  CustomizationDiagnostic,
+  CustomizationKind,
+} from "./customization.ts";
+
 export type DocsQaTool = "claude" | "cursor" | "copilot";
+
+/** What a chat turn does: explain the bundled docs, or propose customization changes. */
+export type DocsQaMode = "docs" | "customize";
 
 export interface DocsQaTarget {
   kind: "official" | "guide";
@@ -27,7 +36,11 @@ export interface DocsQaRequest {
   question: string;
   tool: DocsQaTool;
   locale: "en" | "ja";
+  /** Omitted means "docs". */
+  mode?: DocsQaMode;
   target?: DocsQaTarget;
+  /** The space a customize turn reads and proposes changes for; omitted: the active one. */
+  spaceId?: string;
   history?: Array<{ question: string; answer: string }>;
 }
 
@@ -51,14 +64,46 @@ export interface DocsQaJob {
   question: string;
   tool: DocsQaTool;
   locale?: "en" | "ja";
+  /** Omitted means "docs". */
+  mode?: DocsQaMode;
   target?: DocsQaTarget;
   phase: DocsQaPhase;
   answer: string;
   citations: DocsQaCitation[];
   /** Related sources remain available when an answer could not be grounded. */
   sourcesKind?: "citations" | "related";
+  /** A customize turn's changes. Nothing is written until the reader applies them. */
+  proposal?: CustomizationProposal;
   error?: string;
   createdAt: number;
+}
+
+/** One proposed item change, with the text before and after for review. */
+export interface CustomizationProposalEntry {
+  operation: "create" | "replace" | "remove";
+  itemId: string;
+  kind: CustomizationKind;
+  title: string;
+  /** Where the item lives: its file, or its rule layer and heading. */
+  location: string;
+  before?: string;
+  after?: string;
+}
+
+/**
+ * Changes an AI proposed in a customize turn, checked against the catalog it
+ * read. Applying sends `changes` through the regular customization save.
+ */
+export interface CustomizationProposal {
+  spaceId: string;
+  configurationRevision: string;
+  changes: CustomizationChange[];
+  entries: CustomizationProposalEntry[];
+  diagnostics: CustomizationDiagnostic[];
+  /** False when the engine cannot save, or a check found an error. */
+  canApply: boolean;
+  /** Why the proposal cannot be applied as is. */
+  reason?: string;
 }
 
 export interface DocsQaEvidence {

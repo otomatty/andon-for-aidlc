@@ -21,6 +21,8 @@ function turnsFromConversation(turns: unknown): DocsQaJob[] {
         ...(typeof turn.target === "object" && turn.target !== null
           ? { target: turn.target as DocsQaTarget }
           : {}),
+        // A proposal is not kept: it was checked against the settings of its own moment.
+        ...(turn.mode === "customize" ? { mode: "customize" as const } : {}),
         tool: "claude" as const,
         phase: "completed" as const,
         createdAt: 0,
@@ -73,6 +75,7 @@ export function useDocsConversationBridge(
             citations: turn.citations,
             ...(turn.locale ? { locale: turn.locale } : {}),
             ...(turn.target ? { target: turn.target } : {}),
+            ...(turn.mode === "customize" ? { mode: turn.mode } : {}),
           })),
         draft: draft === "" && unfinished ? unfinished.question : draft,
       },
