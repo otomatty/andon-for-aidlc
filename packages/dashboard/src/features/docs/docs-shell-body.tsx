@@ -55,7 +55,8 @@ function normalizeRequestedAnchor(anchor: string | undefined): string | undefine
 }
 
 export function DocsShell(): ReactNode {
-  const { route, officialDocsLocale: locale } = useAppState();
+  const { route, officialDocsLocale: locale, intents } = useAppState();
+  const activeSpace = viewValue(intents)?.space;
   const open = route.name === "docs";
   const deepLink = routeDeepLink(route);
   const dispatch = useDispatch();
@@ -129,6 +130,8 @@ export function DocsShell(): ReactNode {
       setDrawerOpen(false);
       setHomeQuery("");
       setChatOpen(false);
+      // A space chosen on the customization page is for that visit only.
+      setChatSpace(undefined);
       return;
     }
     if (deepLink !== null) {
@@ -159,6 +162,15 @@ export function DocsShell(): ReactNode {
       dispatch({ type: "docs-shell", open: true });
     }
   }, [open, deepLink, dispatch, setChatMode, setChatSpace]);
+
+  // After a Space switch, customize turns work on the newly active Space.
+  const seenSpace = useRef(activeSpace);
+  useEffect(() => {
+    if (activeSpace === undefined) return;
+    if (seenSpace.current !== undefined && seenSpace.current !== activeSpace)
+      setChatSpace(undefined);
+    seenSpace.current = activeSpace;
+  }, [activeSpace, setChatSpace]);
 
   // Links in the open article, and in a source opened beside the chat, land here.
   const docLinks: DocLinks = {

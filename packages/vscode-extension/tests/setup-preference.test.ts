@@ -27,6 +27,11 @@ describe("AI chat tools", () => {
     expect(chatTools(context({ harnesses: ["claude"] }), "/ws")).toEqual(["claude", "copilot"]);
   });
 
+  it("drops a chosen tool once it is removed from the project, as Setup does", () => {
+    detected.ids = ["claude"];
+    expect(chatTools(context({ harnesses: ["claude", "cursor"] }), "/ws")).toEqual(["claude"]);
+  });
+
   it("reads the older single-tool preference", () => {
     detected.ids = [];
     expect(chatTools(context({ harness: "cursor" }), "/ws")).toEqual(["cursor"]);

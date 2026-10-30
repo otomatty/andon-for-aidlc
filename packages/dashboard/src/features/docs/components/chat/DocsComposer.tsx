@@ -176,13 +176,35 @@ export function DocsComposer({
               ))}
             </div>
             {qa.mode === "customize" ? (
-              <span
-                className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-muted-foreground"
-                data-testid="docs-question-space"
-              >
-                <SlidersHorizontalIcon aria-hidden="true" className="size-3.5" />
-                {qa.space ? `スペース: ${qa.space}` : "現在のスペースの設定"}
-              </span>
+              qa.space ? (
+                <span
+                  className="inline-flex max-w-full items-center gap-1 rounded-full border border-primary bg-primary-light py-0.5 pr-0.5 pl-2.5 text-primary-light-foreground"
+                  data-testid="docs-question-space"
+                >
+                  <SlidersHorizontalIcon aria-hidden="true" className="size-3.5 shrink-0" />
+                  <span className="truncate">{`スペース: ${qa.space}`}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    className="rounded-full!"
+                    data-testid="docs-question-clear-space"
+                    aria-label="現在のスペースを対象にする"
+                    disabled={qa.busy}
+                    onClick={() => qa.setSpace(undefined)}
+                  >
+                    <XIcon />
+                  </Button>
+                </span>
+              ) : (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-muted-foreground"
+                  data-testid="docs-question-space"
+                >
+                  <SlidersHorizontalIcon aria-hidden="true" className="size-3.5" />
+                  現在のスペースの設定
+                </span>
+              )
             ) : qa.target ? (
               <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-primary bg-primary-light py-0.5 pr-0.5 pl-2.5 text-primary-light-foreground">
                 <BookOpenIcon aria-hidden="true" className="size-3.5 shrink-0" />

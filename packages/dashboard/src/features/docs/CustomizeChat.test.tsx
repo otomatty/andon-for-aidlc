@@ -14,7 +14,7 @@ import {
   type PostJsonResult,
   setTransport,
 } from "@/services/transport/index.ts";
-import { StoreProvider } from "@/store/context.tsx";
+import { StoreProvider, useDispatch } from "@/store/context.tsx";
 
 const RULE = {
   id: "rule-section:review",
@@ -122,21 +122,44 @@ function stubApi(
   return { requests, saves };
 }
 
+/** Leaves the docs screen and comes back through its ordinary entry. */
+function Navigate() {
+  const dispatch = useDispatch();
+  return (
+    <>
+      <button type="button" onClick={() => dispatch({ type: "home" })}>
+        ホームへ
+      </button>
+      <button type="button" onClick={() => dispatch({ type: "docs-shell", open: true })}>
+        ドキュメントへ
+      </button>
+    </>
+  );
+}
+
 function showChat(mode?: "customize"): void {
   render(
     <StoreProvider
       preloaded={{
         route: {
           name: "docs",
-          deepLink: { locale: "ja", chat: mode ? { mode, space: "default" } : {} },
+          deepLink: { locale: "ja", chat: mode ? { mode, space: "team" } : {} },
         },
       }}
     >
+      <Navigate />
       <div data-testid="app-scroll">
         <DocsShell />
       </div>
     </StoreProvider>,
   );
+}
+
+async function send(text: string): Promise<void> {
+  await userEvent.type(await screen.findByRole("textbox", { name: "依頼" }), text);
+  const button = screen.getByRole<HTMLButtonElement>("button", { name: "依頼する" });
+  await waitFor(() => expect(button.disabled).toBe(false));
+  await userEvent.click(button);
 }
 
 afterEach(() => {
@@ -183,7 +206,7 @@ describe("customizing by conversation", () => {
     expect(screen.getByRole("radio", { name: "カスタマイズ" }).getAttribute("aria-checked")).toBe(
       "true",
     );
-    expect(screen.getByTestId("docs-question-space").textContent).toContain("default");
+    expect(screen.getByTestId("docs-question-space").textContent).toContain("team");
     await userEvent.type(screen.getByRole("textbox", { name: "依頼" }), "レビューに CI を必須に");
     const send = screen.getByRole<HTMLButtonElement>("button", { name: "依頼する" });
     await waitFor(() => expect(send.disabled).toBe(false));
@@ -192,7 +215,7 @@ describe("customizing by conversation", () => {
       expect(api.requests[0]).toMatchObject({
         question: "レビューに CI を必須に",
         mode: "customize",
-        spaceId: "default",
+        spaceId: "team",
       }),
     );
     expect(api.requests[0]).not.toHaveProperty("target");
@@ -216,6 +239,36 @@ describe("customizing by conversation", () => {
       },
     ]);
     expect(within(card).queryByRole("button", { name: "この変更を適用" })).toBeNull();
+  });
+
+  it("returns to the active space when the chosen one is cleared", async () => {
+    const api = stubApi();
+    showChat("customize");
+    await userEvent.click(
+      await screen.findByRole("button", { name: "現在のスペースを対象にする" }),
+    );
+    expect(screen.getByTestId("docs-question-space").textContent).toBe("現在のスペースの設定");
+    await send("変えて");
+    await waitFor(() => expect(api.requests[0]?.mode).toBe("customize"));
+    expect(api.requests[0]).not.toHaveProperty("spaceId");
+  });
+
+  it("forgets the customization page's space after leaving the docs screen", async () => {
+    const api = stubApi();
+    showChat("customize");
+    expect((await screen.findByTestId("docs-question-space")).textContent).toContain("team");
+    await userEvent.click(screen.getByRole("button", { name: "ホームへ" }));
+    await userEvent.click(screen.getByRole("button", { name: "ドキュメントへ" }));
+    await userEvent.click(await screen.findByRole("button", { name: "AIに質問する" }));
+    expect(screen.getByRole("radio", { name: "カスタマイズ" }).getAttribute("aria-checked")).toBe(
+      "true",
+    );
+    expect((await screen.findByTestId("docs-question-space")).textContent).toBe(
+      "現在のスペースの設定",
+    );
+    await send("変えて");
+    await waitFor(() => expect(api.requests[0]?.mode).toBe("customize"));
+    expect(api.requests[0]).not.toHaveProperty("spaceId");
   });
 
   it("shows why a proposal cannot be applied and offers no apply button", async () => {
