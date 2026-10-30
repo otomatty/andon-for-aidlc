@@ -61,8 +61,8 @@ Bun の PR は `dependencies`、Actions の PR は `dependencies` と `release:s
 `release:skip` がなければ Actions の更新も既定の patch リリースになります。
 
 ```powershell
-gh label create dependencies --color 0366d6 --description "Dependency updates" --repo otomatty/aidlc-guide
-gh label create release:skip --color 6e7781 --description "Merge without releasing a new version" --repo otomatty/aidlc-guide
+gh label create dependencies --color 0366d6 --description "Dependency updates" --repo otomatty/andon-for-aidlc
+gh label create release:skip --color 6e7781 --description "Merge without releasing a new version" --repo otomatty/andon-for-aidlc
 ```
 
 既にあるラベルの作成エラーは無視できます。整形・テストツールだけの Bun 更新は、差分を確認して
@@ -121,7 +121,7 @@ Mantine を更新するときは同じ変更に次を含めます。
    PR のリリースラベルは変更内容に従って選びます。App の準備だけを理由に `release:skip` へ変更する必要はありません。
 2. GitHub の個人設定で、このリポジトリ専用の GitHub App を作成します。Webhook は無効、
    Repository permissions は Contents の Read and write のみとし、Metadata の Read は既定のままにします。
-   このアカウントだけにインストール可能とし、インストール対象は `otomatty/aidlc-guide` だけに限定します。
+   このアカウントだけにインストール可能とし、インストール対象は `otomatty/andon-for-aidlc` だけに限定します。
 3. Client ID をリポジトリの Actions variable `RELEASE_APP_CLIENT_ID` に登録し、生成した秘密鍵を
    Actions secret `RELEASE_APP_PRIVATE_KEY` に登録します。ルールに使う数値の App ID も控えてください。Client ID・App ID・Installation ID は別の値です。
    秘密鍵を Git に保存しないでください。
@@ -149,18 +149,18 @@ GitHub のバイパス自体は変更ファイルを制限しないため、App 
 $releaseAppId = 123456 # 自分の App ID に置換
 $qualityRule = Get-Content -Raw .github/rulesets/main-quality.json | ConvertFrom-Json
 $qualityRule.bypass_actors[0].actor_id = $releaseAppId
-$qualityRule | ConvertTo-Json -Depth 20 | gh api --method POST repos/otomatty/aidlc-guide/rulesets --input -
-gh api --method POST repos/otomatty/aidlc-guide/rulesets --input .github/rulesets/main-history.json
-gh api repos/otomatty/aidlc-guide/rules/branches/main
+$qualityRule | ConvertTo-Json -Depth 20 | gh api --method POST repos/otomatty/andon-for-aidlc/rulesets --input -
+gh api --method POST repos/otomatty/andon-for-aidlc/rulesets --input .github/rulesets/main-history.json
+gh api repos/otomatty/andon-for-aidlc/rules/branches/main
 ```
 
 テンプレートの App ID `0` は置換必須の未設定値です。テンプレートをそのまま適用しないでください。
-上記は初回作成用です。再適用時は `gh api repos/otomatty/aidlc-guide/rulesets` で名前と ID を確認し、
+上記は初回作成用です。再適用時は `gh api repos/otomatty/andon-for-aidlc/rulesets` で名前と ID を確認し、
 同名ルールの `/rulesets/ID` に `PUT` して更新してください。重複したルールを作成しないでください。
 
 障害時は `main-quality` の該当 ID を確認し、一時的に無効化してから原因を修正します。
 `main-history` の force-push/削除禁止は維持してください。
 
 ```powershell
-gh api --method PUT repos/otomatty/aidlc-guide/rulesets/QUALITY_RULE_ID -f enforcement=disabled
+gh api --method PUT repos/otomatty/andon-for-aidlc/rulesets/QUALITY_RULE_ID -f enforcement=disabled
 ```

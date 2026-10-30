@@ -16,7 +16,7 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
     id: "renamed-to-andon",
     date: "2026-10-29",
     title: "名前を「Andon for AI-DLC」に変えました",
-    body: "AIDLC Guide は「Andon for AI-DLC」（略して Andon）になりました。アンドンは、現場の状態を一目で示し、人の判断が要るときに人を呼ぶ表示灯です。コマンドパレットでは「Andon: Open」のように表示します。拡張はそのまま更新でき、入れ直す必要はありません。",
+    body: "AIDLC Guide は「Andon for AI-DLC」（略して Andon）になりました。アンドンは、現場の状態を一目で示し、人の判断が要るときに人を呼ぶ表示灯です。リポジトリを otomatty/andon-for-aidlc に移し、バージョンは 0.1.0 から数え直します。以前の版からは自動で更新されないため、Releases から VSIX を入れ直してください。",
   },
   {
     id: "unused-features-removed",

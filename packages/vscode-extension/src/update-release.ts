@@ -1,7 +1,7 @@
 /** GitHub Releases lookup for the sideloaded Andon VSIX. */
 
 export const RELEASES_LATEST_URL =
-  "https://api.github.com/repos/otomatty/aidlc-guide/releases/latest";
+  "https://api.github.com/repos/otomatty/andon-for-aidlc/releases/latest";
 
 export const UPDATE_USER_AGENT = "aidlc-guide";
 
@@ -53,7 +53,7 @@ export type ReleaseMetadataRead = ReleaseMetadata | "absent" | "unreadable";
 /** A supported-release move to report, "unverified" when it could not be checked, or null. */
 export type WorkflowsChange = { from: string; to: string } | "unverified" | null;
 
-const DOWNLOAD_PREFIX = "https://github.com/otomatty/aidlc-guide/releases/download/";
+const DOWNLOAD_PREFIX = "https://github.com/otomatty/andon-for-aidlc/releases/download/";
 const STRICT_VERSION = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
 export function parseReleaseMetadata(body: unknown): ReleaseMetadata | null {
@@ -119,7 +119,7 @@ export function vsixAssetName(version: string): string {
 }
 
 export function vsixDownloadUrl(release: LatestRelease): string {
-  return `https://github.com/otomatty/aidlc-guide/releases/download/${release.tag}/${release.assetName}`;
+  return `https://github.com/otomatty/andon-for-aidlc/releases/download/${release.tag}/${release.assetName}`;
 }
 
 export function isVsixBuffer(bytes: Uint8Array): boolean {

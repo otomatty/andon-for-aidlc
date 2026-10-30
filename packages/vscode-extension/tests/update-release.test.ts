@@ -115,15 +115,15 @@ describe("parseLatestRelease", () => {
 describe("releaseNoteItems", () => {
   const generated = [
     "## What's Changed",
-    "* feat: ドキュメント質問をチャット画面にする by @otomatty in https://github.com/otomatty/aidlc-guide/pull/164",
-    "* fix(dashboard): render stage status with SVG icons by @otomatty in https://github.com/otomatty/aidlc-guide/pull/158",
-    "* Show newest intents first in dashboard lists by @otomatty in https://github.com/otomatty/aidlc-guide/pull/161",
+    "* feat: ドキュメント質問をチャット画面にする by @otomatty in https://github.com/otomatty/andon-for-aidlc/pull/164",
+    "* fix(dashboard): render stage status with SVG icons by @otomatty in https://github.com/otomatty/andon-for-aidlc/pull/158",
+    "* Show newest intents first in dashboard lists by @otomatty in https://github.com/otomatty/andon-for-aidlc/pull/161",
     "",
     "## New Contributors",
-    "* @someone made their first contribution in https://github.com/otomatty/aidlc-guide/pull/1",
+    "* @someone made their first contribution in https://github.com/otomatty/andon-for-aidlc/pull/1",
     "",
     "",
-    "**Full Changelog**: https://github.com/otomatty/aidlc-guide/compare/v0.33.0...v0.34.0",
+    "**Full Changelog**: https://github.com/otomatty/andon-for-aidlc/compare/v0.33.0...v0.34.0",
   ].join("\r\n");
 
   it("reads the generated change list without authors, links or commit prefixes", () => {
@@ -148,7 +148,7 @@ describe("releaseNoteItems", () => {
   it("returns nothing for a changelog-only body or a non-string", () => {
     expect(
       releaseNoteItems(
-        "**Full Changelog**: https://github.com/otomatty/aidlc-guide/compare/v0.34.0...v0.34.1",
+        "**Full Changelog**: https://github.com/otomatty/andon-for-aidlc/compare/v0.34.0...v0.34.1",
       ),
     ).toEqual([]);
     expect(releaseNoteItems(undefined)).toEqual([]);
@@ -192,7 +192,7 @@ describe("decideUpdate / vsix helpers", () => {
 
   it("builds the first-party download URL from the tag", () => {
     expect(vsixDownloadUrl(latest)).toBe(
-      "https://github.com/otomatty/aidlc-guide/releases/download/v0.2.0/aidlc-guide-0.2.0.vsix",
+      "https://github.com/otomatty/andon-for-aidlc/releases/download/v0.2.0/aidlc-guide-0.2.0.vsix",
     );
   });
 

@@ -4,7 +4,7 @@ AI-DLC の現在地・成果物・次の一手を、VS Code / Cursor の中で�
 
 **対応 aidlc-workflows バージョン: 2.11.1**（State Version **8** / **33** ステージ、`docs/official-docs.manifest.json` のピンと同期）。版の更新漏れは `bun run check` で検出します（[互換性チェック](docs/maintenance/release-and-sync.md#互換性チェックdocs-以外の追随)）。
 
-> 2026-10 に「AIDLC Guide」から「Andon for AI-DLC」（略称 Andon）へ名称を変えました。アンドンは、現場の状態を一目で示し、人の判断が要るときに人を呼ぶ表示灯です。コマンド ID（`aidlc-guide.*`）、パッケージ名（`@aidlc-guide/*`）、設定ファイル名は互換のため変えていません。要件は[PRD](docs/prd/PRD.md)、社内向けの紹介は[紹介資料](docs/introducing/README.md)を参照してください。
+> 2026-10 に「AIDLC Guide」から「Andon for AI-DLC」（略称 Andon）へ名称を変え、リポジトリを [otomatty/andon-for-aidlc](https://github.com/otomatty/andon-for-aidlc) に移してバージョンを 0.1.0 から数え直しました。以前の版（0.40 系）からは自動で更新されないため、[Releases](https://github.com/otomatty/andon-for-aidlc/releases) の VSIX を入れ直してください。アンドンは、現場の状態を一目で示し、人の判断が要るときに人を呼ぶ表示灯です。コマンド ID（`aidlc-guide.*`）、パッケージ名（`@aidlc-guide/*`）、設定ファイル名は互換のため変えていません。要件は[PRD](docs/prd/PRD.md)、社内向けの紹介は[紹介資料](docs/introducing/README.md)を参照してください。
 
 ## 全体像
 
@@ -190,7 +190,7 @@ bun run package:extension   # VSIX を作成（packages/vscode-extension/*.vsix�
 code --install-extension packages/vscode-extension/aidlc-guide-*.vsix
 ```
 
-Cursor では _Extensions: Install from VSIX_ からインストールします。自分でビルドしない場合は[Releases](https://github.com/otomatty/aidlc-guide/releases)の `.vsix` を使えます。日常の操作は `Andon: Open` か、ステータスバーの `Andon` です。各手順の詳細は[CLI とエンジンを導入・更新する](docs/guides/installing-and-updating.md)を参照してください。
+Cursor では _Extensions: Install from VSIX_ からインストールします。自分でビルドしない場合は[Releases](https://github.com/otomatty/andon-for-aidlc/releases)の `.vsix` を使えます。日常の操作は `Andon: Open` か、ステータスバーの `Andon` です。各手順の詳細は[CLI とエンジンを導入・更新する](docs/guides/installing-and-updating.md)を参照してください。
 
 ## バージョンの確認と更新
 

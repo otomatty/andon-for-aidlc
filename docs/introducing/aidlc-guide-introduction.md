@@ -107,7 +107,7 @@ AI-DLCは、要件整理・設計・実装・検証などの工程を、AIとの
 
 **図7：セットアップで、このマシンとプロジェクトの準備状況を確認する。** 画像は既存のAI-DLCプロジェクトに参加する場合の表示です。新規プロジェクトでは、利用するツールを選んで設定します。
 
-1. 社内で案内された配布先、または[GitHub Releases](https://github.com/otomatty/aidlc-guide/releases)から、対象バージョンの `.vsix` を入手します。
+1. 社内で案内された配布先、または[GitHub Releases](https://github.com/otomatty/andon-for-aidlc/releases)から、対象バージョンの `.vsix` を入手します。
 2. VS Code / Cursorのコマンドパレットで **`Extensions: Install from VSIX…`** を実行し、ファイルを選びます。
 3. 開発するフォルダを開き、**`Andon: Setup`** を実行します。
 4. 「このマシンのCLI」「プロジェクトの設定」「完了」の順に、開いているステップのボタンを押して進め、「セットアップを完了」でダッシュボードへ進みます。既存プロジェクトでは、そのプロジェクトの設定とバージョンを利用します。診断は任意です。
@@ -121,10 +121,10 @@ VS Codeの対応下限は1.100です。Cursorでは、対応するVS Code互換�
 
 ## 詳しい使い方
 
-- [リポジトリと導入の案内](https://github.com/otomatty/aidlc-guide)
-- [Dashboardで現在地と成果物を読む](https://github.com/otomatty/aidlc-guide/blob/main/docs/guides/reading-workflow.md)
-- [内蔵文書について質問する](https://github.com/otomatty/aidlc-guide/blob/main/docs/guides/asking-aidlc.md)
-- [開発ルールと工程をカスタマイズする](https://github.com/otomatty/aidlc-guide/blob/main/docs/guides/customization.md)
-- [効果測定の指標と読み方](https://github.com/otomatty/aidlc-guide/blob/main/docs/guides/effectiveness.md)
+- [リポジトリと導入の案内](https://github.com/otomatty/andon-for-aidlc)
+- [Dashboardで現在地と成果物を読む](https://github.com/otomatty/andon-for-aidlc/blob/main/docs/guides/reading-workflow.md)
+- [内蔵文書について質問する](https://github.com/otomatty/andon-for-aidlc/blob/main/docs/guides/asking-aidlc.md)
+- [開発ルールと工程をカスタマイズする](https://github.com/otomatty/andon-for-aidlc/blob/main/docs/guides/customization.md)
+- [効果測定の指標と読み方](https://github.com/otomatty/andon-for-aidlc/blob/main/docs/guides/effectiveness.md)
 
 各ガイドは、拡張の「ドキュメント」からも参照できます。

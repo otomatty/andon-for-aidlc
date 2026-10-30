@@ -2,13 +2,13 @@
   "name": "aidlc-guide",
   "displayName": "Andon for AI-DLC",
   "description": "Visualize aidlc-workflows state and artifacts inside VS Code / Cursor.",
-  "version": "0.40.3",
+  "version": "0.1.0",
   "publisher": "aidlc",
   "private": true,
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "https://github.com/otomatty/aidlc-guide.git"
+    "url": "https://github.com/otomatty/andon-for-aidlc.git"
   },
   "icon": "media/icon.png",
   "engines": {

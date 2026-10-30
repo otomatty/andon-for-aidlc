@@ -9,7 +9,7 @@ import {
   releaseWorkflowsChange,
 } from "../src/update-release.ts";
 
-const DOWNLOAD = "https://github.com/otomatty/aidlc-guide/releases/download/v0.40.0";
+const DOWNLOAD = "https://github.com/otomatty/andon-for-aidlc/releases/download/v0.40.0";
 
 function release(assets: unknown[]): unknown {
   return { tag_name: "v0.40.0", draft: false, prerelease: false, body: "", assets };
