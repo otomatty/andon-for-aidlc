@@ -107,6 +107,27 @@ describe("docs conversation globalState persistence", () => {
     expect(loadDocsConversation(context)).toEqual(state);
   });
 
+  it("keeps a customize turn's mode but never its proposal", async () => {
+    const { context } = mockGlobalState();
+    await saveDocsConversation(context, {
+      turns: [
+        {
+          id: "t1",
+          question: "q",
+          answer: "a",
+          citations: [],
+          mode: "customize",
+          proposal: { changes: [] },
+        } as DocsConversationState["turns"][number],
+      ],
+      draft: "",
+    });
+    expect(loadDocsConversation(context).turns).toEqual([
+      { id: "t1", question: "q", answer: "a", citations: [], mode: "customize" },
+    ]);
+    expect(parseDocsConversation({ turns: [{ ...loadDocsConversation(context).turns[0], mode: "x" }] }).turns).toEqual([]);
+  });
+
   it("drops turns whose locale or target is malformed", () => {
     expect(
       parseDocsConversation({

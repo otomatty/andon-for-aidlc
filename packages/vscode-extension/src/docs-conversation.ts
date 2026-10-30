@@ -11,6 +11,8 @@ export interface DocsConversationTurn {
   citations: DocsQaCitation[];
   locale?: "en" | "ja";
   target?: DocsQaTarget;
+  /** A customize turn; its proposal is not kept. */
+  mode?: "customize";
 }
 
 export interface DocsConversationState {
@@ -50,7 +52,8 @@ function isTurn(value: unknown): value is DocsConversationTurn {
     Array.isArray(row.citations) &&
     row.citations.every(isCitation) &&
     (row.locale === undefined || isLocale(row.locale)) &&
-    (row.target === undefined || isTarget(row.target))
+    (row.target === undefined || isTarget(row.target)) &&
+    (row.mode === undefined || row.mode === "customize")
   );
 }
 
@@ -85,6 +88,7 @@ export async function saveDocsConversation(
       ...(turn.target
         ? { target: { kind: turn.target.kind, path: turn.target.path, locale: turn.target.locale } }
         : {}),
+      ...(turn.mode === "customize" ? { mode: turn.mode } : {}),
     })),
     draft: state.draft,
   };

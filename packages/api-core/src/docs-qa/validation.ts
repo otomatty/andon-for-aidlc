@@ -1,4 +1,5 @@
 import type { DocsQaRequest, DocsQaTarget } from "@andon/shared-types";
+import { identifier } from "../customization/model.ts";
 
 export function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -24,7 +25,12 @@ export function parseQuestion(value: unknown): DocsQaRequest | undefined {
   if (value.tool !== "claude" && value.tool !== "cursor" && value.tool !== "copilot")
     return undefined;
   if (value.locale !== "en" && value.locale !== "ja") return undefined;
-  if (value.target !== undefined && !target(value.target)) return undefined;
+  if (value.mode !== undefined && value.mode !== "docs" && value.mode !== "customize")
+    return undefined;
+  if (value.target !== undefined && (value.mode === "customize" || !target(value.target)))
+    return undefined;
+  if (value.spaceId !== undefined && (value.mode !== "customize" || !identifier(value.spaceId)))
+    return undefined;
   if (
     value.history !== undefined &&
     (!Array.isArray(value.history) ||
@@ -43,6 +49,8 @@ export function parseQuestion(value: unknown): DocsQaRequest | undefined {
     question: value.question.trim(),
     tool: value.tool,
     locale: value.locale,
+    ...(value.mode === "customize" ? { mode: "customize" as const } : {}),
+    ...(typeof value.spaceId === "string" ? { spaceId: value.spaceId } : {}),
     ...(value.target
       ? {
           target: {

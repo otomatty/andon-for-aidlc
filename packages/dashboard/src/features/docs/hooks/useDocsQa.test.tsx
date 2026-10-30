@@ -429,6 +429,7 @@ describe("document questions and verified source navigation", () => {
   it("asks GitHub Copilot and keeps its answer and draft when returning from cited evidence", async () => {
     const api = stubApi();
     showDocs();
+    await screen.findByRole("combobox", { name: "回答に使うツール" });
     await chooseOption("回答に使うツール", "GitHub Copilot");
     await ask("拡張機能の初期設定は？");
     await screen.findByText("回答が完了しました");
@@ -762,6 +763,7 @@ describe("document questions and verified source navigation", () => {
       ),
     });
     showDocs();
+    await screen.findByRole("combobox", { name: "回答に使うツール" });
     await chooseOption("回答に使うツール", "GitHub Copilot");
     expect(await screen.findByText(detail)).toBeTruthy();
     await userEvent.type(screen.getByRole("textbox", { name: "質問" }), "拡張機能の初期設定は？");

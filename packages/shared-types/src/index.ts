@@ -1337,9 +1337,12 @@ export {
   MAX_CUSTOMIZATION_PACKAGE_JSON_BYTES,
 } from "./customization-limits.ts";
 export type {
+  CustomizationProposal,
+  CustomizationProposalEntry,
   DocsQaCitation,
   DocsQaEvidence,
   DocsQaJob,
+  DocsQaMode,
   DocsQaPhase,
   DocsQaRequest,
   DocsQaResult,

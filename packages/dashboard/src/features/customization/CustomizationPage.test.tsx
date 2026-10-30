@@ -272,6 +272,13 @@ it("imports only explicitly selected items with the chosen replacement target", 
   expect(onAdopt).toHaveBeenCalledWith([{ sourceId: "first", targetId: "rule" }]);
 });
 
+it("opens the AI chat for the space being edited", async () => {
+  const onAskAi = vi.fn();
+  render(<CustomizationPage open onAskAi={onAskAi} />);
+  await userEvent.click(await screen.findByRole("button", { name: "AIと相談" }));
+  expect(onAskAi).toHaveBeenCalledWith(catalog.spaceId);
+});
+
 async function openRule() {
   fireEvent.click(await screen.findByRole("link", { name: "開発ルール" }));
   fireEvent.click(await screen.findByRole("link", { name: "Development rules" }));

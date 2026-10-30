@@ -13,7 +13,8 @@ import {
 } from "./mcp-register.ts";
 import { extensionVersion, startOnboarding, updateNotice, WHATS_NEW_ACTION } from "./onboarding.ts";
 import { maybePromptSetup, openSetupPanel, openWorkflowsInstallPanel } from "./setup-panel.ts";
-import { inspectSetup, needsSetup, type SetupPreference, setupStateKey } from "./setup-state.ts";
+import { type SetupPreference, setupStateKey } from "./setup-preference.ts";
+import { inspectSetup, needsSetup } from "./setup-state.ts";
 import { createStatusBar, startStatusBarRefresh } from "./status-bar.ts";
 import {
   maybePromptWorkflowsUpdate,

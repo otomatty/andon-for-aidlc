@@ -31,12 +31,8 @@ import { detectHarnesses } from "../src/harness-detect.ts";
 import { readNativeProjections } from "../src/native-projection.ts";
 import { SETUP_RELEASE } from "../src/native-setup.ts";
 import { setupPhase } from "../src/setup-phase.ts";
-import {
-  inspectSetup,
-  needsSetup,
-  type SetupSnapshot,
-  setupStateKey,
-} from "../src/setup-state.ts";
+import { setupStateKey } from "../src/setup-preference.ts";
+import { inspectSetup, needsSetup, type SetupSnapshot } from "../src/setup-state.ts";
 import { readWorkspaceAidlcVersion } from "../src/workflows-version.ts";
 
 const roots: string[] = [];

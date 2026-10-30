@@ -20,14 +20,8 @@ import {
 import { inspectWorkflowsManagement } from "./workflows-management.ts";
 import { workflowsRepairKey } from "./workflows-operation.ts";
 import { readWorkspaceAidlcVersion } from "./workflows-version.ts";
+import { type SetupPreference, setupStateKey } from "./setup-preference.ts";
 
-export type SetupPreference = {
-  completed: boolean;
-  docsSkipped: boolean;
-  harness: HarnessId;
-  /** Older preferences retain the single harness field. */
-  harnesses?: HarnessId[];
-};
 export type RuntimeIssueKind = "trust" | "git" | "mixed-versions" | "runtime-missing";
 export type SetupSnapshot = {
   root: string;
@@ -44,8 +38,6 @@ export type SetupSnapshot = {
   workflows?: WorkflowsManagementState;
   cli?: CliManagementState;
 };
-
-export const setupStateKey = (root: string): string => `andon.setup.v2:${root}`;
 
 /** Setup completion does not require an Intent. Startup only reads files. */
 export async function inspectSetup(

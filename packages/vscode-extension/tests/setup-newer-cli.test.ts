@@ -77,7 +77,8 @@ import {
 } from "../src/cli-management.ts";
 import { SETUP_RELEASE } from "../src/native-setup.ts";
 import { openSetupPanel } from "../src/setup-panel.ts";
-import { inspectSetup, setupStateKey } from "../src/setup-state.ts";
+import { setupStateKey } from "../src/setup-preference.ts";
+import { inspectSetup } from "../src/setup-state.ts";
 import { inspectWorkflowsManagement } from "../src/workflows-management.ts";
 import { updateInstalledWorkflows } from "../src/workflows-update.ts";
 import { NEWER_WORKFLOWS_VERSION } from "./workflows-version-fixture.ts";

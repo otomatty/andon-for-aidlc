@@ -1,4 +1,4 @@
-import type { DocsShellDeepLink } from "@andon/shared-types";
+import type { DocsQaMode, DocsShellDeepLink } from "@andon/shared-types";
 
 /**
  * In-webview route. One value at a time — there is no URL, so this union is
@@ -26,8 +26,11 @@ export type Selection =
 
 export type AgentOpen = { id: string; returnTo: Selection };
 
+/** Opens the AI chat; `mode` omitted keeps the chat's current one. */
+export type DocsChatLink = { mode?: DocsQaMode; space?: string };
+
 /** One-shot host inject applied when the docs shell opens, then cleared. */
-export type DocsDeepLink = DocsShellDeepLink & { guide?: string };
+export type DocsDeepLink = DocsShellDeepLink & { guide?: string; chat?: DocsChatLink };
 
 export const HOME_ROUTE: AppRoute = { name: "home" };
 

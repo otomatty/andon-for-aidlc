@@ -23,6 +23,7 @@ export function DocsShellQuestionSurface({
   onOpenChat,
   onCloseChat,
   onOpenDocument,
+  onOpenCustomization,
   docLinks,
   ...home
 }: {
@@ -32,6 +33,7 @@ export function DocsShellQuestionSurface({
   onOpenChat: () => void;
   onCloseChat: () => void;
   onOpenDocument: (citation: DocsQaCitation, turn: DocsQaJob) => void;
+  onOpenCustomization: () => void;
   docLinks: DocLinks;
   tocView: ViewState<OfficialDocsToc> | null;
   guidesView: ViewState<MarkdownItem[]> | null;
@@ -50,7 +52,7 @@ export function DocsShellQuestionSurface({
         {...home}
         questionPanel={
           <p className="text-sm text-muted-foreground" data-testid="docs-questions-gated">
-            ドキュメントへの質問は、aidlc-workflows
+            AI チャットは、aidlc-workflows
             のバージョンを揃えた後に使えます。読みたいページは目次から選べます。
           </p>
         }
@@ -64,6 +66,7 @@ export function DocsShellQuestionSurface({
         docLinks={docLinks}
         onBack={onCloseChat}
         onOpenDocument={onOpenDocument}
+        onOpenCustomization={onOpenCustomization}
       />
     );
   const openChat = (): void => {
@@ -76,6 +79,7 @@ export function DocsShellQuestionSurface({
       {...home}
       onOpenChat={openChat}
       onAsk={(draft) => {
+        qa.setMode("docs");
         qa.setDraft(draft);
         openChat();
       }}

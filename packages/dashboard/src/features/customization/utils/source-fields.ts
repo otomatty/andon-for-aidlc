@@ -1,6 +1,7 @@
 import type { CustomizationItem, CustomizationKind } from "@andon/shared-types";
 import { applyEdits, modify } from "jsonc-parser";
 import { isMap, parseDocument, stringify } from "yaml";
+import { KIND_LABELS } from "./kind-labels.ts";
 
 export const CATEGORIES = [
   { id: "rules", label: "開発ルール", kinds: ["rule-section", "rule-file-metadata"] },
@@ -12,18 +13,6 @@ export const CATEGORIES = [
   { id: "plugins", label: "プラグイン", kinds: ["plugin"] },
 ] as const;
 export type Category = (typeof CATEGORIES)[number]["id"];
-export const KIND_LABELS: Record<CustomizationKind, string> = {
-  "rule-section": "ルールの章",
-  "rule-file-metadata": "ルールファイル設定",
-  knowledge: "資料",
-  stage: "ステージ",
-  scope: "スコープ",
-  agent: "エージェント",
-  sensor: "品質チェック",
-  tool: "チェックスクリプト",
-  plugin: "プラグイン",
-  "artifact-template": "成果物テンプレート",
-};
 export const categoryOf = (kind: CustomizationKind): Category =>
   CATEGORIES.find((category) => (category.kinds as readonly string[]).includes(kind))?.id ??
   "rules";

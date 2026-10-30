@@ -31,6 +31,7 @@ function setup(run: DocsQaDependencies["run"] = async () => "ok") {
     run,
     scratch: vi.fn(async () => ({ cwd: "/isolated", env: {}, cleanup: vi.fn(async () => {}) })),
     timeoutMs: 120_000,
+    customizeTimeoutMs: 240_000,
     now: Date.now,
   };
   const service = createDocsQaService({ docsRoot: "/bundled", dependencies });

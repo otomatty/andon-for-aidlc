@@ -6,7 +6,7 @@ import type {
   CustomizationOperation,
 } from "@andon/shared-types";
 import { MAX_CUSTOMIZATION_PACKAGE_JSON_BYTES } from "@andon/shared-types";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, MessageCircleIcon } from "lucide-react";
 import {
   type ReactNode,
   useCallback,
@@ -70,6 +70,7 @@ export default function CustomizationPage({
   switching = false,
   onSwitchBlockedChange,
   onSettings,
+  onAskAi,
   tip,
 }: {
   open: boolean;
@@ -78,6 +79,8 @@ export default function CustomizationPage({
   switching?: boolean;
   onSwitchBlockedChange?: (blocked: boolean) => void;
   onSettings?: () => void;
+  /** Opens the AI chat to customize this space by conversation. */
+  onAskAi?: (space: string) => void;
   /** Shown under the page header: the onboarding tip. The page itself stays store-free. */
   tip?: ReactNode;
 }) {
@@ -475,6 +478,20 @@ export default function CustomizationPage({
           </div>
         ) : null}
         <div className="ml-auto flex items-center gap-2">
+          {onAskAi && view.catalog ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="customization-ask-ai"
+              onClick={() => {
+                if (view.catalog) onAskAi(view.catalog.spaceId);
+              }}
+            >
+              <MessageCircleIcon data-icon="inline-start" />
+              AIと相談
+            </Button>
+          ) : null}
           <Badge variant="outline" role="status">
             {saving || applying
               ? "保存中…"

@@ -72,6 +72,7 @@ export function DocsShell(): ReactNode {
   const articleRef = useRef<HTMLElement>(null);
   const gated = useVersionGate() !== null;
   const qa = useDocsQa(open && !gated, locale);
+  const { setMode: setChatMode, setSpace: setChatSpace } = qa;
   const [reference, setReference] = useState<{
     citation: DocsQaCitation;
     turn: DocsQaJob;
@@ -145,13 +146,19 @@ export function DocsShell(): ReactNode {
         setCategory("workflow");
       }
       setDrawerOpen(false);
-      setChatOpen(false);
+      setChatOpen(deepLink.chat !== undefined);
+      if (deepLink.chat !== undefined) {
+        setSelection(null);
+        if (deepLink.chat.mode) setChatMode(deepLink.chat.mode);
+        if (deepLink.chat.mode === "customize") setChatSpace(deepLink.chat.space);
+        focusDocsQuestion();
+      }
       setRequestedAnchor(normalizeRequestedAnchor(deepLink.anchor));
       setShellLandKey((n) => n + 1);
       setApplyKey((n) => n + 1);
       dispatch({ type: "docs-shell", open: true });
     }
-  }, [open, deepLink, dispatch]);
+  }, [open, deepLink, dispatch, setChatMode, setChatSpace]);
 
   // Links in the open article, and in a source opened beside the chat, land here.
   const docLinks: DocLinks = {
@@ -269,6 +276,7 @@ export function DocsShell(): ReactNode {
 
   const askAboutDocument = (): void => {
     if (!selection) return;
+    qa.setMode("docs");
     qa.setTarget(
       selection.kind === "guide"
         ? { kind: "guide", path: selection.name, locale: "ja" }
@@ -292,7 +300,7 @@ export function DocsShell(): ReactNode {
   const title =
     selection === null
       ? chatOpen
-        ? "AIに質問する"
+        ? "AIチャット"
         : "\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8"
       : isGuide
         ? (guide?.title ?? "\u62e1\u5f35\u6a5f\u80fd")
@@ -399,6 +407,7 @@ export function DocsShell(): ReactNode {
                 onOpenDocument={(citation, turn) => {
                   void onCitation(citation, turn);
                 }}
+                onOpenCustomization={() => dispatch({ type: "customization", open: true })}
                 docLinks={docLinks}
                 tocView={tocView}
                 guidesView={guidesView}

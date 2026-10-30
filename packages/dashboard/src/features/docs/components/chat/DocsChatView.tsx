@@ -1,5 +1,10 @@
-import type { DocsQaCitation, DocsQaJob, OfficialDocsLocale } from "@andon/shared-types";
-import { BookOpenIcon, ChevronLeftIcon, PlusIcon } from "lucide-react";
+import type {
+  DocsQaCitation,
+  DocsQaJob,
+  DocsQaMode,
+  OfficialDocsLocale,
+} from "@andon/shared-types";
+import { BookOpenIcon, ChevronLeftIcon, PlusIcon, SlidersHorizontalIcon } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -10,13 +15,34 @@ import { DocsChatTurn } from "./DocsChatTurn.tsx";
 import { DocsComposer, docsQaCanAsk, focusDocsQuestion } from "./DocsComposer.tsx";
 import { type ChatSource, DocsSourcePanel } from "./DocsSourcePanel.tsx";
 
-/** Questions the bundled docs answer well, to start an empty conversation. */
-const SUGGESTIONS = [
-  "Unit と Bolt はどう違いますか？",
-  "project.md はいつ読み込まれますか？",
-  "hooks が動かないときは？",
-  "スコープと深度の選び方は？",
-] as const;
+/** How an empty conversation introduces each mode, and requests that start it well. */
+const EMPTY_TEXT: Record<
+  DocsQaMode,
+  { title: string; lead: string; placeholder: string; suggestions: readonly string[] }
+> = {
+  docs: {
+    title: "ドキュメントについて質問する",
+    lead: "内蔵ドキュメントをもとに回答します。回答の番号から、根拠となる箇所を開けます。",
+    placeholder: "例: 承認ゲートで差し戻すには？（Ctrl+Enter で送信）",
+    suggestions: [
+      "Unit と Bolt はどう違いますか？",
+      "project.md はいつ読み込まれますか？",
+      "hooks が動かないときは？",
+      "スコープと深度の選び方は？",
+    ],
+  },
+  customize: {
+    title: "対話しながらカスタマイズする",
+    lead: "現在の設定を読んで、変更案を差分つきで提案します。内容を確認して「この変更を適用」を押すまで、設定は変わりません。",
+    placeholder: "例: プロジェクトのルールにコードレビューの方針を追加して（Ctrl+Enter で送信）",
+    suggestions: [
+      "プロジェクトのルールにコードレビューの方針を追加して",
+      "今の開発ルールを要約して、足りない観点を教えて",
+      "エージェント全員が読むチームの資料を追加したい",
+      "標準のスコープとの違いを踏まえて、小さな修正向けのスコープを作りたい",
+    ],
+  },
+};
 
 function appScroll(): HTMLElement | null {
   return document.querySelector<HTMLElement>('[data-testid="app-scroll"]');
@@ -55,6 +81,7 @@ function useFollowConversation(qa: DocsQaState): void {
 }
 
 function EmptyConversation({ qa }: { qa: DocsQaState }): ReactNode {
+  const text = EMPTY_TEXT[qa.mode];
   const start = (question: string): void => {
     if (docsQaCanAsk(qa) && !qa.busy) void qa.submit(question);
     else {
@@ -68,26 +95,28 @@ function EmptyConversation({ qa }: { qa: DocsQaState }): ReactNode {
         aria-hidden="true"
         className="flex size-11 items-center justify-center rounded-xl bg-primary-light text-primary-light-foreground"
       >
-        <BookOpenIcon className="size-5" />
+        {qa.mode === "customize" ? (
+          <SlidersHorizontalIcon className="size-5" />
+        ) : (
+          <BookOpenIcon className="size-5" />
+        )}
       </span>
       <div className="flex flex-col gap-2">
-        <h3 className="text-page-title font-bold">ドキュメントについて質問する</h3>
-        <p className="text-sm text-muted-foreground">
-          内蔵ドキュメントをもとに回答します。回答の番号から、根拠となる箇所を開けます。
-        </p>
+        <h3 className="text-page-title font-bold">{text.title}</h3>
+        <p className="text-sm text-muted-foreground">{text.lead}</p>
       </div>
       <DocsComposer
         qa={qa}
-        label="質問"
-        placeholder="例: 承認ゲートで差し戻すには？（Ctrl+Enter で送信）"
+        label={qa.mode === "customize" ? "依頼" : "質問"}
+        placeholder={text.placeholder}
         className="w-full text-left"
       />
       <div className="flex flex-col items-center gap-2">
         <p id="docs-chat-suggestions" className="text-sm text-muted-foreground">
-          よくある質問から始める
+          {qa.mode === "customize" ? "よくある依頼から始める" : "よくある質問から始める"}
         </p>
         <ul aria-labelledby="docs-chat-suggestions" className="flex flex-wrap justify-center gap-2">
-          {SUGGESTIONS.map((question) => (
+          {text.suggestions.map((question) => (
             <li key={question}>
               <Button
                 type="button"
@@ -118,6 +147,7 @@ export function DocsChatView({
   docLinks,
   onBack,
   onOpenDocument,
+  onOpenCustomization,
 }: {
   qa: DocsQaState;
   locale: OfficialDocsLocale;
@@ -125,6 +155,8 @@ export function DocsChatView({
   onBack: () => void;
   /** Opens the cited document itself, full width, with a way back here. */
   onOpenDocument: (citation: DocsQaCitation, turn: DocsQaJob) => void;
+  /** Opens the customization page, where an applied proposal can be reviewed. */
+  onOpenCustomization?: () => void;
 }): ReactNode {
   const [source, setSource] = useState<ChatSource | null>(null);
   const requests = useRef(0);
@@ -227,16 +259,26 @@ export function DocsChatView({
                   void openSource(citation, turn);
                 }}
                 onEdit={() => {
+                  qa.setMode(turn.mode ?? "docs");
                   qa.setDraft(turn.question);
                   focusDocsQuestion();
                 }}
+                {...(turn.proposal
+                  ? {
+                      applied: qa.proposals.results[turn.id],
+                      onApply: () => {
+                        if (turn.proposal) void qa.proposals.apply(turn.id, turn.proposal);
+                      },
+                    }
+                  : {})}
+                {...(onOpenCustomization ? { onOpenCustomization } : {})}
               />
             ))}
             <div className="sticky bottom-0 z-10 bg-background pt-2 pb-3">
               <DocsComposer
                 qa={qa}
-                label="続けて質問する"
-                placeholder="続けて質問する（Ctrl+Enter で送信）"
+                label={qa.mode === "customize" ? "続けて依頼する" : "続けて質問する"}
+                placeholder={`${qa.mode === "customize" ? "続けて依頼する" : "続けて質問する"}（Ctrl+Enter で送信）`}
               />
             </div>
           </div>
@@ -252,6 +294,7 @@ export function DocsChatView({
               onClose={closeSource}
               onOpenDocument={() => onOpenDocument(source.citation, source.turn)}
               onAskAbout={() => {
+                qa.setMode("docs");
                 qa.setTarget(source.citation.target);
                 closeSource();
                 focusDocsQuestion();

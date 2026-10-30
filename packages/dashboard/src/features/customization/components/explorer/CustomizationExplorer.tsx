@@ -27,11 +27,11 @@ import {
   type Category,
   categoryOf,
   createItem,
-  KIND_LABELS,
   listField,
   setSourceField,
   textField,
 } from "@/features/customization/utils/source-fields";
+import { KIND_LABELS } from "@/features/customization/utils/kind-labels.ts";
 import {
   createOwnedPlugin,
   duplicateScope,

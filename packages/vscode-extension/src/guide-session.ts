@@ -6,7 +6,7 @@ import {
   routeRead,
   UNKNOWN_ROUTE,
 } from "@andon/api-core";
-import type { SpaceSelection, WsMessage } from "@andon/shared-types";
+import type { DocsQaTool, SpaceSelection, WsMessage } from "@andon/shared-types";
 import {
   type ExtensionContext,
   type FileSystemWatcher,
@@ -14,6 +14,7 @@ import {
   type Webview,
   workspace,
 } from "vscode";
+import { chatTools } from "./setup-preference.ts";
 
 export const SELECTED_INTENT_KEY = "andon.selectedIntent";
 export const SPACE_SELECTION_KEY = "andon.spaceSelection";
@@ -23,6 +24,8 @@ export interface SelectedIntentPersist {
   set(slug: string | null): void;
   getSelection?(): SpaceSelection | undefined;
   setSelection?(selection: SpaceSelection): void;
+  /** The tools chosen for a workspace in Setup; the AI chat offers only these. */
+  chatTools?(root: string): readonly DocsQaTool[];
 }
 
 export function persistSelectedIntent(context: ExtensionContext): SelectedIntentPersist {
@@ -37,6 +40,7 @@ export function persistSelectedIntent(context: ExtensionContext): SelectedIntent
         // Persist is best-effort; the in-memory pin stays.
       });
     },
+    chatTools: (root) => chatTools(context, root),
   };
 }
 
@@ -68,6 +72,7 @@ export class GuideSession {
     persist?: SelectedIntentPersist,
   ) {
     const initialSelection = persist?.getSelection?.();
+    const selectedTools = persist?.chatTools;
     this.service = createGuideService({
       workspaceRoot,
       officialDocsRoot,
@@ -76,6 +81,7 @@ export class GuideSession {
       ...(persist?.setSelection ? {} : { onSelect: persist?.set }),
       ...(initialSelection ? { initialSelection } : {}),
       ...(persist?.setSelection ? { onSelection: persist.setSelection } : {}),
+      ...(selectedTools ? { chatTools: () => selectedTools(workspaceRoot) } : {}),
     });
     this.service.hub.add(this.pushClient);
     this.creationWatcher = workspace.createFileSystemWatcher(
