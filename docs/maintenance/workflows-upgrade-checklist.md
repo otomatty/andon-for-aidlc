@@ -30,9 +30,10 @@ v2.11.2 対応作業（2026-10-30）:
 - [x] ステージグラフ: Build and Test の 3 つのテスト指示が `optional_produces` に移った。bridge-map の出力と説明を合わせ、成果物 map の位置対応を `produces` + `optional_produces` の並びで判定する。
 - [x] reader: `intent add-checkout` の記録（`.aidlc-engine/source-checkouts.json`）がある間は strict のレビュー判定を保留する。ソース指紋・レビュー記録・State・Unit DAG・`intents.json` の読み取りは上流で変更がないことを確認。
 - [x] Doctor: 採取スクリプトがネイティブ版を導入したコマンドで動かすよう直し、warning シナリオの更新確認を 30 日前に固定する。新しい診断を訳し、Linux の 9 ケースと 2.11.2 の契約（依存ソースの指紋 70 ファイル）を登録した。
-- [ ] Doctor: Windows・macOS の採取。作業ブランチで doctor-record を実行して 3 OS × 9 ケースを登録する。
+- [x] Doctor: 採取先を短くして Windows のフォルダーの深さの警告を避け、CI 実行 40997010556 で 3 OS × 9 ケースを登録した。
 - [x] 英語66ページと新規1ページ、版宣言・bridge・索引・成果物 map を同期する。
 - [x] 日本語は変更のあった全ページを英語の差分と照合し、2.11.2 の更新履歴と改善点ガイドを追加する。
+- [x] `bun run check`（272 ファイル・4,931 件成功）と `bun run package:extension`（710 ファイル）が成功。
 - [ ] `[masked]` など 2.11.2 で記録に入る新しい値の画面表示、承認後の成果物補正（`STAGE_OUTPUT_AMENDED`）と `Review Kept` のレビュー判定への反映。現状は判定を保留する側に倒れる。
 - [ ] 実拡張ホストでの操作（バージョン確認画面、更新後のプロジェクト更新）。
 
