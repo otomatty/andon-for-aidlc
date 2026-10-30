@@ -239,6 +239,15 @@ describe("customizing by conversation", () => {
       },
     ]);
     expect(within(card).queryByRole("button", { name: "この変更を適用" })).toBeNull();
+
+    // A follow-up sees the changes shown and that they were applied.
+    await userEvent.type(screen.getByRole("textbox", { name: "続けて依頼する" }), "見出しも直して");
+    await userEvent.click(screen.getByRole("button", { name: "依頼する" }));
+    await waitFor(() => expect(api.requests).toHaveLength(2));
+    const previous = api.requests[1]?.history?.[0]?.answer ?? "";
+    expect(previous).toContain('"previousProposal"');
+    expect(previous).toContain('"status":"applied"');
+    expect(previous).toContain("Two approvals and a green CI.");
   });
 
   it("returns to the active space when the chosen one is cleared", async () => {

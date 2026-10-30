@@ -152,7 +152,7 @@ export function useDocsQa(open: boolean, locale: OfficialDocsLocale) {
           : scope
             ? { target: scope }
             : {}),
-        history: docsQaAskHistory(turns),
+        history: docsQaAskHistory(turns, (id) => proposals.results[id]?.status),
       });
       if (!mounted.current) return;
       receive(job);

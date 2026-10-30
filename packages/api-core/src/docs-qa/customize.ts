@@ -145,6 +145,7 @@ export function customizePrompt(
     '- {"operation":"remove","itemId":"<id from the catalog>"}',
     "Rules:",
     '- Return "changes": [] when the user only asks a question, when the request is unclear (ask in the reply), or when it cannot be done safely.',
+    '- A history answer may end with {"previousProposal": ...}: the changes you proposed then, and whether they were applied. When the user asks to adjust it, return the complete revised set of changes; it replaces that proposal. Applied changes are already in the catalog.',
     `- Make the fewest changes that do what was asked, at most ${MAX_CHANGES}. Never invent item ids.`,
     '- Replace or remove only items whose catalog entry says "editable": true. Replace only items whose content is shown without "truncated". Keep every part you were not asked to change exactly as it is.',
     "- content is the whole file text, never a diff. Keep YAML frontmatter valid and keep the existing frontmatter keys.",
