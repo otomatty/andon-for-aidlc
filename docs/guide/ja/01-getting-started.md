@@ -152,7 +152,7 @@ $ aidlc config
   Step 2 of 6 - Model provider
   No AWS credentials were detected.
     1. keep current     inherit the provider already configured in the harness (default)
-    2. amazon-bedrock   write the AWS region and profile to settings.json
+    2. amazon-bedrock   write the AWS region and profile to settings.local.json, just for you
   Provider [1]: 2
   AWS region [us-east-1]:
   AWS profile [default credential chain]:
@@ -202,7 +202,7 @@ $ aidlc config
 | 手順 | 書き込むもの |
 | --- | --- |
 | 1. Harness | どのツールのファイルを設定するか（Claude Code なら `.claude/`）。 |
-| 2. Model provider | `keep current` は何も書きません。`amazon-bedrock` は `.claude/settings.json` の `env` ブロックに `CLAUDE_CODE_USE_BEDROCK` と `AWS_REGION`（プロファイルを指定した場合はそれも）を追加します。 |
+| 2. Model provider | `keep current` は何も書きません。`amazon-bedrock` は `CLAUDE_CODE_USE_BEDROCK` と `AWS_REGION`（プロファイルを指定した場合はそれも）を、共有の `.claude/settings.json` ではなく、自分用の `.claude/settings.local.json`（git が無視します）の `env` ブロックに追加します。プロジェクトに残る回答の記録には、プロファイルは保存されません。 |
 | 3. Model effort preset | 手順 6 で選んだファイルにプリセット名を書きます。`unchanged` は何も記録しません。 |
 | 4. Plugins | インストール済みのどのプラグインを有効にするか。 |
 | 5. MCP servers | 配布サーバーを載せた `.mcp.json`、またはなし。 |
@@ -227,8 +227,9 @@ $ aidlc config --harness claude --mcp defaults --yes
 configured /home/you/ci-demo for Claude Code X.Y.Z; next: open Claude Code in this project (if it is already open in this folder, exit it and start it again) and run `/aidlc --doctor`
 ```
 
-Kiro IDE では、`--yes` は、そこでセットアップが尋ねるすべてのプロジェクト向けの Kiro 設定に関する 2 つの質問にも推奨の回答を選びます。Kiro の Workflows 機能をオフにし（オンの間は AI-DLC のレビューとヘルパーが動きません）、Windows で Kiro のターミナルがコマンドプロンプトのときは PowerShell に設定します。Workflows をオンに戻すには、
-`aidlc config trust --harness kiro-ide --kiro-workflows on --yes` を実行します。
+Kiro IDE では、`--yes` は、そこでセットアップが尋ねるすべてのプロジェクト向けの Kiro 設定に関する質問にも推奨の回答を選びます。Kiro IDE と Kiro CLI で Kiro の Workflows 機能をオフにし（オンの間は AI-DLC のレビューとヘルパーが動きません）、Windows で Kiro のターミナルがコマンドプロンプトのときは PowerShell に設定します。Workflows をオンに戻すには、
+`aidlc config trust --harness kiro-ide --kiro-workflows on --yes`（Kiro IDE）または
+`aidlc config trust --harness kiro-ide --kiro-cli-workflows on --yes`（Kiro CLI）を実行します。
 
 `--harness` がないと、何も書き込む前に止まります。
 
@@ -418,12 +419,12 @@ Go ahead を選ぶと作業が始まります。**Use a different plan** はほ�
       Discuss freely; I'll extract the decisions from the conversation
 ```
 
-選ぶのは一度だけです。後のステージは同じ回答を使い、そのことを 1 行で伝えます（"Answering the way you chose earlier: Guide me. Say if you'd rather edit the file or chat."）。**Guide me** では、質問が選択肢付きで数問ずつ出ます。一番上の行に質問が並び、最後の質問の後、**Submit** で回答を確認でき、**Submit answers** で送信します。
+選ぶのは一度だけです。後のステージは同じ回答を使い、そのことを 1 行で伝えます（"Answering the way you chose earlier: Guide me. Say if you'd rather edit the file or chat."）。**Guide me** では、質問が数問ずつ出ます。各質問には選択肢が付き、その文の前には、ふだん誰が答えるかが示されます（この画面は AI-DLC がそのラベルを表示する前に取得したもので、ラベルが入る位置を示すために `[Product owner]` を加えています）。一番上の行に質問が並び、最後の質問の後、**Submit** で回答を確認でき、**Submit answers** で送信します。
 
 ```text
  < [ ] Q1 Problem  [ ] Q2 Users  [ ] Q3 Success  [ ] Q4 Trigger  Submit >
- Q1. What business problem should the inventory API solve first? (If it's not defined yet, pick
- "Type something" and say so.)
+ Q1. [Product owner] What business problem should the inventory API solve first? (If it's not
+ defined yet, pick "Type something" and say so.)
  > 1. Stock counts drift
       A. We don't know accurately what stock we have (counts drift, spreadsheets go stale)
    2. Stock-outs / overstock
@@ -455,16 +456,7 @@ Go ahead を選ぶと作業が始まります。**Use a different plan** はほ�
       Revise one or more answers before generation
 ```
 
-それからステージの文書を書きます。回答で決まらなかった前提に基づく部分があるときは、それを前提のまま残すか、質問に変えるかを尋ねます。レビュアーエージェントが主要な文書を読み、承認の前の最後の質問は、このステージで次回のために覚えておく価値のあることがあるかどうかです。
-
-```text
- Notes
- Anything to add for next time?
- > 1. Nothing to add
-      Move on to the approval for this step
-   2. Add a note
-      Record something AI-DLC should remember for future runs
-```
+それからステージの文書を書きます。回答で決まらなかった前提に基づく部分があるときは、それを前提のまま残すか、質問に変えるかを尋ねます。レビュアーエージェントが主要な文書を読みます。途中でエージェントを修正していれば、ここでその修正を次回のために残すかどうかを尋ねます。何も修正していないので、次は承認です。
 
 そして最初の承認です（省略あり: 出典チェックの行、レビューファイルのパス、3 つの所見のうち 2 つを省いています）。
 
@@ -489,8 +481,12 @@ Review outcome: Concerns remain for your decision.
   metric is sufficient, or ask a follow-up to add a data-accuracy or reliability metric before
   inception begins.
 
+Approve accepts the open review findings R-01 (...), R-02 (...) and R-03 (The table carries a
+single, binary success metric ("at least one real...) as risk; you can also approve and ask for
+one to be fixed, or reject one as not applying, saying why.
+
 Decision options:
-- Approve - continue with the open findings accepted.
+- Approve - continue.
 - Request Changes - return to the listed artifacts so the required actions can be addressed.
 
 Review: aidlc/spaces/default/intents/261013-inventory-rest-api/ideation/intent-capture/

@@ -1,0 +1,79 @@
+AI-DLC doctor
+
+Machine
+  ok    Runtime hook PATH: bun is not required by the selected projection
+  ok    Runtime hook PATH: aidlc -> <CAPTURE>/native-claude-healthy/machine/bin/aidlc (non-interactive baseline)
+  ok    Harness CLI: claude 3.0.0 (Doctor fixture CLI) at <CAPTURE>/test-tools/claude
+  ok    Installed runtime: 2.11.2 [claude, codex, copilot, cursor, kiro, kiro-ide, opencode]
+  ok    Plugin marketplace: <CAPTURE>/native-claude-healthy/machine/plugins
+  ok    Command pointer: <CAPTURE>/native-claude-healthy/machine/bin/aidlc -> 2.11.2
+  ok    Rollback target: none recorded
+  ok    Project pin registry: no stale registrations
+  ok    Transaction staging: no abandoned directories
+  ok    Transaction recovery: no quarantined directories
+  ok    Update: binary 2.11.2 is latest
+
+Project (.claude, Claude Code)
+  ok    Instruction file: framework-owned file intact
+  ok    Native command trust: host hooks and permission entries select the installed `aidlc` command
+  ok    Project runtime stamp: 2.11.2 (claude)
+  ok    aidlc-continue-workflow.ts present
+  ok    aidlc-deliver-stage-rules.ts present
+  ok    aidlc-fold-usage.ts present
+  ok    aidlc-log-subagent.ts present
+  ok    aidlc-plan-approval-guard.ts present
+  ok    aidlc-rebuild-stage-graph.ts present
+  ok    aidlc-record-human-turn.ts present
+  ok    aidlc-review-freeze.ts present
+  ok    aidlc-reviewer-scope.ts present
+  ok    aidlc-run-sensors.ts present
+  ok    aidlc-session-end.ts present
+  ok    aidlc-session-start.ts present
+  ok    aidlc-state-transition-guard.ts present
+  ok    aidlc-sync-workflow-state.ts present
+  ok    aidlc-validate-state.ts present
+  ok    aidlc-write-audit-log.ts present
+  ok    Hooks enabled (resolved disableAllHooks is not true)
+  ok    settings.json present
+  ok    Enabled plugins: all enabled (no selection); enabled stage counts: aidlc=30, bootstrap=3
+  ok    Plugin selection flags: harness.json agrees with stage-graph.json
+  ok    Composed plugin surface: all enabled plugin stages and recorded contributions are present
+  ok    workspace shell ready (.claude/ + aidlc/spaces/default/memory/)
+  ok    active space method copy current (aidlc/active-memory/ holds aidlc/spaces/default/memory/)
+  ok    Submodules: no .gitmodules at workspace root
+  ok    Hooks last fired: record-human-turn 2000-01-01T00:00:00Z
+  ok    Hook drops: none recorded
+  ok    Runtime locks: none leaked
+  ok    Orphan worktrees: 0 observed
+  ok    Stale branches: 0 (0 bolt-* observed)
+  ok    Orphan state files: 0 observed
+  ok    Orphan audit: 0 observed
+  ok    Practices staleness: state file absent (informational)
+  ok    MERGE_DISPATCH: 0 orphan INVOKED (0 bracketed)
+  ok    Composed scope durability: no composed scopes
+  ok    Duplicate producers: every consumed artifact has a single producer
+  ok    Intent registry: all rows match their record dirs
+  ok    Workspace records: no uncommitted changes under aidlc/
+  ok    Plugins: no AIDLC plugins installed
+  ok    Models: recorded policy is expressible
+  ok    Flags: no recorded project answers
+  ok    Providers: using shipped fallback; no recorded answers
+  ok    Workspace siblings: complete projection is present
+  ok    AI-DLC files: unchanged since AI-DLC wrote them
+
+Framework integrity
+  ok    Enabled stage compile coverage: every enabled stage file is in the full graph
+  ok    Agent filename/name consistency: all agent files match declared names
+  ok    Scope filename/name consistency: all scope files match declared names
+  ok    Cycle detection: 0 cycles
+  ok    Orphan stage files: 33 graph entries all have files
+  ok    Uncompiled stage files: 0 stage files missing from the compiled graph
+  ok    Scope validation: 11 scopes valid (47 advisories)
+  ok    Schema validation: 33/33 stages validated
+  ok    Graph references: 122 artifacts + edges resolved
+  ok    Keyword overlap: no conflicts
+  ok    Rule drift: no team/project rule overlaps org policy
+  ok    Paired sensor coverage: no sensor-bound rules (0 feedforward-only)
+
+0 problems, 0 warnings.
+Your install is ready.

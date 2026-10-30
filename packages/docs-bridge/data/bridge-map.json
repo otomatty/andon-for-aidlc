@@ -1,5 +1,5 @@
 {
-  "sourceVersion": "aidlc 2.11.1 (State Version 8)",
+  "sourceVersion": "aidlc 2.11.2 (State Version 8)",
   "stages": {
     "workspace-scaffold": {
       "purpose": "ワークフローが書き込む先のディレクトリ構造（intent レコード・空間ナレッジ・ステージ成果物置き場）を先に用意する。初期化フェーズの最初のステージで、人間の入力は不要。",
@@ -126,7 +126,7 @@
         "reverse-engineering-timestamp"
       ],
       "agent": "aidlc-developer-agent",
-      "gateRequirement": "抽出されたアーキテクチャ・依存・技術的負債の記述が実際のコードベースと合っているかを確認し、承認または差し戻しを返してください。",
+      "gateRequirement": "抽出されたアーキテクチャ・依存・技術的負債の記述が実際のコードベースと合っているかを確認し、承認または差し戻しを返してください。名前を挙げていないリポジトリが 10 以上見つかった場合は、読む前に全部読むか必要なものだけにするかを一度尋ねます。Guard Policy が relaxed か off なら、差し戻しでは頼んだ部分だけを走査し直します。",
       "docPath": ".claude/aidlc-common/stages/inception/reverse-engineering.md",
       "docAnchor": "#reverse-engineering"
     },
@@ -163,7 +163,7 @@
       ],
       "outputs": ["requirements", "requirements-analysis-questions"],
       "agent": "aidlc-product-agent",
-      "gateRequirement": "各要件が「何をもって満たしたと言えるか」テスト可能な形になっているか、要件間に矛盾がないかを確認し、承認または差し戻しを返してください。インテントステートメントとスコープ文書がある場合、要件がそれらを出典として引用していることも自動チェックされます。",
+      "gateRequirement": "各要件が「何をもって満たしたと言えるか」テスト可能な形になっているか、要件間に矛盾がないかを確認し、承認または差し戻しを返してください。インテントステートメントとスコープ文書がある場合、要件がそれらを出典として引用していることも自動チェックされます。スキップしたステージが合う場合は、承認と同時にそのステージを加える「Approve, and add <Stage> next」も選べます。",
       "docPath": ".claude/aidlc-common/stages/inception/requirements-analysis.md",
       "docAnchor": "#requirements-analysis"
     },
@@ -202,7 +202,7 @@
       ],
       "outputs": ["components", "decisions", "traceability"],
       "agent": "aidlc-architect-agent",
-      "gateRequirement": "コンポーネント境界とエンティティ所有が一意か、ADR（判断・代替案・帰結）に納得できるかを確認し、承認または差し戻しを返してください。",
+      "gateRequirement": "コンポーネント境界とエンティティ所有が一意か、ADR（判断・代替案・帰結）に納得できるかを確認し、承認または差し戻しを返してください。スキップしたステージが合う場合は、承認と同時にそのステージを加える「Approve, and add <Stage> next」も選べます。",
       "docPath": "packages/docs-bridge/data/upstream-stages/domain-design.md",
       "docAnchor": "#domain-design"
     },
@@ -358,24 +358,21 @@
       ],
       "outputs": ["code-generation-plan", "unit-test-instructions", "code-summary", "traceability"],
       "agent": "aidlc-developer-agent",
-      "gateRequirement": "計画承認が有効なら、最初に実装計画を承認します。計画の質問はあなたの返答を待ってから作業を始め、ステージは承認済みの計画からのみ完了します（承認済みの計画は会話の圧縮や中断、AI-DLC の更新の後も再び尋ねられません）。コードが worktree やクローンなどプロジェクトの git から見えない場所にあってもコードの承認の質問は開き、レビューがコードを見られない場所では `AI-DLC found no source changes under …` と一度示したうえで承認または差し戻しを選べます。完了時の要約には、書いたが実行しなかったテストとその理由が載るので確認してください。Unitチェックポイントを使う場合は、許可したコマンドの検証結果とレビューを確認してUnitまたはバッチを承認・差し戻しします。既存ワークフローは記録済みの承認方式に従います。",
+      "gateRequirement": "計画承認が有効なら、最初に実装計画を承認します。計画の質問はあなたの返答を待ってから作業を始め、ステージは承認済みの計画からのみ完了します（承認済みの計画は会話の圧縮や中断、AI-DLC の更新の後も再び尋ねられません）。コードが worktree やクローンなどプロジェクトの git から見えない場所にあってもコードの承認の質問は開き、レビューがコードを見られない場所では `AI-DLC found no source changes under …` と一度示したうえで承認または差し戻しを選べます。完了時の要約には、書いたが実行しなかったテストとその理由が載るので確認してください。承認の質問（Unit チェックポイントでは各 Unit）には、作業前からあったファイルのうちビルドが変更・削除したものが、git に控えがあれば元に戻すコマンドとともに示されます。Unitチェックポイントを使う場合は、許可したコマンドの検証結果とレビューを確認してUnitまたはバッチを承認・差し戻しします。既存ワークフローは記録済みの承認方式に従います。",
       "docPath": ".claude/aidlc-common/stages/construction/code-generation.md",
       "docAnchor": "#code-generation"
     },
     "build-and-test": {
-      "purpose": "ビルド手順とテスト指示（単体・結合・性能・セキュリティ）を用意し、実際に実行して結果を残す。Construction の品質ゲート。",
+      "purpose": "ビルド手順を用意し、テスト戦略に応じて結合・性能・セキュリティのテスト指示を加え、実際に実行して結果を残す。Construction の品質ゲート。",
       "inputs": ["code-generation-plan", "unit-test-instructions", "code-summary"],
       "outputs": [
         "build-instructions",
-        "integration-test-instructions",
-        "performance-test-instructions",
-        "security-test-instructions",
         "build-and-test-summary",
         "build-test-results",
         "cross-unit-traceability"
       ],
       "agent": "aidlc-quality-agent",
-      "gateRequirement": "テストが実際に green か、カバレッジ床を満たしているか、失敗を握り潰していないかを確認し、承認または差し戻しを返してください。CI Pipeline を実行しない計画（または CI Pipeline がこの後に控える計画）では、「マージ前に CI で実行」の目標はここでは理由付きの N/A になり、失敗にはなりません。横断トレーサビリティは、理由付きで N/A とした要件やユーザーストーリー経由で実装した要件を未実装と数えず、サブ要件（FRn.m）は親要件の下で追跡します。",
+      "gateRequirement": "テストが実際に green か、カバレッジ床を満たしているか、失敗を握り潰していないかを確認し、承認または差し戻しを返してください。プロジェクト全体のカバレッジ床は 1 つの Unit のテストではなく全テストの実行で判定し、実際のブラウザで実行していない画面確認は `Unverified` のまま残ります。CI Pipeline を実行しない計画（または CI Pipeline がこの後に控える計画）では、「マージ前に CI で実行」の目標はここでは理由付きの N/A になり、失敗にはなりません。横断トレーサビリティは、理由付きで N/A とした要件やユーザーストーリー経由で実装した要件を未実装と数えず、サブ要件（FRn.m）は親要件の下で追跡します。",
       "docPath": ".claude/aidlc-common/stages/construction/build-and-test.md",
       "docAnchor": "#build-and-test"
     },

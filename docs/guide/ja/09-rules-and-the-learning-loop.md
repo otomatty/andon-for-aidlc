@@ -8,7 +8,7 @@
 
 ## ルールの概要
 
-ルールは、アクティブスペースのメモリ層の Markdown ファイル、つまり `aidlc/spaces/<active-space>/memory/` にあります。これはワークスペースルートにある手で編集可能な単一セットで、各ハーネスがそれぞれのネイティブな取り込み機構（Claude の `@` インポートスタブ、Kiro CLI のリソースまたは Kiro IDE のステアリング、Codex ではエンジンのステップごとのルール配送、opencode の `instructions` グロブ、Copilot の `AGENTS.md` の `@` インポート）を通じて読み込みます。各ファイルは、そのスコープに応じて名前が付いています。
+ルールは、アクティブスペースのメモリ層の Markdown ファイル、つまり `aidlc/spaces/<active-space>/memory/` にあります。これはワークスペースルートにある手で編集可能な単一セットで、各ハーネスがそれぞれのネイティブな取り込み機構（Claude の `@` インポートスタブ、Kiro CLI のリソースまたは Kiro IDE のステアリング、Codex ではエンジンのステップごとのルール配送、Cursor の常に適用される `.cursor/rules/aidlc.mdc` ルール、opencode の `instructions` グロブ、Copilot の `AGENTS.md` の `@` インポート）を通じて読み込みます。各ファイルは、そのスコープに応じて名前が付いています。
 
 ```
 aidlc/spaces/<active-space>/memory/
@@ -48,9 +48,9 @@ org → team → project → phase → stage
 
 ## 学習ループ
 
-学習ループは、一度きりの修正を永続的なルールに変える仕組みです。ほとんどのステージ実行では何も追加されません。そしてそれは健全です。このループが動くのは、ステージ中に何かが表面化し、それを保持する価値があるとあなたが判断したときだけです。
+学習ループは、一度きりの修正を永続的なルールに変える仕組みです。ほとんどのステージ実行では何も追加されません。そしてそれは健全です。このループが入ってくるのは、ステージの中であなたがエージェントを修正したとき、または次回のために何かを残すよう頼んだときだけです。
 
-学びの手順が有効な場合、利用者には4つの場面が見えます。ステージ実行中の観察日誌、ゲートでの候補提示、残す項目の確認、次回に向けたルールへの保存です。無効な場合は、日誌もゲートでの学びの手順も実行しません。
+学びが有効な場合、あなたに見える場面は 3 つです。あなたがエージェントを修正する（または何かを残すよう頼む）、エージェントがその修正を次回のために残すかどうかを一度尋ねる、そしてフレームワークがあなたの残したものを書き込む、です。何も修正しなければ何も尋ねられず、ステージは要約からそのまま承認の質問へ進みます。学びが無効な場合は、このどれも実行されず、日誌も残しません。
 
 ### `memory.md` の日誌
 
@@ -61,95 +61,66 @@ org → team → project → phase → stage
 - **トレードオフ（Tradeoffs）** — 検討した選択肢と、その選択理由
 - **未解決の質問（Open questions）** — 次回実行前に確認すべきこと、またはまだ不確かな文脈
 
-各記入項目にはタイムスタンプが付きます。言語モデルはステージの間に観察内容を `memory.md` へ書き、書き込み時には、オーケストレーターが後述するセクション単位の競合比較を行います。決定論的なツールが候補を抽出し、ゲートであなたが明示的に保持した選択を書き込みます。
+各記入項目にはタイムスタンプが付きます。日誌は、エージェント自身の推論についてのそのステージの記録です。残すべきものとしてあなたに提示されることはありません。
 
-### ゲートの儀式
+### 修正の後の質問
 
-各承認ゲートの前に、フレームワークは学習ゲートを実行します（プロトコルでは §13 の儀式と呼ばれます）。2 つの情報源から候補を集め、1 つの確認リストとして提示します。
+あなたがエージェントを修正したステージでは、承認の質問の前に、次回も当てはまる修正のそれぞれについて、あなたの言葉で尋ねます。
 
-1. **エージェントの日誌を、そのまま提示する。** 決定論的なツールが `memory.md` を読み、解釈、逸脱、トレードオフの下にある各記入項目を、出典の見出しを添えて候補として提示します。言い換えも、「重要そうなもの」への絞り込みもありません。記入項目は書かれたとおりに見えます。各記入項目は日誌の 1 行です。未解決の質問が提示されることはありません。それらは導入すべきルールではなく、調べるべき事柄として日誌に残ります。
-2. **必ず「次回のために追加することはありますか？」（"Anything to add for next time?"）と尋ねる質問。** **Add a note** を選び、観察内容を自分の言葉で伝え、それが 4 つの見出しのどれに属するかを選びます。分類として求められるのは、その見出しの選択だけです。
+- ステージの承認で変更を求め（Request Changes）、エージェントがそれを行った場合。この質問は、承認がもう一度尋ねられる前に来ます。
+- または、エージェントが作業中に行ったことや前提としたことを、あなたが自分の言葉で修正した場合。
 
-残したい候補にチェックを付けます。何も残さない場合は、最初の選択肢 **Keep none of these** を選びます。もしそのステージの `memory.md` が空なら、フレームワークは日誌が付けられたかどうかの証明をあなたに求めません。静かにその事実を記録して先へ進み、尋ねられるのは「次回のために追加することはありますか？」（"Anything to add for next time?"）だけです。
+一度きりの修正（誤字、間違った名前、1 つの値）については尋ねません。あなたがエージェントを修正したかどうか、そしてそれが次回も当てはまるかどうかは、ほかの返答と同じように、エージェントがあなたの言葉を読んで判断します。単語の一覧で決まるわけではありません。各修正について尋ねるのは一度だけです。
+
+エージェントに何かを残すようはっきり頼んだ場合（「approve, and next time use the shared fixtures」）は、質問なしでそれを残し、どこに入れたかを 1 行で伝えます。チームを指定しない限りこのプロジェクトのルールに入るので、移動したり取り除いたりできます。
 
 ### 実際の表示
 
-Claude Code での実行から、Intent Capture のゲートでの表示です（短縮し、罫線文字はプレーンテキストで示しています）。日誌には解釈が 1 つと逸脱が 1 つあったので、最初の質問は両方を提示します。
+Intent Capture の承認で、在庫品目を SKU と呼ぶようエージェントに伝えた後の表示です（短縮し、罫線文字はプレーンテキストで示しています）。
 
 ```text
- Keep notes
- Which notes from this step should I keep as practices for future work? (select all that apply)
- > 1. [ ] Keep none of these
-          Don't save any of these notes
-   2. [ ] Treated store customers as the people the first release helps, not as a stakeholder group
-          -> project.md ## Corrections (say if it should go to team.md instead)
-   3. [ ] Added a ninth question for the vision document's open per-warehouse question
-          -> project.md ## Corrections (say if it should go to team.md instead)
+ Keep for next time
+ You asked me to call a stock item a SKU in every document, never a product. Keep that for next time?
+ > 1. Yes, for this project
+   2. Yes, for the team
+   3. No
 ```
 
-続いて、必ず尋ねられる質問です。
-
-```text
- Anything to add for next time?
- > 1. Nothing to add
-      Go on to the approval question
-   2. Add a note
-      Tell me something to remember for future work
-```
-
-**Add a note** を選び、「Call a stock item a SKU in every document, never a product.」というメモを伝えると、エージェントはそれがどの見出しに属するかを尋ねます。
-
-```text
- Note type
- Which kind of note is "Call a stock item a SKU in every document, never a product"? I'll file it
- under the right practice heading from your pick.
- > 1. Interpretation
-      How to read or name something where it could be ambiguous
-   2. Deviation
-      A place where we deliberately do things differently
-   3. Tradeoff
-      A choice between alternatives and why
-   4. Open question
-      Something to confirm later (kept as a reminder, not a practice)
-```
-
-候補 2 を残し、メモを解釈として分類すると、`aidlc/spaces/default/memory/project.md` の末尾に 2 行のプラクティスが加わります（残した候補はエージェントがプラクティスとして言い表し、あなたのメモは書いたとおりに残ります）。
+**Yes, for this project** を選ぶと、`aidlc/spaces/default/memory/project.md` の末尾に、エージェントがあなたの修正から言い表したプラクティスの行が加わります。
 
 ```text
 ## Corrections
 ...
-- Treat online store customers as the people the first release helps, not as a stakeholder group, unless the user names them as stakeholders (learned 2026-10-13) <!-- cid:... -->
 - Call a stock item a SKU in every document, never a product. (learned 2026-10-13) <!-- cid:... -->
 ```
 
-そして監査シャードには、それぞれについて 1 行が入ります。次はメモの行です。
+そして監査シャードには、それについての行が入ります。
 
 ```text
 ## Rule Learned
 **Timestamp**: 2026-10-13T10:41:30Z
 **Event**: RULE_LEARNED
 **Stage**: intent-capture
-**Candidate-ID**: u1
+**Candidate-ID**: c1
 **Content-Hash**: 3a3aa8df...
 **Destination**: <project-dir>/aidlc/spaces/default/memory/project.md
 **Heading**: ## Corrections
 **Source**: user_addition
 ```
 
-そのゲートで、どのナレッジを使ったかを尋ねると、エージェントは、2 つのメモはステージの文書が仕上がった後に書かれたもので、[次の該当ステージから適用される](#次の該当ステージから適用される) で説明するとおり、次のステージから有効になると答えました。
+AI-DLC が読む値を設定する残された行（`## Testing Posture` の下の `Methodology: tdd` や `Ordering: ...`、`## Guard Policy` または廃止された `## Change Control` の下の `Mode: strict`）は、代わりに日付を `<!-- learned 2026-10-13 -->` として持ちます。そのため、値はあなたが残したものそのものになります。
+
+残された行は、[次の該当ステージから適用される](#次の該当ステージから適用される) で説明するとおり、次のステージから有効になります。
 
 ### 保持された learning はどこへ行くか
 
-あなたがファイルパスを選ぶことはありません。書き込み先は見出しによって決まります。
+あなたがファイルパスや見出しを選ぶことはありません。残した修正はプラクティスとして、`aidlc/spaces/<active-space>/memory/project.md`（**Yes, for this project**）または `memory/team.md`（**Yes, for the team**）の、エージェントが選ぶ話題ごとの見出し（`## Corrections`、`## Testing Posture`、`## Forbidden`）の下に入ります。
 
-- 解釈、逸脱、トレードオフはプラクティスとして `aidlc/spaces/<active-space>/memory/project.md` に入ります（確認された学びは *プラクティスそのもの* です）。話題ごとの見出しの下に配置されます。
-- 未解決の質問は昇格しません。これらは調査項目であり、導入すべきルールではないからです。
-
-既定のスコープは **project** です。教訓が 1 つのプロジェクトを超えて当てはまる場合には、「チームへ昇格（promote to team）」のワンクリック操作で、保持した学びを `memory/project.md` から `memory/team.md` へ広げられます。組織（org）まで広げる経路はありません。組織ルールはフレームワークが出荷するか、組織側で別のプロセスにより著述されるので、学習ループが org スコープへ書くことはありません。最も狭いスコープを既定にすることで、1 つのプロジェクトでの驚きが誤って組織全体のルールにならないようにしています。
+既定のスコープは **project** です。教訓が 1 つのプロジェクトを超えて当てはまる場合には、**Yes, for the team** で、保持した学びを `memory/team.md` へ広げられます。組織（org）まで広げる経路はありません。組織ルールはフレームワークが出荷するか、組織側で別のプロセスにより著述されるので、学習ループが org スコープへ書くことはありません。最も狭いスコープを既定にすることで、1 つのプロジェクトでの驚きが誤って組織全体のルールにならないようにしています。
 
 確認された学びは *プラクティスそのもの* です。`aidlc/spaces/<active-space>/memory/project.md` や `team.md` といった、プラクティス発見（practices-discovery）が確認するのと同じアクティブスペースのメモリファイルに入ります。別個の継続的な `*-learnings.md` という置き場はありません。これら 2 つの経路が異なるのはライフサイクルだけです。プラクティス発見はセクション全体を決定論的に確認しますが、学習ループはゲートを通じて、日付と話題見出しの付いた記入項目を 1 つずつ追記します。
 
-保持された学びが **センサーの結び付け** でありルールではない場合、つまりステージ出力に対して新しい決定論的検査を走らせたい場合、フレームワークは 2 つのファイル書き込みを原子的に行います。センサーマニフェストの雛形を作り、新しいセンサーの id を発生元ステージのインポート一覧に追記します。日誌、ゲートでの確認、そこから生じるファイル書き込みはそれぞれ監査行（`RULE_LEARNED` または `SENSOR_PROPOSED`）を残すため、どんなルールも黙って導入されることはありません。
+保持された学びが **センサーの結び付け** でありルールではない場合、つまりステージ出力に対して新しい決定論的検査を走らせたい場合、フレームワークは 2 つのファイル書き込みを原子的に行います。センサーマニフェストの雛形を作り、新しいセンサーの id を発生元ステージのインポート一覧に追記します。質問、あなたの回答、そこから生じるファイル書き込みはそれぞれ監査行を残すため（書き込みの行は `RULE_LEARNED` または `SENSOR_PROPOSED`）、どんなルールも黙って導入されることはありません。
 
 ### 書き込み時の競合検査（admission-time conflict checks）
 
@@ -173,11 +144,9 @@ Sam がある銀行プロジェクトで `/aidlc feature` を実行します。�
 
 フレームワークはこれを予測していませんでした。その銀行独自の用語についてのルールもなく、一般用語とドメイン用語の衝突を捉えるセンサーもありません。エージェントが単純に曖昧さにぶつかったのです。
 
-**1. 日誌に記録される。** エージェントは `<record>/inception/requirements-analysis/memory.md` の `## Interpretations` の下に 1 行を追記します。その時刻、短い要約（「Stakeholder note used 'transaction'; interpreted as database-transaction」）、そして文脈（Sam がそれを、データベースの書き込みではなく処理対象の支払いを意味するよう修正したこと）です。各記入項目は 1 行です。2 行目へ折り返したメモは、2 つの候補として提示されてしまいます。
+**1. 重要なのは Sam の修正です。** Sam の言葉（"transaction" は処理対象の支払いを意味する）は、エージェントが前提としたことを、プロジェクト全体に当てはまる形で修正しています。それについてのエージェント自身の日誌の行は、ステージの記録に残ります。そこから何かが提示されることはありません。
 
-この時点ではルールはまだ導入されていません。これは単なるエージェントの日誌です。
-
-**2. ゲートがそれを提示する。** ステージが完了します。承認ゲートの前に、学習ゲートが `memory.md` を読み、この解釈の行を候補として表示します。さらに「次回のために追加することはありますか？」（"Anything to add for next time?"）と尋ねます。Sam はトランザクション用語の候補にチェックを入れ（解釈 → `memory/project.md` に入ります）、さらに「エージェントが AWS アカウントの用語を既定で使い続けたため、銀行の顧客エンティティは常に『bank customer』と呼ぶべき」という自由記述のメモを追加します。Sam はこの追加に「逸脱（Deviations）」の見出しを選びます。これも同じ `memory/project.md` ファイルへ送られます。
+**2. ステップが一度尋ねる。** ステージが完了します。承認の質問の前に、エージェントが尋ねます。「You asked me to read 'transaction' as the payment being processed, not a database write. Keep that for next time?」 Sam は **Yes, for this project** を選びます。承認の質問で、Sam はさらに「approve, and next time always say 'bank customer' for the banking customer entity」と言います。エージェントはそれも 2 つ目の質問なしで残し、`memory/project.md` のこのプロジェクトのルールに入れたことを 1 行で伝えます。
 
 **3. 競合検査が走る。** オーケストレーターは、セクション単位の LLM 検査として、両方の記入項目を組織のプラクティス（`memory/org.md`）と比較します。"transaction" の用語も "bank customer" の用語も組織ルールではカバーされていないので、どちらも通過します。その後、決定論的なツールが出所情報付きで両方の行を `memory/project.md` に書き込み、監査ログにはそれぞれ `RULE_LEARNED` イベントが記録されます。
 
@@ -185,7 +154,7 @@ Sam がある銀行プロジェクトで `/aidlc feature` を実行します。�
 
 **5. 後のワークフローもそれらを受け取る。** その日の後で Sam が `/aidlc bugfix` を実行します。`memory/project.md` はすべてのステージの選択に入っている（org、team、project のファイルはすべてのステージに付く）ので、bugfix ワークフローの最初のステージから、エージェントは "transaction" が支払いを意味し、顧客エンティティが "bank customer" であると分かっています。
 
-コストは 1 回だけ支払われました。1 回のゲートでの確認と、1 回のファイル書き込みです。それが、ディレクトリ走査にファイルを 1 つ追加するだけの代価で、以後のすべてのワークフローに効いてきます。
+コストは 1 回だけ支払われました。1 回の質問と、1 回のファイル書き込みです。それが、ディレクトリ走査にファイルを 1 つ追加するだけの代価で、以後のすべてのワークフローに効いてきます。
 
 ---
 
@@ -195,15 +164,15 @@ Sam がある銀行プロジェクトで `/aidlc feature` を実行します。�
 
 ### センサーはどう発火するか
 
-エージェントがステージ中に出力ファイルを書くか編集すると、`PostToolUse` フックが、そのステージに適用されるセンサーを確認し、一致するものをそれぞれ実行します。一致判定はファイルの形状によります。コード品質センサーは `**/*.{ts,js}` を解析すると宣言しているので、TypeScript と JavaScript の書き込みでのみ発火します。あらゆるステージ出力で発火する文書形状センサーは絞り込みを省略します。ゲートで発火するセンサー（下の表の最初の 3 つ）は代わりに、ステージが承認ゲートに達したときに、ステージが宣言した出力ファイルのうち絞り込みに合うものごとに一度ずつ走ります。Construction の自律モードでツールが自ら承認するゲートでは、blocking のセンサーだけがそこで走ります。advisory の検出結果を読む人がいないためです。ワークフロー中にあなたが手でセンサーを呼び出すことはありません。ステージの書き込みとゲートに伴って走ります。
+エージェントがステージ中に出力ファイルを書くか編集すると、`PostToolUse` フックが、そのステージに適用されるセンサーを確認し、一致するものをそれぞれ実行します。一致判定はファイルの形状によります。コード品質センサーは `**/*.{ts,js}` を解析すると宣言しているので、TypeScript と JavaScript の書き込みでのみ発火します。あらゆるステージ出力で発火する文書形状センサーは絞り込みを省略します。ゲートで発火するセンサー（下の表の最初の 3 つ）は代わりに、ステージが承認ゲートに達したときに、ステージが宣言した出力ファイルのうち絞り込みに合うものごとに一度ずつ走ります。その助言的な検査は、それより前にも一度、ステージの文書が書かれてレビュー（ステージにレビューがない場合はゲート）へ渡されるときに走ります。エージェントが先にその検出結果を受け取って自分のミスを直すので、レビューとゲートは整えられた文書を見ます。Construction の自律モードでツールが自ら承認するゲートでは、blocking のセンサーだけがそこで走ります。advisory の検出結果を読む人がいないためです。ワークフロー中にあなたが手でセンサーを呼び出すことはありません。ステージの書き込みとゲートに伴って走ります。
 
-同梱される 6 つのセンサーは **助言的（advisory）** です。失敗したものは監査行と、何が欠けているかを正確に示す詳細ファイルを生成しますが、ステージの承認ゲートをブロックしたりワークフローを止めたりはしません。ゲートが開くと、エージェントはステージの出力についてまだ検出結果を報告している検査をあなたに伝えるので、それを踏まえて判断できます。センサーがオフのときは、検査について何も言われません。
+同梱される 6 つのセンサーは **助言的（advisory）** です。失敗したものは監査行と、何が欠けているかを正確に示す詳細ファイルを生成しますが、ステージの承認ゲートをブロックしたりワークフローを止めたりはしません。ゲートが開くと、エージェントはステージの出力についてまだ検出結果を報告している検査と、実行できなかった検査（スクリプトがクラッシュしたか起動できず、何も検査しなかったもの）を 1 行であなたに伝えるので、それを踏まえて判断できます。センサーがオフのときは、検査について何も言われません。
 
 追加するセンサーは、代わりに **ブロッキング（blocking）** にもできます（マニフェストで `default_severity: blocking`）。ゲートでブロッキングのセンサーが合格しないと、ゲートは開きません。エージェントは **Fix findings** か **Override blocking sensors** を提示し、オーバーライドはあなたの選択として記録されます。自律的な Construction では、代わりに実行がそこで止まり、オーバーライドを選ぶと、まず Construction が各 Bolt であなたの承認を待つ設定に戻ります。[センサーシステム](../reference/07-sensor-system.md) を参照してください。
 
 ### 監査ログで何が見えるか
 
-センサーの活動は、インテントの `audit/` シャードに `Sensor Fired`、`Sensor Passed`、`Sensor Failed` の行として現れます。失敗した行は詳細ファイルへのリンクを持ちます（例: `<record>/.aidlc-engine/sensors/intent-capture/claim-sources-0719478d.md`。センサーと、その行にある発火 id にちなんで名付けられます）。そこには、欠けている見出し、参照されていない上流成果物、リントエラーなど、具体的な不足が列挙されます。合格した検査は、上の実行から取った次のような行を残します。
+センサーの活動は、インテントの `audit/` シャードに `Sensor Fired`、`Sensor Passed`、`Sensor Failed` の行として現れ、スクリプトがクラッシュしたか起動できなかった検査については `Sensor Could Not Run` の行として現れます。失敗した行は詳細ファイルへのリンクを持ちます（例: `<record>/.aidlc-engine/sensors/intent-capture/claim-sources-0719478d.md`。センサーと、その行にある発火 id にちなんで名付けられます）。そこには、欠けている見出し、参照されていない上流成果物、リントエラーなど、具体的な不足が列挙されます。合格した検査は、上の実行から取った次のような行を残します。
 
 ```text
 ## Sensor Passed
@@ -225,7 +194,7 @@ Sam がある銀行プロジェクトで `/aidlc feature` を実行します。�
 | センサー | 発火対象 | 検査内容 |
 |--------|----------|--------|
 | `claim-sources` | 意図の取り込み（Intent Capture）の記録ディレクトリ出力 | すべての主張に可視のソースタグが付いているか。登録された説明、ワークフロースコープ、メモリ本文が権威ある入力と一致するか。保持された前提が明示的な確認と正確に一致するか |
-| `required-sections` | 記録ディレクトリ内の任意の Markdown 出力と、reverse-engineering の `codekb/` ファイル | 出力に必須の H2 見出しが含まれるか（汎用的な内容構造の検査）。`practices-discovery-timestamp.md` のようなタイムスタンプの実行記録は常に合格 |
+| `required-sections` | 記録ディレクトリ内の任意の Markdown 出力と、reverse-engineering の `codekb/` ファイル | チームが `memory/templates/` にテンプレートを書いている場合、出力にそのテンプレートの `##` 見出しが含まれるか。テンプレートがなければ何も必須ではない |
 | `upstream-coverage` | 記録ディレクトリ内の任意の Markdown 出力と、reverse-engineering の `codekb/` ファイル | ステージの成果物（集合として評価される）が、ステージが必須（`required: true`）と宣言した、または `cited: true` を付けた各上流成果物を、スラッグ、ウィキリンク、または生成元ステージのディレクトリパスのいずれかで参照しているか |
 | `traceability` | `traceability.json` のステージ成果物 | 安定した上流 ID が宣言され網羅されているか、ステータスとターゲットが妥当か、決定論的な下流ターゲットが存在するか |
 | `linter` | `.ts` / `.js` のコード出力 | 設定済みのリンターを実行する（既定は ESLint） |

@@ -11,12 +11,12 @@ User Guide と Developer Reference で揃えている定義です。
 | **自律モード (Autonomy mode)** | `Construction Autonomy Mode` に保存するunset / gated / autonomous。対象ワークフローのContinue automaticallyはautonomous、Review each checkpointはgated。通常の完了承認を制御し、実行順とswarmの選択とは別。Plan Approval、有効な要約確認、検証コマンド、スケルトン、失敗の判断は人間に残る。既存作業は従来の方針を維持。 |
 | **ボルト (Bolt)** | 依存関係でつながる 1 つ以上の Unit にまたがる、Construction の計画上のデリバリースライス。Unit、その worktree、swarm バッチとは別物。Delivery Planning がグループ化、完了の定義（Definition of Done）、確信の仮説、所有者を記録する。実行時の順序は Unit DAG と記録済みの反復の選択に従い、`bolt-plan.md` はそれらを置き換えない。Build and Test と CI Pipeline は、完了した Unit の作業全体に対して 1 回だけ実行する。 |
 | **成果物 (Artifact)** | ステージが作り、インテントのレコードディレクトリ（`aidlc/spaces/<space>/intents/<YYMMDD>-<label>/`）に置くファイル。大半は `requirements.md`、`code-summary.md`、`initiative-brief.md` のような Markdown 文書で、`traceability.json` のような JSON も少しある。 |
-| **監査証跡 (Audit trail)** | レコードディレクトリの `audit/` にある追記専用ログ。クローンごとのシャード（`<host>-<clone>.md`）を、読む側がグロブして時刻順にマージする。イベント種別は 120。ISO 時刻付きで、意図から本番まで追える。 |
+| **監査証跡 (Audit trail)** | レコードディレクトリの `audit/` にある追記専用ログ。クローンごとのシャード（`<host>-<clone>.md`）を、読む側がグロブして時刻順にマージする。イベント種別は 126。ISO 時刻付きで、意図から本番まで追える。 |
 | **CLI ツール (CLI tool)** | この実装が実行する外部コマンド。ネイティブインストールでは何も要らない（**ネイティブチャネル** を参照）。コピー経路には `bun` が要る。Claude Code のツールとは区別する。 |
 | **Claude Code ツール (Claude Code tool)** | Read、Write、Edit、Bash、Glob、Grep、Task、AskUserQuestion など、Claude Code 本体の能力。エージェントは既定でセッションのツール一式を継ぐ。任意の `tools:` 許可リストで狭められる。配布で禁じているのは `disallowedTools: Task` だけ。 |
 | **Codex** | OpenAI Codex CLI ハーネス。現在の AI-DLC ハーネス配布の一つ。ソースビルドは `core/` + `harness/codex/` から無視されるローカル投影 `dist/codex/` を生成する。リリースは `runtime/codex/` に載せる。起動は `$aidlc`。[AI-DLC on Codex CLI](harnesses/codex-cli.md) を参照。 |
 | **コマンド (Command)** | 人が打つ AI-DLC の起動。ハーネスのチャットコマンドはワークフローに `/aidlc`（Codex は `$aidlc`）。ネイティブの `aidlc` コマンドはプロジェクト、診断、プラグイン、マシンライフサイクルの経路を持つ。 |
-| **コンパクション (Compaction)** | コンテキストが埋まったとき、Claude Code が古い会話を要約する処理。状態は `aidlc-state.md` と `.aidlc-engine/recovery.md` で越える。 |
+| **コンパクション (Compaction)** | コンテキストが埋まったとき、Claude Code が古い会話を要約する処理。状態は `aidlc-state.md` と監査証跡で越える。 |
 | **コンダクター (Conductor)** | `/aidlc` セッションそのもの（`SKILL.md`）。薄い転送ループで、**エンジン**に次を聞き、実行し（ステージ、質問、スウォームの展開）、結果を報告して繰り返す。実行の質は持つ。ルーティングは持たない。[Engine and Skill System](../reference/17-skill-system.md) を参照。 |
 | **Construction Verification Command** | すべての Unit／バッチのチェックポイントで再利用する、インテント単位のプロジェクト検査。ツールが所有する `VERIFICATION_COMMAND_RECORDED` レシートが、人間の **Approve**（エージェントが読んだその人の返答で、正確な文言を保持する。尋ねたチャット、または新しいチャットでもそれが最後に尋ねた質問である間の返答）を、正規化・トリムした 1 行コマンドの SHA-256 に結び付け、その後に型付きの状態設定コマンドが記録する。無関係な返答、**Request Changes**、別の質問への返答はレシートを認可しない。状態フィールドだけでは実行は認可されない。Delivery Planning が提案するか、グリーンフィールドで先送りした場合は最初のチェックポイントで尋ねる。以後の変更にはすべて新しい人間のレシートが必要。証明に残すのはダイジェストと表示ラベルで、生のコマンド文字列は残さない。 |
 | **制御ループ (Control loop)** | **ルール**（作業前に効く立ち振る舞い）と **センサー**（出力に対する決定論的検査）の対。ステージを操舵し、検証する。（**ハーネス**＝CLI 配布の意味とは別。昔はどちらも harness と呼んでいた。） |
@@ -60,7 +60,6 @@ User Guide と Developer Reference で揃えている定義です。
 | **プロジェクトピン (Project pin)** | コミットする `.aidlc-version`（strict-semver）。エンジンコマンドが使う保持済みネイティブエンジンを選ぶ。`aidlc config --pin` が完全なバイナリと一致するプロジェクトハーネスを検証し、マシンローカルの解決先を記録し、`pins.json` にピンを登録してそのリリースを刈り込みから守る。安定したコマンドランチャは、現在有効な完全性検査ディスパッチャを起動し、プロジェクト操作の前にピンしたランタイムを検証して選ぶ。 |
 | **投影スタンプ (Projection stamp)** | 生成される `tools/data/aidlc-stamp.json`。投影した木のフレームワーク版、配布、ハーネスディレクトリを記録する識別情報。起動と doctor が版のずれを見つける。 |
 | **レコードディレクトリ (Record dir)** | 1 インテントの成果物、ステージごとの `memory.md`、`aidlc-state.md`、`audit/` シャードを持つ場所。`aidlc/spaces/<space>/intents/<YYMMDD>-<label>/`（文中では `<record>/`）。インテントごとに 1 つ。明示セレクタかセッション紐づけが、共有の `active-intent` より先に勝つ。**スペース**、**インテント** を参照。 |
-| **復旧パンくず (Recovery breadcrumb)** | PreCompact フックが書く隠しファイル `.aidlc-engine/recovery.md`。最後に検証したステージと時刻。コンパクション後の状態壊れを見つける。 |
 | **リフレッシュ基準 (Refresh baseline)** | init が所有する `tools/data/aidlc-manifest.json`。フレームワーク所有ファイルと型付きルート寄与のハッシュを記録する。`aidlc config` がリフレッシュ操作の分類、ローカル編集の検出、廃止された所有コンテンツの安全な削除、プロジェクト所有データの保全に使う。 |
 | **リリースチャネル (Release channel)** | **ネイティブチャネル** を参照。ネイティブ用 `aidlc-runtime-X.Y.Z.tar.gz` は、その場で再生成したローカル `dist-release/<harness>/` 投影から組み立て、TLS と SHA-256 で認証し、リリースワークフローが出自を証明する。 |
 | **保持版 (Retained version)** | 利用者単位の versions ディレクトリに並べて置く、完全なネイティブバイナリ、リリースマニフェスト、0 個以上のハーネスランタイム。アクティブ、ロールバック、登録済みピン版は刈り込みから守られる。 |

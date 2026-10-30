@@ -2,7 +2,7 @@
 
 AI-DLC の現在地・成果物・次の一手を、VS Code / Cursor の中で確認するローカル開発者ツールです。
 
-**対応 aidlc-workflows バージョン: 2.11.1**（State Version **8** / **33** ステージ、`docs/official-docs.manifest.json` のピンと同期）。版の更新漏れは `bun run check` で検出します（[互換性チェック](docs/maintenance/release-and-sync.md#互換性チェックdocs-以外の追随)）。
+**対応 aidlc-workflows バージョン: 2.11.2**（State Version **8** / **33** ステージ、`docs/official-docs.manifest.json` のピンと同期）。版の更新漏れは `bun run check` で検出します（[互換性チェック](docs/maintenance/release-and-sync.md#互換性チェックdocs-以外の追随)）。
 
 > 2026-10 に「AIDLC Guide」から「Andon for AI-DLC」（略称 Andon）へ名称を変え、リポジトリを [otomatty/andon-for-aidlc](https://github.com/otomatty/andon-for-aidlc) に移してバージョンを 0.1.0 から数え直しました。以前の版（0.40 系）からは自動で更新されないため、[Releases](https://github.com/otomatty/andon-for-aidlc/releases) の VSIX を入れ直してください。アンドンは、現場の状態を一目で示し、人の判断が要るときに人を呼ぶ表示灯です。あわせて拡張 ID（`otomatty.andon-for-aidlc`）、コマンド ID（`andon.*`）、パッケージ名（`@andon/*`）、設定ファイル名（`andon.config.json`）、MCP サーバー名（`andon`）も新しい名前にしました。旧版の設定ファイル `aidlc-guide.config.json` は読まないため、使っていた場合は名前を変えてください。要件は[PRD](docs/prd/PRD.md)、社内向けの紹介は[紹介資料](docs/introducing/README.md)を参照してください。
 
@@ -284,7 +284,7 @@ flowchart TB
 | 項目                  | 条件                                                                                              |
 | --------------------- | ------------------------------------------------------------------------------------------------- |
 | エディター            | VS Code 1.100 以上（拡張ホストの Node 20 が前提）。Cursor などのフォークも同じ下限                |
-| 対象ワークスペース    | aidlc-workflows 2.11.1（State Version **8**）。ほかの版は[更新を案内](#バージョンの確認と更新)    |
+| 対象ワークスペース    | aidlc-workflows 2.11.2（State Version **8**）。ほかの版は[更新を案内](#バージョンの確認と更新)    |
 | [Bun](https://bun.sh) | MCP やカスタマイズの保存などで使用                                                                |
 | AI ツール             | MCP は Claude Code か Cursor。ドキュメントへの質問は Claude Code / Cursor / GitHub Copilot の CLI |
 

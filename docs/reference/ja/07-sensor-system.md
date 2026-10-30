@@ -62,13 +62,15 @@ output_schema:
   template_expected: string[]
   template_missing: string[]
   config_warning: string
+  message: string
 timeout_seconds: 300
 ---
 
 # required-sections sensor
 
-Default mode: checks the output contains at least 2 H2 headings (generic
-content-shape sanity check).
+With no template for the output, no heading is required: the stage's prose
+shapes the file, so the check passes and still reports the output's `##`
+headings. When a template applies (below), its `##` headings are required.
 ```
 
 フィールドの行にコメントを書かないでください。パーサはトップレベルのフィールドの値のあとにある `# ...` を値の一部として読むので、`id: demo-check   # required` は id を `demo-check   # required` にしてしまい、マニフェストの読み込みが失敗します。エンジンはマニフェストをどう読むかを表示できます。次は同梱の `linter` です。
@@ -106,7 +108,7 @@ path: .claude/sensors/aidlc-linter.md
 
 `kind` フィールドはディスパッチ仕組みを宣言します。スキーマが現在受け付ける値は 1 つだけです。
 
-- `deterministic` - ディスパッチャは発火ごとのフラグを付けてマニフェストのワーカーを実行する。ワーカーは真偽値の `pass`（加えて `findings` と、監査行が記録する数である `findings_count`）を持つ JSON を stdout に 1 行印字し、検査の合否にかかわらず終了 0 する。失敗の詳細ファイルはディスパッチャが書く。終了 127 は `tool-unavailable` 注付きの合格として記録される。それ以外の非ゼロ終了、または真偽値の `pass` が無い出力は、`script-error` 注付きの合格として記録される（blocking のゲート結びがそれをどう扱うかは [`default_severity`](#default_severity) を参照）。
+- `deterministic` - ディスパッチャは発火ごとのフラグを付けてマニフェストのワーカーを実行する。ワーカーは真偽値の `pass`（加えて `findings` と、監査行が記録する数である `findings_count`）を持つ JSON を stdout に 1 行印字し、検査の合否にかかわらず終了 0 する。失敗の詳細ファイルはディスパッチャが書く。終了 127 は `tool-unavailable` 注付きの合格として記録される。起動できないワーカー、それ以外の非ゼロ終了、または真偽値の `pass` が無い出力は、`script-error` 注付きの `SENSOR_COULD_NOT_RUN` として記録され、合格としては決して記録されない（ゲートが何を言うか、blocking のゲート結びがそれをどう扱うかは [`default_severity`](#default_severity) を参照）。
 
 `llm` を含め、ほかの `kind` はパース時に拒まれます（「other kinds reserved for future releases」）。
 
@@ -160,6 +162,8 @@ outputs: ...
 | Unit ごとの construction 設計 4（`functional-design`、`infrastructure-design`、`nfr-design`、`nfr-requirements`） | `[required-sections, upstream-coverage, linter, type-check, traceability]` |
 | `code-generation` | `[required-sections, traceability]`（`linter` と `type-check` は取り込まない。どのファイル書き込みでも走っていたのに、その結果を読むものが無かったため） |
 
+`traceability` はゲートで（`fire_on: gate`）、各ステージの完成した表に対して走ります。Requirements Analysis は自身の `traceability.json` 用の検査を取り込みません。そこには `requirements.md` が定義する FR と NFR の ID を書かれたとおりに記録し（`ids`。それぞれ `kind` と、下位要件なら `of` を持つ）、以降のどの検査もそこから ID を取ります。記録が欠けているか正確でない場合、各表の要件は、記録以前と同じく、表が列挙するものに、FR と NFR のパターンが `requirements.md` に見つける ID を加えたものになります。後続のステージは `engine sensor-traceability --stage <slug> --output-path <table> --write-upstream` で表を始めます。これは検査が求める上流 ID をすべて、それぞれ `GAP` 行付きで足し、欠けているものが無ければ何も書きません。
+
 フォークはステージの `sensors:` 一覧を直接直してステージを寄せます。結びは寄せるものの隣にあります。マニフェストは純粋な能力記述子です。ステージ指定のフィールドは持ちません（`applies_to:` は無し — ステージ側からの取り込みが外しました）。厳格加算のランタイムが効きます。フォークがステージにセンサーを欲しいなら取り込み、欲しくないなら省略します。推論する上書き層はありません。
 
 ---
@@ -179,7 +183,7 @@ outputs: ...
 | `aidlc-linter.md` | `**/*.{ts,js}` |
 | `aidlc-type-check.md` | `**/*.{ts,tsx}` |
 
-`fire_on: write` では、`matches` は発火フィルタです。フックは書かれているパスを glob と比べ、glob が無い項目は決して発火しません。`fire_on: gate` では、`gate-start` と `revise` が存在する宣言済み成果物を全部列挙し、各センサーの `matches` 能力の外のパスを飛ばし、一致するパスだけをディスパッチします。省略した glob はどの成果物も受け入れます。ステージの出力全体を読む `upstream-coverage` と `claim-sources` は、出力フォルダごとに一度、質問ファイルでもタイムスタンプファイルでもない最初の成果物でディスパッチします。Construction の自律モードでエンジンが自ら承認するゲートは、blocking のセンサーだけをディスパッチします（そこには advisory の証跡を読む人がいないため）。同梱 6 つはどれも glob を宣言します。コンパイルリゾルバはそれを `sensors_applicable[]` へコピーします。
+`fire_on: write` では、`matches` は発火フィルタです。フックは書かれているパスを glob と比べ、glob が無い項目は決して発火しません。`fire_on: gate` では、`gate-start` と `revise` が存在する宣言済み成果物を全部列挙し、各センサーの `matches` 能力の外のパスを飛ばし、一致するパスだけをディスパッチします。省略した glob はどの成果物も受け入れます。ステージの出力全体を読む `upstream-coverage` と `claim-sources` は、出力フォルダごとに一度、質問ファイルでもタイムスタンプファイルでもない最初の成果物でディスパッチします。コードナレッジベースのステージ（Reverse Engineering）では、`required-sections` と `upstream-coverage`（`PATH_SET_SENSOR_IDS`、`aidlc-graph.ts`）はステージに対して一度ディスパッチします。発火は最初に一致したパスを名指しし、一致するすべてのパスを `--paths-stdin json` のあとに stdin で受け取り、センサーは各ファイル（またはフォルダ）を単独のときと同じように評価し、失敗した発火の `SENSOR_FAILED` 行は失敗したファイルを `Failed outputs` フィールドに列挙し、ゲートの検査行はそれを読んで `<repo>/<file>` を名指しします。blocking の結びは、発火が対象とするすべてのパスを、発火前にフィンガープリントを取ったバイトに保ちます。1 ファイルに対する呼び出しは stdin を決して読みません。Construction の自律モードでエンジンが自ら承認するゲートは、blocking のセンサーだけをディスパッチします（そこには advisory の証跡を読む人がいないため）。同梱 6 つはどれも glob を宣言します。コンパイルリゾルバはそれを `sensors_applicable[]` へコピーします。
 
 空文字列（`matches: ""`）はパース時に捨てられるので、glob を省略したのと同じに働きます。write 発火のセンサーは glob を宣言すべきです。gate 発火のセンサーは、宣言済み成果物全部を分析するために省略してよいです。
 
@@ -191,15 +195,15 @@ outputs: ...
 
 ## `default_severity`
 
-`advisory` の結果は監査行を出しますが、ステージゲートを止めません。ゲートが開くか再表示されるとき、オーケストレータの応答は、その `narration` の中で、ステージが作ったものの後の行に、宣言済み出力での最新の結果が失敗である検査ごとに 1 文を運びます（`aidlc-state.ts` の `failedCheckNotices`。最大 3 文と件数）。エージェントはそれを承認の質問とともにその人へ伝えます。変更の行は、変わったものを示すままです。注付きで記録された合格（ツール利用不可、スクリプトエラー）は何も評価しておらず、以前の失敗を消しません。Unit 自身のゲートは、その Unit の出力だけを名指しします。センサーがオフのときは何も言われません。`blocking` のゲートに結び付いたセンサーは、検証済みの合格でのみ進みます。報告された所見、ディスパッチャの終了 / 起動 / タイムアウト失敗、壊れたまたは不一致の判定、`SENSOR_BUDGET_OVERRIDE`、`tool-unavailable` または `script-error` を運ぶ `SENSOR_PASSED` 行は、ゲートが開く前に `gate-start`、`revise`、または承認時の回復した改訂再入場を止めます。
+`advisory` の結果は監査行を出しますが、ステージゲートを止めません。ゲートの前に、advisory のゲート検査は、ステージの文書が引き渡されるときに一度走ります（`aidlc-state.ts` の `completionChecksStep`）。引き渡しとは、レビュー依頼（`aidlc-log.ts review`。状態ツールの `completion-checks` コマンドを通じ、これは `{"held":false}` または `{"held":true,"message":...}` を印字する）、または試行の中でレビューが求められなかった場合は、ゲートを開くか改訂後に再表示する報告です。試行の最初のそうした引き渡し（`reviewAttemptWindow` が読む下限）は、必須の出力がすべて存在した時点で、スコープの宣言済み出力（1 つの Unit のもの。行に `Unit` が付く）に対して advisory の検査を発火します。ただし、その（検査、出力）の組のどれにも下限以降の `SENSOR_FIRED` 行が無い場合です（パスは正準形で比べる）。発火が所見を報告すると、引き渡しは何も記録せず、`print` を返します。そこには各所見に対するゲート自身の文、詳細ファイル、同じコマンドが入ります。注付きの合格は何も止めません。その人が求めたレビュー（`--person-asked`）、`--retry-pending` または `--single` の依頼、その人の Override の選択、スウォームワーカーのチェックアウト、エンジンが自ら承認するゲートは止められません。ゲートが開くか再表示されるとき、オーケストレータの応答は、その `narration` の中で、ステージが作ったものの後の行に、宣言済み出力での最新の結果が失敗である検査ごとに 1 文を運びます（`aidlc-state.ts` の `failedCheckNotices`。最大 3 文と件数）。エージェントはそれを承認の質問とともにその人へ伝えます。変更の行は、変わったものを示すままです。続いて 1 行で、件数にかかわらず、走れなかった検査（スクリプトがクラッシュしたか起動しなかった）を名指しします。対象は宣言済み出力か、ステージが書いてまだ残っているファイル（`type-check` のような write 発火の検査）です。走れなかった検査や、注付きで記録された合格（ツール利用不可）は何も評価しておらず、以前の失敗を消しません。Unit 自身のゲートは、その Unit の出力と書き込みだけを名指しします。センサーがオフのときは何も言われません。`blocking` のゲートに結び付いたセンサーは、検証済みの合格でのみ進みます。報告された所見、ディスパッチャの終了 / 起動 / タイムアウト失敗、壊れたまたは不一致の判定、`SENSOR_BUDGET_OVERRIDE`、`SENSOR_COULD_NOT_RUN`、注を運ぶ `SENSOR_PASSED` 行は、ゲートが開く前に `gate-start`、`revise`、または承認時の回復した改訂再入場を止めます。
 
-運用者は所見を直して再試行するか、別の明示オーバーライド判断ができます。コンダクターは `Fix findings,Override blocking sensors` を出す `DECISION_RECORDED` を記録し、新しい人のターンを待ち、正確な `QUESTION_ANSWERED` を記録し、それから `--override-blocking-sensors --user-input "Override blocking sensors"` でゲート報告を再試行します。裸のフラグ、出していない / 言い換えた選択、人間の応答に裏付けられたレシートが無いこと、自律モードは拒まれます。成功したオーバーライドはセンサー id、任意の詳細パス、評価理由を `STAGE_AWAITING_APPROVAL` に記録します。すでに開いたゲートの再検証は `Revalidated: true` の新しい行を出し、認可レシートを再利用可能のまま残さず消費します。このリリースでは、write 発火のセンサーは `blocking` を宣言できますが、PostToolUse ディスパッチは advisory のままです。
+運用者は所見を直して再試行するか、別の明示オーバーライド判断ができます。コンダクターは `Fix findings,Override blocking sensors` を出す `DECISION_RECORDED` を記録し、新しい人のターンを待ち、正確な `QUESTION_ANSWERED` を記録し、それから `--override-blocking-sensors --user-input "Override blocking sensors"` でゲート報告を再試行します。その選択が有効な間（それ以降ステージで何も尋ねられず、答えられず、差し戻されず、ゲートがまだ開いていない間）、`next` はステージの代わりに同じ報告を名指しします。自律モード、チームの Unit ゲート、単独のウォークが先に済ませるべき Unit の手順は除きます。裸のフラグ、出していない / 言い換えた選択、人間の応答に裏付けられたレシートが無いこと、自律モードは拒まれます。記録された回答は、その選択肢をラベルか、提示した一覧での番号で名指しします。Fix findings は Request Changes と同じように新しい試行を始めます。レビューされた出力は修正のために開かれ、再試行する報告には新しいレビューが要ります。各 Unit のレビューがそれぞれ独立している場合（unit-major の作業、Construction のチェックポイント、チーム所有の Unit）、それは Unit 付きで記録された選択ならその Unit、そうでなければ、失敗した blocking の検査が最新の結果で出力を名指しした Unit だけです。どの Unit の出力も名指ししなかった検査や、stage-major の作業では、すべての Unit がやり直しになります。成功したオーバーライドはセンサー id、任意の詳細パス、評価理由を `STAGE_AWAITING_APPROVAL` に記録します。すでに開いたゲートの再検証は `Revalidated: true` の新しい行を出し、認可レシートを再利用可能のまま残さず消費します。このリリースでは、write 発火のセンサーは `blocking` を宣言できますが、PostToolUse ディスパッチは advisory のままです。
 
 ---
 
 ## `fire_on`
 
-`write` が既定で、増分の PostToolUse フィードバックを保ちます。`gate` は、`gate-start` が最初のゲートを開く直前、改訂仕事のあと `revise` がゲートに再入場する前、承認時の改訂バックストップが回復した再入場をする前に、存在する宣言済み成果物ごとに一度（`upstream-coverage` と `claim-sources` は出力フォルダごとに一度）発火します。誰もゲートに答えないとき（Construction の自律モードでエンジンが自ら承認するとき）は、blocking のセンサーだけが発火します。そこには advisory の証跡を読む人がいないためです。ディスパッチは状態トランザクションの外です。`aidlc-sensor.ts fire` が `SENSOR_FIRED` と終端行の両方の周りで監査ロックを取るからです。blocking ディスパッチは評価前に一致する各成果物をフィンガープリントし、各センサーのあとそれを検査し、状態トランザクション内でもう一度検査します。変わったバイトはゲート入場を拒み、再試行で評価しなければなりません。
+`write` が既定で、増分の PostToolUse フィードバックを保ちます。`gate` は、`gate-start` が最初のゲートを開く直前、改訂仕事のあと `revise` がゲートに再入場する前、承認時の改訂バックストップが回復した再入場をする前に、存在する宣言済み成果物ごとに一度（`upstream-coverage` と `claim-sources` は出力フォルダごとに一度、Reverse Engineering での `required-sections` と `upstream-coverage` はステージに対して一度）発火します。誰もゲートに答えないとき（Construction の自律モードでエンジンが自ら承認するとき）は、blocking のセンサーだけが発火します。そこには advisory の証跡を読む人がいないためです。ディスパッチは状態トランザクションの外です。`aidlc-sensor.ts fire` が `SENSOR_FIRED` と終端行の両方の周りで監査ロックを取るからです。blocking ディスパッチは評価前に一致する各成果物をフィンガープリントし、各センサーのあとそれを検査し、状態トランザクション内でもう一度検査します。変わったバイトはゲート入場を拒み、再試行で評価しなければなりません。
 
 ディスパッチャは終端行のあとコンパクトな JSON 判定を 1 つ印字します。`fire_id`、`sensor_id`、`stage`、`output_path`、`result`、`detail_path`、任意の `note`。ゲート強制は判定の識別情報を検証し、注無しの `passed` 結果以外を、blocking 結びの不合格として扱います。明示の `--artifacts` パスと発見した成果物は正準に解決され、ステージの正準 produce ディレクトリ内に残らなければなりません。絶対パス、走査、シンボリックリンク脱出はセンサーをリダイレクトできません。
 
@@ -259,8 +263,8 @@ $ aidlc engine sensor fire required-sections --stage intent-capture --output-pat
 
 §13 ラーニングゲートはツールが処理を担当します。決定論ツール（`aidlc-learnings.ts`）とコンダクター（実行中の `/aidlc` セッション）の往復は 2 段階で、あいだにナレッジ手順と判断手順があります。
 
-1. **`surface`（stdout）。** `aidlc engine learnings surface --slug <stage-slug>` はステージの `memory.md` を読み、構造化した JSON を印字します。`candidates[]`（空でない Interpretation / Deviation / Tradeoff 項目ごとに 1 つ。それぞれ `id`、`source_heading`、`ts`、`summary`、`context`、`default_scope: "project"` を運ぶ）と、読み取り専用の `parked_open_questions[]`。AskUserQuestion フィールド名は無し。純粋な領域データ。Open questions は決して候補になりません（調査項目です）。
-2. **コンダクターが AskUserQuestion を描く（ナレッジ）。** 候補ごとに選択肢 1 つ（ラベル = 候補 `summary` そのまま。説明 = 導出した行き先、例: `→ memory/project.md (Deviation)` とチームへ昇格する手段）。`multiSelect` のあと、コンダクターは残した各ラベルを候補 `id` + `source_heading` へ戻して対応付けます。それからいつも「次回のために足すことは？」と聞きます。自由文は見出し選び AUQ を 1 つ得ます（Interpretation / Deviation / Tradeoff / Open question）。見出し選びが利用者の唯一の分類で、行き先はそこから導きます。
+1. **`surface`（stdout）。** コンダクターがこれを走らせるのは、その人がステージの中でコンダクターを訂正したか、次回のために何かを残すよう求めたときだけです（それを読み取るのはコンダクターのナレッジです）。`aidlc engine learnings surface --slug <stage-slug> --correction '<their change>'`（訂正ごとに `--correction` を 1 つ。シェルが読む文字を含む訂正には、レコードの回答テキストフォルダにある `--correction-file`）は、構造化した JSON を印字します。`candidates[]`（訂正ごとに 1 つ。それぞれ `id`、`correction`、`default_scope: "project"` を運ぶ）と `questions[]` です。後者はそれぞれについて、「You asked me to <correction>. Keep that for next time?」と、正確な選択肢 `Yes, for this project`、`Yes, for the team`、`No`、そしてその `question_kind` を持ちます。`--correction` が無ければ質問は印字しません。ステージの `memory.md` 日誌は数えられ（`memory_entries_total`）、提示されることは決してありません。AskUserQuestion フィールド名は無し。純粋な領域データ。
+2. **コンダクターがそれらの質問を尋ねる（判断はその人のもの）。** 各質問はそれぞれ独立した質問です。尋ねるのはその人の選択だけです。コンダクターはその人の訂正からプラクティスの行を書き、合う見出しへ自分で経路します。その人が残すよう求めたメモについては尋ねません。
 3. **入場衝突検査（ナレッジ → オーケストレータ LLM。どの選択が persist に届くかをゲート）。** 残した各学びについて、コンダクターは提案した日付付き項目 1 つを `org.md` の一致する `## <section>` と比べます（§5 入場ゲートの一行変種）。矛盾があると、コンダクターは衝突する org の文をインラインで提示し、利用者は直す / 飛ばす / エスカレートします（判断 → 利用者。利用者上書きの道は無し）。衝突が無い、または利用者がエスカレートした選択だけが進みます。センサーマニフェストに org 見出しの類似は無く、検査を飛ばします。
 4. **`persist`（selections-file in）。** コンダクターは残した選択を、`surface` が返す `selections_file` のパス、つまり `<record>/.aidlc-engine/learnings/<slug>-selections.json`、インテントのレコードが無ければ `aidlc/spaces/<space>/intents/.aidlc-engine/learnings/<slug>-selections.json`（どちらも gitignore）へ書き、`aidlc engine learnings persist --slug <slug> --selections-json <selections_file>` を呼びます。ツールは決定論のライターです。衝突を判断せず、読むのはそのファイルだけです（ほかの場所にある selections-file や、リンク経由でたどり着いたものは拒むので、1 つのプロジェクトの 2 つのチャットが互いの選択を保存することはありません）。各学びをプラクティスとして `aidlc/spaces/<surface-time-space>/memory/{project,team}.md` へ経路し、センサー選択については2 ファイルへの書き込み（マニフェスト + 元ステージの `sensors:` frontmatter）を 1 つの `withAuditLock` 内で行い、それから `RULE_LEARNED` / `SENSOR_PROPOSED` を出します。
 
@@ -284,7 +288,7 @@ selections-file は再実行の成果物です。落ちた persist は人に再�
 
 同梱の 6 つのマニフェストは、発火ごとの上限を明示します。`claim-sources`、`required-sections`、`upstream-coverage`、`traceability` は `timeout_seconds: 300`、`linter` と `type-check` は `1200` です。ディスパッチャのフォールバックは、5 分の通常と 15 分の複合の [ランタイムのバックストップ](06-hooks-and-tools.md#runtime-and-native-hook-budgets) の合計です。ESLint の probe / config / lint の各サブプロセスは 5 分、TypeScript の probe は 5 分でコンパイルは 15 分です。発火ごとの上限は、入れ子のコマンドを含むセンサープロセス全体を縛ります。マニフェストに明示した、より短い値が引き続き優先されます。
 
-write フックは、各ディスパッチャのサブプロセスに既定で 30 分を与えます。`AIDLC_SENSOR_TIMEOUT_MS`（またはプロジェクト / ユーザーの `sensorTimeoutMs` 設定）がこの外側の許容時間を上書きします。外側の上限がもっと短いと、ディスパッチャが終端のセンサー行を出す前に中断されることがあり、フックは doctor 向けに取りこぼしを記録します。センサー自身の発火ごとの上限に達すると `SENSOR_BUDGET_OVERRIDE` になります。入れ子の lint / compile 実行が完了しなければスクリプトエラーの経路に、probe が使えなければツール利用不可の経路に従います。どちらも blocking ゲートの検証済み合格にはなりません。ゲートのディスパッチは別に `AIDLC_GATE_SENSOR_DISPATCH_TIMEOUT_MS` を受け付けます。未設定なら、センサーの発火ごとの上限を超える外側のタイムアウトは加えません。
+write フックは、各ディスパッチャのサブプロセスに既定で 30 分を与えます。`AIDLC_SENSOR_TIMEOUT_MS`（またはプロジェクト / ユーザーの `sensorTimeoutMs` 設定）がこの外側の許容時間を上書きします。外側の上限がもっと短いと、ディスパッチャが終端のセンサー行を出す前に中断されることがあり、フックは doctor 向けに取りこぼしを記録します。センサー自身の発火ごとの上限に達すると `SENSOR_BUDGET_OVERRIDE` になります。入れ子の lint / compile 実行が完了しなければ走れなかった（could-not-run）経路に、probe が使えなければツール利用不可の経路に従います。どちらも blocking ゲートの検証済み合格にはなりません。ゲートのディスパッチは別に `AIDLC_GATE_SENSOR_DISPATCH_TIMEOUT_MS` を受け付けます。未設定なら、センサーの発火ごとの上限を超える外側のタイムアウトは加えません。
 
 ---
 

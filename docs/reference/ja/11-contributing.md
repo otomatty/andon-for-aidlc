@@ -56,15 +56,19 @@ docs/                # Documentation
 
 リリースワークフローは、意図的に候補を保持する設計です。検証とインストーラーの lint を先に実行し、対象ごとのネイティブジョブでバイナリと証拠を作ります。`package-release.ts` は 1 回だけ実行して `release-candidate` を作成します。ステージングジョブは署名をせずにチェックサムを取ってアップロードし、Unix／Windows のライフサイクルジョブは同じバイト列を使います。`publish` は候補を再検証して証明を付け、エクスポートしたバンドルを加え、全資産を検査して 1 つの `attested-release` 成果物をアップロードします。`release` はタグとチェックサムを再確認し、`GITHUB_TOKEN` でこのリポジトリに GitHub Release を作成して、アップロード済み資産の一覧を検証します。候補の再ビルド、再パッケージ、差し替えは決して行いません。
 
-stable リリースは、選んだ公開済みプレビューのソースコミットを昇格させます。`promote-release.yml` を `main` 上で、プレビュータグ、stable の版、リリースノートを指定して実行します。入力なしで実行すると、利用できるプレビューを一覧します。用意されるタグには、版メタデータと固定された公開制御を持つ子コミットが 1 つ含まれます。`release.yml` はその関係を検証し、stable の成果物をビルドします。CI や Full Suite を繰り返さずに、パッケージングとネイティブ／インストーラー／ライフサイクル／アップグレードの検査を実行します。プレビューの結果と失敗はリリースノートに見えるまま残ります。公開後は、メタデータだけのブランチと PR リンクが、現在の `main` に版を記録します。[リリース手順](../../DEVELOPERS.md#4-promote-a-preview-to-production) を参照してください。
+stable リリースは、選んだ公開済みプレビューのソースコミットを昇格させます。`promote-release.yml` を `main` 上で、プレビュータグ、stable の版、リリースノート、そして任意で貢献者の一覧を指定して実行します。入力なしで実行すると、利用できるプレビューを一覧します。用意されるタグには、版メタデータと固定された公開制御を持つ子コミットが 1 つ含まれます。`release.yml` はその関係を検証し、stable の成果物をビルドします。CI や Full Suite を繰り返さずに、パッケージングとネイティブ／インストーラー／ライフサイクル／アップグレードの検査を実行します。プレビューの結果と失敗はプレビューのリリースページに残り、昇格記録はその警告の行を保持し、stable のページはそのプレビューへリンクします。公開後は、メタデータだけのブランチと PR リンクが、現在の `main` に版を記録します。[リリース手順](../../DEVELOPERS.md#4-promote-a-preview-to-production) を参照してください。
 分離された `.github/workflows/preview-release.yml` ワークフローは、`main` からのプレビュービルドを定期実行または手動ディスパッチし、契約の検査とリリース資産の検証でゲートし、ネイティブの義務と上限付きのライブスイートを実行し（決定的な層は PR／マージの CI に残ります）、`AIDLC_BUILD_VERSION` を埋め込み、決して「latest」にならない注釈付きタグのプレリリースを公開します。定期実行と手動実行は `release-preview` のワークフロー同時実行制御を共有します。後の各実行はリリースを読み直し、最新の公開済みプレビューがすでに同じソースコミット、またはそれを含むより新しいコミットを使っていれば公開をスキップします。その場合も検査と Full Suite は実行されます。同じ UTC 日付に `main` が再び進むと、プランナーは次の未使用の `.N` カウンターを割り当てます。下書きと孤立タグはその ID を予約するため、再試行もそれらを飛び越して進みます。Full Suite の失敗はプレビューの公開を止めません。プレビューのノートの末尾に Full Suite の失敗報告が付きます。別立ての Full Suite の実行は、Preview Release ワークフローを失敗させずに、失敗の状態を保持します。
 
 stable と preview の公開は、それぞれ `release` と `preview` の環境を使い、互いに独立して直列化します。同日中のカウンター割り当てを含む信頼の設計の全体は、[サプライチェーンセキュリティ](19-supply-chain-security.md) を参照してください。
 
 ## Markdown の構造
 
-ブロックの可視性、コンテナ、リンク参照定義、主張の分割には、`core/tools/aidlc-lib.ts` の `markdownBlocks` を使います。これは組み込みの `Bun.markdown` レンダラーに支えられており、その `visibleMarkdownLines` 投影は、利用側固有の可視性オプションを保持します。Markdown の依存関係、手作りのブロックスキャナー、参照定義の文法を追加してはなりません。
+ブロックの可視性、コンテナ、リンク参照定義、主張の分割には、`core/tools/aidlc-markdown.ts` の `markdownBlocks` を使います。これは組み込みの `Bun.markdown` レンダラーに支えられており、その `visibleMarkdownLines` 投影は、利用側固有の可視性オプションを保持します。Markdown の依存関係、手作りのブロックスキャナー、参照定義の文法を追加してはなりません。
 `Bun.markdown.render` によるレビュー権限の描画は、意図的に別の経路です。そのセキュリティ境界をブロックアダプターへ統合しないでください。アダプターがレンダラーからソース行をどう復元するかは、[Markdown の構造](01-architecture.md#markdown-の構造) を参照してください。
+
+## 新しいツールコードの置き場所
+
+`core/tools/aidlc-lib.ts` には新しいコードを加えません。新しい関数、型、定数は、`core/tools/` 配下のその領域のモジュール（既存の `aidlc-<area>.ts`、または新しいもの）に置き、`aidlc-lib.ts` には決して置きません。コードは 1 領域ずつ、バイト単位でそのまま `aidlc-lib.ts` から移され、1 行の `export ... from` を通じて引き続きそこからインポートできるようにします。そのため、`aidlc-lib.ts` をインポートしているものは何も変わりません。そこから切り出したモジュールが `aidlc-lib.ts` をインポートすることは決してありません。`tests/unit/t-aidlc-lib-only-shrinks.test.ts` は、`aidlc-lib.ts` が宣言する名前のうち `tests/fixtures/aidlc-lib-declarations.txt` にないものがある場合と、`aidlc-lib.ts` がインポートするモジュールのうちそれを逆にインポートするものがある場合（この規則より前からそうしていたものはテストに列挙されています）に失敗します。移動ではその一覧から自身の名前を削除し、`biome.json` にあるそのファイルのサイズ上限を下げます。どちらも引き上げることは決してありません。
 
 ## テスト
 
@@ -136,12 +140,12 @@ LLM 推論が不要なハンドラ向け（テキスト表示、ファイルの�
 | `aidlc engine config get <key>` | `config-get` | `depth`、`test-strategy`、`review`、`guard-policy`、`sensors`、`learnings`、`summary-confirmation`、`collaborators`、または 4 つの `guard.<fence>` キーのいずれかを読む。廃止されたキー `change-control` は `guard-policy` に解決される |
 | `aidlc engine config list [--json]` | `config-list` | 13 個の設定すべてをこの順に読む。Guard Policy、フェンス、儀式の値には実効値の出所が含まれる |
 | `aidlc engine config set <key> <value> [--key value ...]` | `config-change --<key> <value> ...` | 与えられた設定フラグをすべて 1 つのトランザクションで適用する。どのキーもこのルートを使う |
-| `aidlc engine scope change --scope <name> [--key value ...] [--person-words '<their words>']` | `scope-change --scope <name> ...` | スコープを再計画し、同じ 12 個の設定のいずれかを同じトランザクションで適用する。要求したスコープがすでに現在のスコープである場合も含む |
+| `aidlc engine scope change --scope <name> [--key value ...] [--message <id>]` | `scope-change --scope <name> ...` | スコープを再計画し、同じ 12 個の設定のいずれかを同じトランザクションで適用する。要求したスコープがすでに現在のスコープである場合も含む |
 
-`config-change` は 12 個の設定フラグと `--intent`、`--space`、`--project-dir` だけを受理し、最低 1 つの設定が必要です。未知のフラグは名前を示して拒否し、どの変更よりも前にすべての値を検証します。共有のユーティリティ applier は、候補の内容、`AuditEntryInput[]`、出力行を正規のキー順で返し、書き込みはしません。どちらの変更ハンドラも、状態の読み取り、適用、呼び出し側保持ロックモードでの `appendAuditEntries`、1 回の状態書き込みにわたって 1 つの `withAuditLock` を保持します。Guard Policy の値が動く場合は、どの書き込みよりも前に `assertChangeControlLedgerWritable` を呼びます。メモリ層の `Mode: strict` は、明示的な `--guard-policy relaxed` や `--guard-policy off` を、併記の設定やスコープ変更を含めてコマンド全体で拒否します。
+`config-change` は 12 個の設定フラグと `--message`（およびそれ以前の `--person-words` の形。これは何も証明しません）、`--intent`、`--space`、`--project-dir` だけを受理し、最低 1 つの設定が必要です。未知のフラグは名前を示して拒否し、どの変更よりも前にすべての値を検証します。共有のユーティリティ applier は、候補の内容、`AuditEntryInput[]`、出力行を正規のキー順で返し、書き込みはしません。どちらの変更ハンドラも、状態の読み取り、適用、呼び出し側保持ロックモードでの `appendAuditEntries`、1 回の状態書き込みにわたって 1 つの `withAuditLock` を保持します。Guard Policy の値が動く場合は、どの書き込みよりも前に `assertChangeControlLedgerWritable` を呼びます。メモリ層の `Mode: strict` は、明示的な `--guard-policy relaxed` や `--guard-policy off` を、併記の設定やスコープ変更を含めてコマンド全体で拒否します。
 スコープ変更は、スコープが所有する Guard Policy を自動で引き上げることがあります。より低い既定値が新しいスコープに従うのは、その人がスコープ変更を求めた場合だけです。それ以外の場合は現在の保存値が残り、出力がその旨を 1 行で伝えます。実効値は引き続きメモリが制御します。
 
-状態とイベントの契約を保ちます。`review adversarial` は空の `Review Override` を保存します。明示的な Guard Policy と儀式の値は、`settingTheirs` がその背後に本人を見つけた場合（型付きのスイッチ、本人の端末、または記録にある本人の返答と一致する `--person-words`）は `(set by you)`、それ以外は `(set by a command)` を使い、継承されたスコープの既定値はスコープの出所を保持します。スコープ変更は、明示的な上書きと、存在しない旧来の Guard Policy／儀式の行を保持します。実際に保存されたフィールドや出所の変更だけが設定イベントを生み、`Last Updated` を更新します。ユーティリティの applier は `GUARD_POLICY_SET`、`CEREMONY_SET`、フェンス切り替えの `GUARD_DISABLED`/`GUARD_RESTORED` のエントリを直接組み立てます。統制されたチェックポイントがメモリのポリシーの実効的な変更を観測した場合、`aidlc-lib.ts` は引き続き `appendGuardPolicySetRow` を使います。別々のセッターのラッパーを追加したり、複合した依頼を複数のディスパッチャー呼び出しへ分割したりしてはなりません。
+状態とイベントの契約を保ちます。`review adversarial` は空の `Review Override` を保存します。明示的な Guard Policy と儀式の値は、`settingTheirs` がその背後に本人を見つけた場合（型付きのスイッチ、本人の端末、またはエージェントが `--message <id>` で名指し、`proveMessage` が証明した本人のメッセージ）は `(set by you)`、それ以外は `(set by a command)` を使い、継承されたスコープの既定値はスコープの出所を保持します。スコープ変更は、明示的な上書きと、存在しない旧来の Guard Policy／儀式の行を保持します。実際に保存されたフィールドや出所の変更だけが設定イベントを生み、`Last Updated` を更新します。ユーティリティの applier は `GUARD_POLICY_SET`、`CEREMONY_SET`、フェンス切り替えの `GUARD_DISABLED`/`GUARD_RESTORED` のエントリを直接組み立てます。統制されたチェックポイントがメモリのポリシーの実効的な変更を観測した場合、`aidlc-lib.ts` は引き続き `appendGuardPolicySetRow` を使います。別々のセッターのラッパーを追加したり、複合した依頼を複数のディスパッチャー呼び出しへ分割したりしてはなりません。
 
 新しい設定は、素の `setField` ではなく名前付きのライターで行を書きます。そのため、以前のリリースの記録はその場で移行されます。Guard Policy のライターは `setGuardPolicyLine` で、残っている `Change Control` の行を 2 行目を足さずに改名します。`setGuardsOffLine` は、フェンスが初めて切り替えられたときに、その下へ `Guards Off` の行を挿入します。廃止されたキー、フラグ、見出し、状態フィールドは、1 リリースの間だけ読まれ、書かれることは決してありません。廃止された FLAG と CONFIG KEY の経路は `noteGuardPolicyRename` を呼ぶため、それを入力した呼び出し側には、プロセスごとにちょうど 1 行の非推奨の注意が表示されます。廃止された状態フィールド、メモリの見出し、スコープのフロントマターのキーは何も言わずに読まれます。以前のリリースが書いた記録を読んでいる人は、古い綴りを選んだわけではないからです。
 

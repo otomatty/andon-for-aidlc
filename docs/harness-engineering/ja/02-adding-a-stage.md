@@ -98,11 +98,12 @@ Imports: `required-sections`.
 
 When `directive.protocol_modules` lists `learnings`, follow
 `stage-protocol-learnings.md`: keep the diary at `directive.memory_path` while
-working and run the ritual before the approval gate. When the module is absent,
-skip both the diary and the ritual.
+working, and take the learnings step before the approval gate; that module says
+when it asks the person anything. When the module is absent, skip both the diary
+and the step.
 ```
 
-本文は `## Steps` — リードエージェントが従う命令的な散文 — で始まります。続く `## Sensors` 区画が、出力先、フロントマターの正確なインポート、上流のターゲットを要約します。ステージ固有のセンサーの例外があれば保ってください。最後の `## Learn` 区画は `stage-protocol-learnings.md` §13 を指し、これは `directive.protocol_modules` に `learnings` がある場合だけで、そうでなければ日誌と儀式を省きます。Bootstrap・単独実行・Unit ごとの反復・ゲート改訂の例外は、このモジュールが定めます。完全なフィールド表、型、制約は [フィールドリファレンス — いつ使うか](../reference/15-stage-definition.md#フィールドリファレンス--いつ使うか) を参照してください。
+本文は `## Steps` — リードエージェントが従う命令的な散文 — で始まります。続く `## Sensors` 区画が、出力先、フロントマターの正確なインポート、上流のターゲットを要約します。ステージ固有のセンサーの例外があれば保ってください。最後の `## Learn` 区画は `stage-protocol-learnings.md` §13 を指し、これは `directive.protocol_modules` に `learnings` がある場合だけで、そうでなければ日誌とステップを省きます。ステップがいつ質問するか、そして Bootstrap・単独実行・Unit ごとの反復の例外は、このモジュールが定めます。完全なフィールド表、型、制約は [フィールドリファレンス — いつ使うか](../reference/15-stage-definition.md#フィールドリファレンス--いつ使うか) を参照してください。
 
 ### 3. グラフが配置できるよう依存エッジを配線する
 
@@ -190,7 +191,7 @@ aidlc engine orchestrate next --stage <your-slug> --single
 
 エンジンの `--single` モードは、その 1 ステージを分離して実行します。そのステージに対する `run-stage` ディレクティブを 1 つ（リードエージェント、解決された consumes/produces のパス、ルール、センサーとともに）出力し、コンダクターがそれを実行し、合成 ID のライフサイクルが監査ログへ確定されます。`next --single` はディスパッチ前に `STAGE_STARTED` を記録し、`report --single` は `STAGE_COMPLETED` を記録する前にその境界を要求します。
 ディレクティブは `single: true` を運ぶため、コンダクターは設定された本文・トポロジー・レビュアー・完了検査を実行し、`report --single --stage <slug> --result completed` で 1 回だけ報告し、`done` で停止します。ワークフロー学習を実行することも、ワークフローの承認ゲートを開くこともありません。
-`--single` の実行は意図的に分離されています。**主ワークフローの `Current Stage` に触れることは決してありません** — ツールは単独実行から主ワークフローを進めることを拒否するため、1 ステージを単独で走らせても、進行中のワークフローを脱線させることはできません。
+`--single` の実行は意図的に分離されています。**主ワークフローの `Current Stage` に触れることは決してありません** — ツールは単独実行から主ワークフローを進めることを拒否します。単独実行は、そこに既にあるファイルのコピーを記録の `archive/` フォルダの下に保管したうえで、作業が文書を置く場所にステージの文書を書きます。
 
 ### ランナースキルは任意のパッケージング
 

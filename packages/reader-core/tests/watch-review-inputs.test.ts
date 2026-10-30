@@ -94,6 +94,16 @@ describe("watch — review inputs outside the record", () => {
     );
   });
 
+  it("watches the recorded source checkouts but no other engine file", async () => {
+    const checkouts = `${recordRel}/.aidlc-engine/source-checkouts.json`;
+    await expectChange(checkouts, () => write(checkouts, '{"version":1,"checkouts":[]}'));
+    await expectChange(checkouts, () => rm(path.join(root, checkouts)));
+    events.length = 0;
+    await write(`${recordRel}/.aidlc-engine/plan.json`, "{}");
+    await pause(200);
+    expect(events).toEqual([]);
+  });
+
   it("prunes dependency/generated trees, other intents/spaces and stamped harness bulk", async () => {
     for (const relative of [
       "node_modules/pkg/index.js",

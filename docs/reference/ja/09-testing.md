@@ -96,7 +96,7 @@ AI-DLC のテストスイートは**完全に TypeScript 製**です。すべて
 - `t332-preview-release-pipeline.test.ts` は、注釈付きタグによるプレリリースの公開、preview の計画処理とノート、計画記録を検証します。1 つの UTC 日付に、定期公開後の手動実行を含め、ソースが変わった preview を複数回公開できることを確認します。未変更のソースや追い越されたソースはスキップし、下書きや孤立タグは占有されていない id での再試行の計画を許可します。ワークフローのアサーションは、`main` が進んだ後に実行が開始時のコミットを計画・公開すること、stable タグと定期／手動の preview の分離、共有の `release-preview` の同時実行制御、契約ゲートの祖先関係、チャネル別の来歴の署名者、ビルドの版の埋め込み、そして Full Suite が失敗しても preview のワークフローを失敗させずに preview をビルドすることを検証します。
 - `t-ci-preview-test-report.test.ts` は、preview の Full Suite レポートを検証します。各成果物自身の実行（ランナーのフィクスチャの実行ではない）からの失敗したファイルとケース、失敗したジョブ、無害化されたマークアップ、レポートのサイズ予算、そして answers コーパスのセクション（合格時も失敗時もライブの成果物の最後の試行から読み、公開されるノートには入れない）です。
 - `t-live-answers-nightly.test.ts` は、answers コーパスの毎晩の実行を検証します。日付によるローテーション、Claude SDK のライブジョブでそれを開くスイッチ、取りこぼしは報告されるが義務にはならず、例外を投げた駆動は引き続き失敗すること、そして毎晩のレポートが読み戻す要約です。
-- `t-ci-full-suite-evidence.test.ts` は、任意の Full Suite の証拠の検査器と、正確なコミット／実行の照合を検証します。`t-release-promotion.test.ts` は本物の Git 履歴を使い、preview の選択、正確なソースの保持、メタデータ、制御のスナップショット、再試行、main のメタデータの同期を検証します。
+- `t-ci-full-suite-evidence.test.ts` は、任意の Full Suite の証拠の検査器と、正確なコミット／実行の照合を検証します。`t-release-promotion.test.ts` は本物の Git 履歴を使い、preview の選択、正確なソースの保持、メタデータ、制御のスナップショット、再試行、エントリから描画される stable のページ（2.11.1 のページがゴールデン）、スキャンした貢献者の一覧、main のメタデータの同期を検証します。
 
 テストランナーは、テストを探索する前にプロセスロックの下ですべての配布ツリーを再生成します。そのため、新しいクローンは既存の `dist/` のバイト列に依存しません。CI も生成ツリーを使う各ジョブの前に明示的なパッケージのステップを実行します。バイナリとリリースのパッケージャーは、`dist-release/` を読む前に、自身でも再生成と決定性の検査を行います。
 
@@ -114,7 +114,7 @@ AI-DLC のテストスイートは**完全に TypeScript 製**です。すべて
 
 ### Markdown アダプターのカバレッジ
 
-`core/tools/aidlc-lib.ts` の `markdownBlocks` は、可視性、コンテナー、定義、主張の分割を扱う唯一のブロック解釈器で、`visibleMarkdownLines` はそれを投影します。これは組み込みの `Bun.markdown` レンダラーに基づいています。テストは 2 つ目の CommonMark のオラクルを保守するのではなく、利用側の結果を守ります。別個の `Bun.markdown.render` によるレビューの権威の経路は、既存のセキュリティのカバレッジを保ちます。
+`core/tools/aidlc-markdown.ts` の `markdownBlocks` は、可視性、コンテナー、定義、主張の分割を扱う唯一のブロック解釈器で、`visibleMarkdownLines` はそれを投影します。これは組み込みの `Bun.markdown` レンダラーに基づいています。テストは 2 つ目の CommonMark のオラクルを保守するのではなく、利用側の結果を守ります。別個の `Bun.markdown.render` によるレビューの権威の経路は、既存のセキュリティのカバレッジを保ちます。
 
 - `t341-markdown-blocks.test.ts` は、作成した CommonMark/GFM のブロック境界の例、インラインコードと HTML スパンの正確な列、アダプターが補正する `Bun.markdown` の 4 つの逸脱（空のタスク項目、見出しやフェンスへ続く表、コンテナーから出るフェンス、段落の下でインデントされたタグ）、描画を変えてしまうため取り除かなければならないプローブ、英字も数字もない行、エンティティで綴られたプローブのマーカー、描画の予算、ダイジェストのフェイルクローズの質問境界、描画されたツリーを偽造してはならない制御文字を検証します。
 - `t343-raw-html-consumer-contracts.test.ts` は、生の HTML の内外での要約のダイジェストと回答、Change Control のセクション、Plan Approval の選択と再ベースライン化を確認します。`t344-visible-markdown-goldens.test.ts` は影響を受けない可視性とダイジェストのバイト列を固定し、`t345-receipt-scope-migration.test.ts` は v1/v2 の受領記録の互換性とパーサー更新後の復旧を検証します。
@@ -147,14 +147,15 @@ LLM を呼ばずに、オーケストレーターの構造的正しさを検証�
 - スコープファイルのスイッチが状態とディレクティブに現れる。
 - 実行は完了で終わり、すべての出力がディスク上にある。
 
-`t-scope-run-new-scopes.test.ts` は、専用のファイルを持たない出荷済みのスコープを駆動するため、新しいスコープは出荷されたその日からカバーされます。`t-scope-run-moves-*` は、利用者自身の言葉、新しい作業とともに入力された設定、実行途中のスイッチ、その日の停止と再開をカバーします。新しい種類の手順を持つステージは、代役がその手順を学ぶまで実行が失敗します。実行が免除する既知のエンジンのブロックは、その名前を付けた `test.todo` とともに `KNOWN_STOP_BLOCKS` に列挙されます。CI はスコープ実行を独自の integration ジョブとして実行します。プルリクエストとマージキューでは Linux、毎晩の Full Suite（その `scope_runs` ジョブ）と `full_verification` の Full Suite では Linux、macOS、Windows です。
+`t-scope-run-new-scopes.test.ts` は、専用のファイルを持たない出荷済みのスコープを駆動するため、新しいスコープは出荷されたその日からカバーされます。`t-scope-run-moves-*` は、利用者自身の言葉、新しい作業とともに入力された設定、実行途中のスイッチ、その日の停止と再開をカバーします。新しい種類の手順を持つステージは、代役がその手順を学ぶまで実行が失敗します。実行が免除する既知のエンジンのブロックは、その名前を付けた `test.todo` とともに `KNOWN_STOP_BLOCKS` に列挙されます。
+`t-scope-run-moves-own-file-*` は、bugfix と、2 つの Unit をステージごとにビルドする classic を、各 Guard Policy の下で歩きます（`tests/harness/own-file-moves.ts`）。エージェントが利用者にターンを渡すあらゆる時点で、開いているステージが作ったファイルを 1 つ変更し、手順を再表示するか `next` を実行します。各変更は、利用者が再び尋ねられるか作業が先へ進み、その手順の後に拒否が戻ってこなければ合格です。CI はスコープ実行を独自の integration ジョブとして実行します。プルリクエストとマージキューでは Linux、毎晩の Full Suite（その `scope_runs` ジョブ）と `full_verification` の Full Suite では Linux、macOS、Windows です。classic の 3 つの own-file ファイルは `own-file-moves` として別に実行され、マージキューとそれらの Full Suite では実行されますが、プルリクエストでは実行されません。
 
 ### すべてのハーネスのツリーでのスコープ実行
 
 `tests/harness/scope-hosts.ts` は、同じ代役と利用者スクリプトを、別のツールのツリー上で、そのツール自身のフックを通じて実行します。各ホストはツリーを出荷どおりにインストールし、そのツールがエージェントのシェルに与えるもの（Codex の `CODEX_THREAD_ID`、Kiro の `KIRO_SESSION_ID`）を与え、あらゆる時点（チャットの開始、利用者の入力や選択、シェルやファイルのツールの実行、補助の送出、ターンの終了）で、ツリーの配線が登録する各コマンドを、そのツールのペイロードを与えて実行します。対象は `.codex/hooks.json`、`.github/hooks/aidlc.json`、Kiro CLI のエージェント JSON（`.kiro/agents/<agent>.json`。ツールの名前とその別名に対するグロブのマッチャー。補助は自身のセッションの下で自身のエージェントのフックを実行する）、Kiro IDE のフックカード（`.kiro/hooks/*.json`。ファイル名順の正規表現のマッチャー。書き込みやコマンドの後に動くカードはないため、Kiro と同じく次のカードがその仕事を行う）、Cursor の `.cursor/hooks.json`（マッチャーなし。すべての回答は終了コード 0 の JSON で、ターンの終了は追加のメッセージを送ることしかできず、ジャーニーはそれをブロックされた引き継ぎとして読む）、opencode のプラグイン（1 つの opencode プロセス、つまりホストが待つワーカースレッドに読み込まれる。拒否はフックが投げたエラー）です。
 `tests/unit/t-scope-hosts.test.ts` は、それらのペイロードを各ツールから記録したもの（`tests/fixtures/<tool>-hook-payloads`）に対して固定します。各ツールの回答はそれ自身の形で読みます。Codex と Kiro は終了コード 2 で拒否し、Copilot は deny の判断で拒否し、Copilot はフックが書き換えたコマンドを実行し、Kiro の人間ターンのフックはターンの最初の `next` を自分で実行することがあるので、エージェントはその返答に基づいて動きます。すべてのツール呼び出しがフックを発火させるため、拒否は実行を止め、失敗するフックのコマンドは問題です。ホストは、インストール済みのリリースがセットアップしたプロジェクト上でも動けます（`ScopeHost.launcher`）。その場合、エージェントのコマンドと配線のフックは利用者の `aidlc` を通じて実行され、代役はインストール済みのエンジンが示す `aidlc engine ...` のコマンドに基づいて動きます。リリースの更新検査がこれを使います。
 
-各 `t-scope-host-<harness>.test.ts`（`claude`、`codex`、`copilot`、`kiro`、`kiro-ide`、`cursor`、`opencode`）は、1 つのジャーニーを駆動します。設計ステージを飛ばし、2 つの Unit を 1 つずつ、それぞれチェックポイント付きでビルドする classic です。最初の Unit のチェックポイントの後、利用者はその日の作業を止め、新しいクローン（クローンが持つものだけが残ったフォルダーで、最初のクローンの監査シャードが最後に並ぶ）から作業を拾い、2 つ目のチャットで `/aidlc --resume` によって続けます。ジャーニーはスコープ実行が確認するものに加えて、2 つの監査シャード、2 つのチャット、各 Unit のチェックポイントが 1 回だけ尋ねられること、利用者が出会うべきでない回り道（拾ったばかりの作業を再開するよう言われるなど）がないことを確認します。CI はこれらを独自の integration ジョブ（`scope-hosts`）として実行します。プルリクエストとマージキューでは Linux、毎晩の Full Suite（その `scope_runs` ジョブ）と `full_verification` の Full Suite では Linux、macOS、Windows です。
+各 `t-scope-host-<harness>.test.ts`（`claude`、`codex`、`copilot`、`kiro`、`kiro-ide`、`cursor`、`opencode`）は、1 つのジャーニーを駆動します。設計ステージを飛ばし、2 つの Unit を 1 つずつ、それぞれチェックポイント付きでビルドする classic です。最初の Unit のチェックポイントの後、利用者はその日の作業を止め、新しいクローン（クローンが持つものだけが残ったフォルダーで、最初のクローンの監査シャードが最後に並ぶ）から作業を拾い、2 つ目のチャットで `/aidlc --resume` によって続けます。ジャーニーはスコープ実行が確認するものに加えて、2 つの監査シャード、2 つのチャット、各 Unit のチェックポイントが 1 回だけ尋ねられること、利用者が出会うべきでない回り道（拾ったばかりの作業を再開するよう言われるなど）がないこと、そして代役自身の手順のどれかのために状態遷移ガードが脇へ退くことがないこと（classic はガードをオフにして実行するため、補助が取ってはならない手順はそこでしか現れない）を確認します。CI はこれらを独自の integration ジョブ（`scope-hosts`）として実行します。プルリクエストとマージキューでは Linux、毎晩の Full Suite（その `scope_runs` ジョブ）と `full_verification` の Full Suite では Linux、macOS、Windows です。
 
 ### ガードマトリクス
 
@@ -432,7 +433,7 @@ macOS のランナーはホスト型ランナーの中で最も遅く数も少�
 各シャードは自身の分担を 1 つの完全なシャードとして実行し（`--shard 1/1`。そのため必須のコンパイル済みカバレッジなどのシャードの規則が成り立つ）、他のファイルは `--exclude` で除外します。そのため macOS でスキップするファイルは、完全なシャードと同様に `SKIP` のままです。選ばれたファイルがないシャードは、インストールの前に止まります。変更の差分を取れない場合、選ばれた名前がテストファイルの文法から外れる場合、選択が失敗した場合は、シャードは完全に実行されます。
 macOS のスモーク、integration、隔離された E2E、ネイティブ端末のユニット、Linux と Windows、PR CI、毎晩の Full Suite は、すべてのファイルを実行します。`t345` がこれを固定します。
 
-`main` は本番ではありません。PR CI とマージキューは上記の高速なゲートのままで、必須のホスト型のライブ層は `full-suite.yml` で実行されます。`preview-release.yml` は毎晩、preview のソース SHA について、それを別の実行としてディスパッチします。その失敗は、preview のワークフローを失敗させることなく、その実行と preview のノートで見えるままです。契約検査に合格すると、preview のネイティブのスモーク、ビルド、成果物の検証が Full Suite と並行して実行されます。公開は、検証済みの成果物と完了したテストレポートの両方を待つため、リリースノートには Full Suite やアップグレードの警告が残ります。
+`main` は本番ではありません。PR CI とマージキューは上記の高速なゲートのままで、必須のホスト型のライブ層は `full-suite.yml` で実行されます。`preview-release.yml` は毎晩、preview のソース SHA について、それを別の実行としてディスパッチします。その失敗は、preview のワークフローを失敗させることなく、その実行と preview のノートで見えるままです。契約検査に合格すると、preview のネイティブのスモーク、ビルド、成果物の検証が Full Suite と並行して実行されます。公開は、検証済みの成果物と完了したテストレポートの両方を待つため、preview のリリースノートには Full Suite やアップグレードの警告が残ります。
 ソースが変わっていない場合も、ビルドと公開は飛ばしつつ、契約検査と Full Suite は実行されます。
 
 stable の昇格は、公開済みの preview のソースを選び、バージョンのメタデータと固定された公開の制御だけを加えます。CI や Full Suite は繰り返しません。preview の以前の結果は、失敗も含めて見えるままで、昇格を選ぶのはメンテナーの判断です。新しくビルドされた stable のバイナリは、公開の前に引き続きパッケージ、インストーラー、ライフサイクル、更新の検査に合格します。[昇格の手順](../../DEVELOPERS.md#4-promote-a-preview-to-production) を参照してください。
@@ -440,8 +441,8 @@ stable の昇格は、公開済みの preview のソースを選び、バージ�
 同じワークフローの ref と同じ検証の選択による新しいディスパッチは古い実行を取り消すため、プッシュ後にライブ検証を再ディスパッチすると、以前の head の実行が置き換えられます。
 リリース目的のディスパッチは `ref` 入力もキーにし、preview が呼び出した Full Suite の実行がこの方法で取り消されることはありません。
 
-`ci.yml` と `full-suite.yml` は、同じ再利用可能な `.github/workflows/deterministic-tests.yml` を呼び出します。呼び出し側は、不変の `ref`、ランナー、層、ユニットまたは integration のシャード、任意のファイルの `filter` と `exclude`（どちらも既定は空なので、層全体が実行される）、成果物のラベルを選びます。どちらも integration を 5 つのジョブに分けます。スコープ実行（`filter`、`t-scope-run-*`）、スコープとホストの実行（`filter`、`t-scope-host-*`）、所要時間を均衡させた 2 つのシャードのガードマトリクス（`filter: ^t-guard-matrix-`、`integration-shard: 1/2` または `2/2`）、それ以外のすべて（3 つすべての `exclude`）です。PR CI は Linux のスモーク、10 の重み付きユニットシャード、5 つの integration のジョブを選びます。`full_verification` の Full Suite は、Linux/macOS/Windows でスモーク、OS ごとに 16 のユニットシャード、5 つの integration のジョブ、隔離された E2E を選びます。毎晩の Full Suite は決定論的な層を実行せず、その `scope_runs` ジョブが、3 つすべての OS でスコープ実行、スコープとホストの実行、ガードマトリクスのために共有ワークフローを呼び出します。integration と E2E は OS ごとに独立したジョブとして、それぞれ新しい Bun のランナープロセスで実行されます。
-各呼び出しは新しいチェックアウトを持ち、Bun 1.4.2 の下で固定された依存関係をインストールし、配布物を 1 回だけ再生成し、`--debug -P 8 --no-llm` で Bash ラッパーを呼び出します。E2E の実行は `--isolated-e2e` を保ち、スモークとユニットは各チェックアウト内で直列のままです。ワークフローの共有は、コマンドとセットアップを共有するものであり、以前のテスト結果を共有するものではありません。
+`ci.yml` と `full-suite.yml` は、同じ再利用可能な `.github/workflows/deterministic-tests.yml` を呼び出します。呼び出し側は、不変の `ref`、ランナー、層、ユニットまたは integration のシャード、任意のファイルの `filter` と `exclude`（どちらも既定は空なので、層全体が実行される）、成果物のラベルを選びます。どちらも integration を 6 つのジョブに分けます。スコープ実行（`filter`、`t-scope-run-*`。classic の own-file ファイルを `exclude`）、それらの classic の own-file ファイル（`own-file-moves`）、スコープとホストの実行（`filter`、`t-scope-host-*`）、所要時間を均衡させた 2 つのシャードのガードマトリクス（`filter: ^t-guard-matrix-`、`integration-shard: 1/2` または `2/2`）、それ以外のすべて（3 つすべての `exclude`）です。PR CI は Linux のスモーク、10 の重み付きユニットシャード、そして `own-file-moves` 以外のすべての integration のジョブを選びます。`own-file-moves` はマージキューだけが加えます。`full_verification` の Full Suite は、Linux/macOS/Windows でスモーク、OS ごとに 16 のユニットシャード、6 つの integration のジョブ、隔離された E2E を選びます。毎晩の Full Suite は決定論的な層を実行せず、その `scope_runs` ジョブが、3 つすべての OS でスコープ実行、`own-file-moves`、スコープとホストの実行、ガードマトリクスのために共有ワークフローを呼び出します。integration と E2E は OS ごとに独立したジョブとして、それぞれ新しい Bun のランナープロセスで実行されます。
+各呼び出しは新しいチェックアウトを持ち、Bun 1.4.2 の下で固定された依存関係をインストールし、配布物を 1 回だけ再生成し、`--debug -P 8 --no-llm` で Bash ラッパーを呼び出します。E2E の実行は `--isolated-e2e` を保ち、スモークは各チェックアウト内で直列のままで、ユニットも macOS のシャードを除いて直列のままです（[ユニットテストのシャード分割](#ユニットテストのシャード分割)）。ワークフローの共有は、コマンドとセットアップを共有するものであり、以前のテスト結果を共有するものではありません。
 
 CI は、コードの契約、インストーラーの ShellCheck、カバレッジのラチェット、PR の変更履歴の保持、Linux のスモーク、production-guard の検査を 1 つのジョブにまとめます。スモークと production guard は別々のランナープロセスとログディレクトリを使い、共有するのは依存関係のインストールと生成された配布物だけです。macOS と Windows は独自のスモークのジョブを保ちます。Linux のスモークは、マージキューの再試行と不安定なテストの報告の方針を保ちます。各検査は独自のステップと失敗を保ち、独立した検査は前の検査が失敗した後も続きます。カバレッジは引き続き最初の親と比較し、変更履歴の保持は固定された PR のベースを使います。必須の `Tests (smoke + unit)` ステータスは、この統合されたジョブの合格を要求します。PR CI は 17 のランナーを割り当て、マージキューは既存のプラットフォームの選択のまま 51 を割り当てます。ライブのハーネスとネイティブビルドのマトリクスは変わりません。
 
@@ -584,6 +585,7 @@ AI-DLC が尋ねるすべての質問に人が返すものです。その質問�
 | `AIDLC_TEST_GUARD_PROFILE` | `fixture`（ランナーが設定） | テスト向けにランナーが提供する診断用の値: `fixture` または `production`。ランナーの CLI が選ぶ。継承された値はプロファイルを選ばず、ランナーがすべてのテストの子プロセスでそれを置き換える |
 | `AIDLC_TEST_COMPILED_DIR` | `<runner log dir>/compiled`（ランナーが設定） | t238 から t249 への実行所有の引き継ぎ。検証済みのネイティブの `aidlc` / `aidlc.exe` と隣接する `runtime/`。ランナーはすべての子プロセスで継承された値を置き換え、成果物をファイルごとの一時ディレクトリのクリーンアップの外に保ち、他の実行から隔離する |
 | `AIDLC_TEST_COMPILED_EXECUTABLE` | 未設定 | ランナーの引き継ぎのない、シャードを使わない直接の t249 の呼び出しのための、任意の既存の実行ファイル。ビルドの出力先になることはなく、欠けているシャードの引き継ぎを置き換えることもできない |
+| `AIDLC_TEST_UNIT_PARALLEL` | 未設定 | `--unit --shard` の実行が一度に始めるファイル数の試行用の上限。どのプラットフォームでも、`tests/unit-shard-weights.json` の `parallel` エントリの代わりに使う。`-P` は引き続き上限のまま。CI では決して設定しない。[ユニットテストのシャード分割](#ユニットテストのシャード分割) を参照 |
 | `AIDLC_TUI_SETTING_SOURCES` | `project,local` | ライブの `claude` TUI の起動に注入する設定ソース。プロジェクトの設定と、そのプロジェクト自身の `.claude/settings.local.json`（AI-DLC のステータスラインが人の選択になる場所）で、ユーザー設定は決して含めない。`default` や空の値は、ユーザーの Claude 設定を意図的に含める限定的な調整にだけ使う |
 | `AIDLC_TUI_TRACE_POLL_MS` | `10000` | 長いジャーニーが次のメニューまたはディスクの終端条件を待っている間に、TUI の NDJSON トレースで `answer_gate_poll` のスナップショットを取る最小間隔 |
 | `AIDLC_ACP_DIAGNOSTIC_TRACE` | 未設定 | ACP のデバッグトレースとともに `1` を設定すると、ツールの入力／チャンクのイベント、セッション／ターンの識別子、取り消し要求、入力の集約された形を含む非公開の `<trace>.protocol.ndjson` のサイドカーを書く。エージェントの文章のイベント、プロンプト／認証の RPC の本文、プロセスの環境は除外する。ツールの入力は非公開の診断データのまま。上限はイベントごとに 1 MiB、ファイルごとに 64 MiB。`diagnostic_incomplete` や `json_parse_error` は、その取得では完全なプロトコルの証拠を確立できないことを意味する |
@@ -593,7 +595,7 @@ AI-DLC が尋ねるすべての質問に人が返すものです。その質問�
 | `AIDLC_INPUT_SEED` | `1` | ライブの入力の検査のサンプルの種。再実行で同じ項目を駆動するため |
 | `AIDLC_ANSWERS_LIVE` | 未設定 | `1` を設定すると、回答コーパスのサンプルを本物のエージェントで駆動する（`tests/e2e/t-live-aidlc-answers-corpus.serial.test.ts`）。各ハーネスは独自のゲート（`AIDLC_CODEX_EXEC_LIVE`、`AIDLC_KIRO_ACP_LIVE`、`claude` バイナリ）を保つ |
 | `AIDLC_ANSWERS_HARNESSES` | `claude,codex,kiro` | ライブの回答の検査が駆動するエージェント |
-| `AIDLC_ANSWERS_SAMPLE` | `2` | ライブの回答の検査での質問ごとの項目数、または項目 ID のカンマ区切りの一覧。プールは新しいチャットが出会いうる返答である。素の `/aidlc` は、エージェントが独自のステップなしにチャットで尋ねた質問を再び示すため、Construction の方針の質問への返答はすべて駆動される。ステージの質問と学習は、チャットでの返答の後のエージェントの言葉を駆動側が判定できない間は、`/aidlc` とともに入力された返答に限る。検証コマンドは独自のチェックポイントのステップで戻ってくるが、フィクスチャはそこに届かないため、`/aidlc` とともに入力された返答だけが、やり取り全体として駆動される。ガードの復旧のフィクスチャには出会えないため、ユニットの検査だけが読む（`tests/harness/aidlc-answers-corpus.ts` の `liveReply`） |
+| `AIDLC_ANSWERS_SAMPLE` | `2` | ライブの回答の検査での質問ごとの項目数、または項目 ID のカンマ区切りの一覧。プールは新しいチャットが出会いうる返答である。素の `/aidlc` は、エージェントがチャットで尋ねた質問を再び示すため、検証コマンドと Construction の方針の質問への返答はすべて駆動される。ステージの質問と学習は、チャットでの返答の後のエージェントの言葉を駆動側が判定できない間は、`/aidlc` とともに入力された返答に限る。ガードの復旧のフィクスチャには出会えないため、ユニットの検査だけが読む（`tests/harness/aidlc-answers-corpus.ts` の `liveReply`） |
 | `AIDLC_ANSWERS_SEED` | `1` | ライブの回答の検査のサンプルの種。再実行で同じ項目を駆動するため |
 | `AIDLC_ANSWERS_REPORT_DIR` | 実行のログフォルダー（`AIDLC_TEST_LOG_DIR`、なければ `tests/logs`）の中の `aidlc-answers-live` | ライブの回答の検査が、レポート、トランスクリプト、毎晩のレポートが読む要約を書く場所 |
 | `AIDLC_INPUT_REPORT_DIR` | `tests/logs/aidlc-input-live` | ライブの入力の検査がレポート（カテゴリーごとの点数と、すべての取りこぼしとそのトランスクリプトの抜粋）を書く場所 |
@@ -634,7 +636,8 @@ bash tests/run-tests.sh       # POSIX compatibility wrapper
 --filter PAT    # Only run tests whose filename matches extended regex PAT
 --exclude PAT   # Leave out tests whose filename matches PAT; the rest run as an ordinary tier
 --parallel N    # Run up to N test files concurrently within a tier (alias: -P N).
-                # Default: 1 (serial). Smoke and unit tiers are always serial.
+                # Default: 1 (serial). Smoke is always serial; unit is too, except
+                # a --shard run on a platform the unit weights cap (macOS).
 --file-timeout N  # Independent file ceiling in seconds for every tier; caps isolated E2E too.
                   # Default: 7200 outside isolated E2E.
 --run-timeout N   # Shared work deadline in seconds across setup and all selected files.
@@ -714,7 +717,7 @@ preview の `full-suite.yml` にある絞り込みのない決定論的な integ
 
 8 つの並列呼び出しのすべてで `cache_read=73789` が観測されました。この過去の help コマンドの調査では、スロットリングや破損なしにプロンプトキャッシュの再利用が観測されましたが、完全なワークフローを同時に実行する容量を示すものではありません。
 
-**直列のままのもの。** スモークとユニットの層は `--parallel` を無視し、1 つのチェックアウト内で直列に実行します。ユニットの CI は、代わりに隔離されたシャードで実時間を短縮します。共有ワークフローの各呼び出しが新しいチェックアウトを持ち、割り当てられたファイルを直列に実行するため、パッケージングのテストは読み手と競合せずに `dist/` を再生成できます。PR CI は Linux で 10 の重み付きユニットシャードを使い、integration には 8 つのワーカーを使い、最も長い integration のファイルから始めます。手動の Full Suite の `full_verification` は、Linux、macOS、Windows のそれぞれで 16 のシャードを使います。スモークは OS ごとに 1 回実行され、決定論的な integration と隔離された E2E は、それぞれ 8 つのワーカーを持つ別々のジョブで実行されます。スモーク／ユニットを組み合わせたコマンドに `-P 8` を加えるだけでは、それらの層は並列化されません。preflight のゲート（`tests/integration/t19.test.ts`）も、LLM の層がその終了ステータスに依存するため直列に実行されます。
+**直列のままのもの。** スモークの層は `--parallel` を無視し、1 つのチェックアウト内で直列に実行します。ユニットの層も同じですが、`tests/unit-shard-weights.json` が上限を設けるプラットフォーム（macOS。[ユニットテストのシャード分割](#ユニットテストのシャード分割) を参照）での `--shard` の実行は例外です。ユニットの CI は隔離されたシャードで実時間を短縮します。共有ワークフローの各呼び出しが新しいチェックアウトを持ちます。PR CI は Linux で 10 の重み付きユニットシャードを使い、integration には 8 つのワーカーを使い、最も長い integration のファイルから始めます。手動の Full Suite の `full_verification` は、Linux、macOS、Windows のそれぞれで 16 のシャードを使います。スモークは OS ごとに 1 回実行され、決定論的な integration と隔離された E2E は、それぞれ 8 つのワーカーを持つ別々のジョブで実行されます。スモーク／ユニットを組み合わせたコマンドに `-P 8` を加えるだけでは、それらの層は並列化されません。preflight のゲート（`tests/integration/t19.test.ts`）も、LLM の層がその終了ステータスに依存するため直列に実行されます。
 
 **並列時の出力。** `START` マーカーはライブで流れ、最初の `DONE` の前に複数が現れることがあります。通常／詳細モードでは、TypeScript のコーディネーターが各テストの TAP の本文をバッファし、そのファイルが終わったときに 1 つのブロックとして書きます。`--debug` モードでは、Bun の stdout/stderr がライブで流れつつ、各テストのログにも書かれます。並列のデバッグ出力にはファイルのベース名が接頭辞として付くため、重なり合うワーカーでも帰属がわかります。SDK/TUI/Kiro-ACP のドライバーのトレースは、ログの横に `$LOG_DIR/sdk-drive-*.ndjson`、`$LOG_DIR/tui-drive-*.ndjson`、`$LOG_DIR/kiro-acp-drive-*.ndjson` として書かれます。隔離された E2E は、それらをファイルの成果物のディレクトリの下に置きます。ランナーは起動時と各テストの開始時にそれらのパスを出力します。Kiro-ACP のトレースは、ツールの呼び出しと更新、出力のプレビュー、権限の回答、プロセスの stderr、result/timeout/end のイベントを含むため、タイムアウトを保持された証拠から調査できます。
 
@@ -778,6 +781,7 @@ IDE と CLI には別々のログインの検査があり、サインイン済�
 - `e2e-artifacts/<test>/deferred-cleanup.json`（隔離されたファイルの実行では `attempt-N/` の下）: コーディネーターがネイティブのプロセスの退役を確認した後の、Windows の Codex のフィクスチャの保持。これらのフィクスチャは成功時でも `retained-fixtures/` に移されます。保護されたサンドボックスのファイルの最終的な削除はホストが担います。ボリュームをまたぐコピーでは元のものも保持されます。
 - `failed-fixtures/<label>-<pid>-<n>/`: 失敗したライブの SDK のフィクスチャ（t183、t193）の制限付きのスナップショット。フィクスチャ自体はホスト型ランナーが破棄する OS の一時ディレクトリの下にあるため、`tests/harness/failed-fixture.ts` が取得します。`aidlc/` の下のワークフローの記録が最初にコピーされます。リンクは決してたどらず、`node_modules/` と `.git/` は飛ばし、ファイルごと、ファイル数、合計サイズ、走査の上限が適用されます。`retained-fixture.json` は除外したすべてのエントリを理由ごとに数え、その最初のものをパスで列挙します。
   ライブの収集処理はそれをログツリーの残りとともにコピーし、無害化処理がアップロードの前に墨消しします。
+- `e2e-artifacts/<test>/attempt-N/leg-evidence/`: 合格かどうかにかかわらず、すべてのライブの系統が保持するもの。プロジェクトがまだディスク上にある間に、各ドライバー自身の終了時点（SDK の駆動、TUI のセッションの kill、Codex の exec、Copilot や opencode のターン）で `tests/harness/leg-evidence.ts` が取得します。`audit/<project>/` は、その系統が駆動したすべてのプロジェクトの各監査シャードのコピーを、プロジェクト内でのそのパスに保持します。`words-*.ndjson` は、エージェントが利用者に示したテキストごとに 1 行（`ts`、`harness`、`turn`、`text`）を、SDK のメッセージ、TUI のセッションの Claude Code のトランスクリプト、または Copilot と opencode の出力から保持します（Codex は自身の exec のログに言葉を保持します）。8 KiB を超えるテキストと 256 KiB を超えるシャードは、先頭と末尾を保持し、その間に切り詰めたことを記します。1 つの系統がここに保持するのは最大 1 MiB で、それに達したときは `not-kept.txt` が一度だけそう伝えます。2 週間分の毎晩の実行では、系統あたり約 20 KB でした。無害化処理はこのフォルダーをドライバーのトレースとして扱います（後述）。
 - `e2e-worker-storage.json`: チェックアウトのプールの場所、見積もったスナップショットのサイズ、チェックアウトのコピーを保持したかどうか。Windows のプールは、深いレポートのパスがフィクスチャのコピーを壊さないよう、システムの一時ディレクトリの下の短い非公開のパスを使います。
 
 Kiro のレビュアーのジャーニーは、アサーションの前に主要な成果物と一致したレビューの受領記録を保存します。スコープ除外のジャーニーは、タイムアウト時も含め、最終的な状態と監査を保存します。そのジャーニーは、ワークフロー全体の完了とスコープから導出された禁止ステージの検査を保ちつつ、完全に指定された小さなセキュリティパッチを使います。セットアップと 2 回の SDK の駆動は、元のケースの期限を共有します。
@@ -933,7 +937,7 @@ gh workflow run full-suite.yml --ref '<candidate-branch>' \
 3 つの独立した `live_prepare_*` ジョブは、contents-read の権限だけで `live-prepare.yml` を呼び出し、依存関係をインストールし配布物をパッケージします。各ライブの OS のジョブは、自身のプラットフォームの準備だけを待ちます。POSIX の準備は公式の Node 22.23.2 を選び、その完全なインストールプレフィックスを固定された CLI とともにパックします（`ci-live-deps.py pack --cli ... --node-runtime ...`）。検証済みのアーカイブは `bin/node` とそのライブラリのディレクトリの両方を要求します。隔離されたランタイムは、そのプレフィックスを root 所有のツールツリーにコピーし、`node/bin` を PATH に置いて、ローダー相対のライブラリを保ちます。Node と CLI の起動は、ランナーのディレクトリを保護した後に確認されます。Homebrew の実行ファイルだけをコピーすると `@rpath/libnode` のような依存関係が失われるため、サポートされません。
 Windows の CLI のインストールは、その隔離されたユーザーの中に留まります。
 これで [#1306](https://github.com/awslabs/aidlc-workflows/issues/1306) が解決します。インストーラーが OIDC のスコープ内で実行されることはなく、認証情報を持つレーンは準備済みのバイト列を検証して展開するだけです。認可されたすべての Full Suite の実行は、既存の `ai-pr-review` 環境を使って準備とホスト型のライブのジョブを実行します。このリリースのワークフローには、別個のライブのオプトインのスイッチはありません。前提条件の欠落、スキップされたジョブ、失敗したテストは、通常の Full Suite の実行を失敗させます。
-それらは preview の公開を妨げません。preview は引き続きビルドされ、そのノートは Full Suite の失敗レポートで終わり、別個の Full Suite の実行だけが赤のままになります。stable の昇格はそれらの結果と警告を保ちます。スイートを繰り返すことも、以前の失敗が合格したと主張することもありません。stable の公開には、引き続き新しいバイナリがインストールとアップグレードの検査に合格することが必要です。認証情報を使わない Windows のリリース契約のジョブも実行されます。
+それらは preview の公開を妨げません。preview は引き続きビルドされ、そのノートは Full Suite の失敗レポートで終わり、別個の Full Suite の実行だけが赤のままになります。stable の昇格はそれらの結果と警告を preview のページに保ち、警告の行を昇格の記録に保持し、stable のページはその preview にリンクします。スイートを繰り返すことも、以前の失敗が合格したと主張することもありません。stable の公開には、引き続き新しいバイナリがインストールとアップグレードの検査に合格することが必要です。認証情報を使わない Windows のリリース契約のジョブも実行されます。
 
 宣言されたカバレッジは次のとおりです。
 
@@ -941,12 +945,12 @@ Windows の CLI のインストールは、その隔離されたユーザーの�
 - 手動の `full_verification` だけ: Linux の production-guard のスライスが、ランナーと復旧の契約について `--production-guards` と `--require-coverage` を選びます。そのため、通常の fixture モードの層がそれらのケースをスキップしても、それらは検証されます。
 - Linux arm64/Bun と tmux、macOS arm64/Bun（`macos-15`）、Windows/Bun での、ソースに束縛されたネイティブ端末の義務。ホスト型の Windows は他のツール用に Node を提供し、Bun が固定された依存関係をインストールします。
 - ホスト型の Linux/macOS/Windows での Claude SDK、Claude TUI、Codex、Copilot CLI、opencode、リリースのエンドポイントの契約。厳格な SDK のレッグでの Claude プラグインの呼び出しを含みます。
-  Copilot CLI は、認証情報のブローカーに対して独自モデル（BYOK）のモードで、Codex が使う Mantle のモデル上で実行されるため、GitHub のサインイン、Copilot のシート、トークンは関わりません。そのリリースのジャーニー（`tests/e2e/t-exec-copilot-release-journey.serial.test.ts`）は、人が初日に行うことです。コピーのチャネルでのセットアップ、doctor、文書化された最初の手順、計画の質問、Reverse Engineering の承認で、入力したすべての行についてメッセージ記録があります。2 つ目のケースはフォルダーを信頼しないままにし、doctor が信頼の修正を示すことを要求します。Codex の golden ジャーニー（`tests/e2e/t-exec-codex-journey-golden-bugfix.serial.test.ts`、Linux と Windows）は、同じ greeter を最初の行から Code Generation の承認まで修正し、計画の質問はその日に残して新しいセッションで承認します。Copilot のもの（`tests/e2e/t-exec-copilot-journey-golden-bugfix.serial.test.ts`、Linux だけ。Windows では再試行が許す 25 分を超えて実行されるため）は、そのリリースのジャーニーのコピーのチャネルのインストール上で同じことを行います。opencode のもの（`tests/e2e/t-run-opencode-journey-golden-change.serial.test.ts`、Linux）は、同じ依頼を Reverse Engineering まで進め、そこで人が自分の言葉で 1 つの変更を求めて改訂を承認します。出荷された権限の表の上で行います。
+  Copilot CLI は、認証情報のブローカーに対して独自モデル（BYOK）のモードで、Codex が使う Mantle のモデル上で実行されるため、GitHub のサインイン、Copilot のシート、トークンは関わりません。そのリリースのジャーニー（`tests/e2e/t-exec-copilot-release-journey.serial.test.ts`）は、人が初日に行うことです。コピーのチャネルでのセットアップ、doctor、文書化された最初の手順、計画の質問、Reverse Engineering の承認で、入力したすべての行についてメッセージ記録があります。2 つ目のケースはフォルダーを信頼しないままにし、doctor が信頼の修正を示すことを要求します。Codex の golden ジャーニー（`tests/e2e/t-exec-codex-journey-golden-bugfix.serial.test.ts`、Linux と Windows）は、同じ greeter を最初の行から Code Generation の承認まで修正し、計画の質問はその日に残して新しいセッションで承認します。Copilot のもの（`tests/e2e/t-exec-copilot-journey-golden-bugfix.serial.test.ts`、Linux だけ。Windows では再試行が許す 25 分を超えて実行されるため）は、そのリリースのジャーニーのコピーのチャネルのインストール上で同じことを行います。opencode のもの（`tests/e2e/t-run-opencode-journey-golden-change.serial.test.ts`、Linux と Windows）は、同じ依頼を Reverse Engineering まで進め、そこで人が自分の言葉で 1 つの変更を求めて改訂を承認します。出荷された権限の表の上で行います。
 - Kiro ACP、TUI、IDE は、専用の隔離された Windows デスクトップのホストができるまで、宣言された除外です。ローカルのライブの実行が引き続きそのカバレッジの経路です。
 - Cursor は除外されます。ベンダーの CLI がエージェントの環境から API キーを読むため、認証情報の分離ができないからです。どの除外も、成功したカバレッジとしては報告されません。
 
 `scripts/ci-live-filter.ts --list` は、発見された系統の分割を出力します。
-認可と依存関係のインストールの後、計画は `--matrix linux`、`--matrix macos`、`--matrix windows` を、`live_linux`、`live_macos`、`live_windows` のジョブの動的なマトリクスとして出力します。各行の `shard: N/M` は、その系統／プラットフォームについて所要時間の均衡が取れたグループを選びます。各 OS は、Claude SDK のシャードを 2 つ（golden ジャーニーと answers コーパスを実行する唯一の OS である Linux では 5 つ。コーパスはそれ専用のシャード）、Claude TUI を 3 つ、Codex を 1 つ（Codex の golden ジャーニーを実行する Linux と Windows では 2 つ）、Copilot を 1 つ、opencode を 1 つ持ち、全体で 29 のライブのハーネスのジョブになります。`tests/live-shard-weights.json` のタイミングの重みはスケジューリングの手がかりです。
+認可と依存関係のインストールの後、計画は `--matrix linux`、`--matrix macos`、`--matrix windows` を、`live_linux`、`live_macos`、`live_windows` のジョブの動的なマトリクスとして出力します。各行の `shard: N/M` は、その系統／プラットフォームについて所要時間の均衡が取れたグループを選びます。各 OS は、Claude SDK のシャードを 2 つ（golden ジャーニーを実行し、answers コーパスを実行する唯一の OS である Linux では 5 つ。コーパスはそれ専用のシャード。golden ジャーニーも実行する Windows では 3 つ）、Claude TUI を 3 つ、Codex を 1 つ（Codex の golden ジャーニーを実行する Linux と Windows では 2 つ）、Copilot を 1 つ、opencode を 1 つ持ち、全体で 30 のライブのハーネスのジョブになります。golden ジャーニーは、そこで再試行が許す 25 分未満で済む限り、Linux と Windows で実行されます。`tests/live-shard-weights.json` のタイミングの重みはスケジューリングの手がかりです。
 探索は引き続き、対象となるすべてのファイルをプラットフォームごとにちょうど 1 回割り当てます。各 OS は独自の同時実行の上限を持ち、ライブのジョブは Linux で 4 つ、macOS で 2 つ、Windows で 3 つです。
 すべてのシャードは最大 2 つのファイルワーカーを持ち、Windows の Codex のファイルは直列のままです。
 Windows のリリース契約のカバレッジは、シャードに分けない別個のジョブに留まります。
@@ -984,7 +988,7 @@ bun scripts/ci-live-filter.ts claude-sdk --platform linux --run -- --debug -P 8
 
 e2e のファイルを含む選択では、テストを実行せずに計画を確認するために `--e2e-plan` を追加します。integration だけやユニットだけの選択には追加しないでください。そのモードは空の e2e の選択を意図的に拒否します。決定論的な `--no-llm` の実行は、閉じた Claude のヘルスの preflight を省き、そのファイルをスキップとして記録します。意図的なスキップを前提条件の失敗として扱うことはありません。
 
-成果物は `full-suite-native-plan`、`full-suite-native-<job>`（完全なログのスタンプのディレクトリと JUnit）、`full-suite-native-result`、`full-suite-production-guards`、`full-suite-deterministic-<suite>-<OS>`（suite は `smoke`、`unit-1` から `unit-16`、`integration`、`scope-runs`、`scope-hosts`、`guard-matrix-1`、`guard-matrix-2`、`e2e`）、`full-suite-scope-runs-<OS>`、`full-suite-scope-hosts-<OS>`、`full-suite-guard-matrix-1-<OS>`、`full-suite-guard-matrix-2-<OS>`（リリースの `scope_runs` ジョブ）、`full-suite-live-<family>-<slice-number>-<OS>`、`full-suite-live-release-contract-Windows`、そして目的別の結果（90 日間保持）です。`purpose: "release"` には `full-suite-result`、`"live-verification"` には `full-suite-live-verification-result`、`"full-verification"` には `full-suite-verification-result` です。最終的な JSON は、`sha`、`runId`、`runAttempt`、`purpose`、`verificationFamily`、`coveragePolicy`、`passed`、`complete`、`legs` にあるすべてのジョブの結果、`disabledLegs: []`、`omittedLegs`、そして並べ替えた `excluded` の一覧にある `hosting: "excluded"` と宣言されたライブの系統を記録します。`required-hosted-live-shards-v3` の下の `purpose: "release"` では、`passed` は 40 桁の 16 進のコミット ID、省略されスキップされたのがちょうど `deterministic` と `production_guards` であること、そして `scope_runs` を含む宣言された他のすべてのジョブの成功を要求します。
+成果物は `full-suite-native-plan`、`full-suite-native-<job>`（完全なログのスタンプのディレクトリと JUnit）、`full-suite-native-result`、`full-suite-production-guards`、`full-suite-deterministic-<suite>-<OS>`（suite は `smoke`、`unit-1` から `unit-16`、`integration`、`scope-runs`、`own-file-moves`、`scope-hosts`、`guard-matrix-1`、`guard-matrix-2`、`e2e`）、`full-suite-scope-runs-<OS>`、`full-suite-own-file-moves-<OS>`、`full-suite-scope-hosts-<OS>`、`full-suite-guard-matrix-1-<OS>`、`full-suite-guard-matrix-2-<OS>`（リリースの `scope_runs` ジョブ）、`full-suite-live-<family>-<slice-number>-<OS>`、`full-suite-live-release-contract-Windows`、そして目的別の結果（90 日間保持）です。`purpose: "release"` には `full-suite-result`、`"live-verification"` には `full-suite-live-verification-result`、`"full-verification"` には `full-suite-verification-result` です。最終的な JSON は、`sha`、`runId`、`runAttempt`、`purpose`、`verificationFamily`、`coveragePolicy`、`passed`、`complete`、`legs` にあるすべてのジョブの結果、`disabledLegs: []`、`omittedLegs`、そして並べ替えた `excluded` の一覧にある `hosting: "excluded"` と宣言されたライブの系統を記録します。`required-hosted-live-shards-v3` の下の `purpose: "release"` では、`passed` は 40 桁の 16 進のコミット ID、省略されスキップされたのがちょうど `deterministic` と `production_guards` であること、そして `scope_runs` を含む宣言された他のすべてのジョブの成功を要求します。
 欠けた、失敗した、取り消された、予期せずスキップされた必須のジョブは失敗します。`disabledLegs` は、Full Suite の結果の方針が過去の disabled-live のレポートを拒否できるように保持されています。`complete` はさらに除外された系統がないことを要求します。文書化された Kiro と Cursor の除外があるため false のままで、preview の公開の条件ではありません。それらの除外はスイートを失敗させずに警告し、無効化された必須のジョブはスイートを失敗させます。
 任意の検査器である `scripts/ci-full-suite-evidence.ts check` が結果を受け入れるのは、`sha` が要求されたコミット、`runId` がその結果の出所の実行、`purpose` が `"release"`、`verificationFamily` が `"all"`、`coveragePolicy` が `required-hosted-live-shards-v3`、`passed` が true、`disabledLegs` が空、`omittedLegs` がちょうど 2 つの決定論的／production-guard のジョブ ID である場合だけです。それらのジョブはスキップされていなければならず、宣言された他のすべてのジョブと追加のレッグは成功していなければなりません。
 `complete` は要求しないため、文書化された除外は警告になるだけです。昇格はこの検査器を呼び出さず、それが合格することも要求しません。
@@ -992,7 +996,7 @@ e2e のファイルを含む選択では、テストを実行せずに計画を�
 
 ネイティブのジョブは、`--debug -P 8` と変わらないマトリクスの計画／ジョブのセレクターで Bash ラッパーを使います。その成果物には、`tests/logs/` に加え、無害化されたルートの `tmp/full-suite-native/` の取得とリテラルのスタンプのパスが含まれます。ネイティブの受領記録の照合は、引き続き受領記録を再帰的に発見します。
 
-共有の決定論的な成果物は、`tests/logs/<stamp>/` と `tmp/ci-deterministic/`（完全な stdout/stderr とリテラルのスタンプのパス）を含みます。CI の成果物は `ci-deterministic-<suite>-<OS>` を使い、suite は、拡張された macOS/Windows の実行での smoke、Linux での unit-1 から unit-10、Windows と手動の macOS での unit-1 から unit-16、マージキューの macOS での unit-1 から unit-2、integration、scope-runs、scope-hosts、guard-matrix-1、guard-matrix-2、または e2e（拡張されたマトリクスだけ）です。
+共有の決定論的な成果物は、`tests/logs/<stamp>/` と `tmp/ci-deterministic/`（完全な stdout/stderr とリテラルのスタンプのパス）を含みます。CI の成果物は `ci-deterministic-<suite>-<OS>` を使い、suite は、拡張された macOS/Windows の実行での smoke、Linux での unit-1 から unit-10、Windows と手動の macOS での unit-1 から unit-16、マージキューの macOS での unit-1 から unit-2、integration、scope-runs、own-file-moves（拡張されたマトリクスだけ）、scope-hosts、guard-matrix-1、guard-matrix-2、または e2e（拡張されたマトリクスだけ）です。
 Linux のスモークと production-guard の証拠は、代わりに `tmp/ci-smoke/`、`tmp/ci-guard-contract/`、`tests/logs/` を含む `ci-check-evidence` を共有します。
 アップロードには、失敗したテストコマンドの後も含め、両方のログの場所が無害化に合格することが必要です。
 
@@ -1028,6 +1032,8 @@ Claude Code、Copilot CLI、opencode の npm のバージョンはワークフ�
 ライブのモデルはリポジトリの内容を受け取り、ツールを呼び出せるため、そのシェルとツールの結果のトレースは、認証情報にとって信頼できない流出先として扱ってください。AWS のアクションは、AWS の認証情報を後続のステップにエクスポートせずに、マスクされたステップの出力を返します。信頼できる起動用のヘルパーは、それらの値を自身のステップの環境でだけ受け取り、切り離されて環境を消したブローカーのプロセスに stdin で JSON を送り、ライブのエージェントが実行される前に終了します。ブローカーは認証情報をメモリーにだけ保持し、起動時に署名付きの STS の `GetCallerIdentity` を実行します。ブローカーの外に出るのは、秘密でないアカウント、ARN、ループバックのポートだけです。認証情報を返す経路、credential process、認証情報のファイル、認証情報を持つエージェントの環境はありません。
 
 ループバックのプロキシが受け付けるのは、設定されたモデルの ID と `POST /model/<id>/(invoke|invoke-with-response-stream|converse|converse-stream)`（任意で `/bedrock` の下）、そして `model: openai.gpt-5.5` を伴う Codex の Mantle の `POST /openai/v1/responses` だけです。クライアントの認証ヘッダーを取り除き、上流への各リクエストに署名します。成功したストリームはバイト単位でそのまま転送されます。他の経路は禁止され、リダイレクトはたどらず、AWS のエラーは署名を反映し得るため、上流のエラーの本文は抑止されます。
+Mantle の経路では、署名の前にリクエストから `reasoning.summary` を取り除きます。Mantle の `openai.gpt-5.5` は、推論の要約を求めるレスポンスを、モデルが推論を始めると停滞させ、Copilot CLI はすべてのリクエストでそれを求めるためです。Codex のもののように要約を求めないリクエストは、送られたとおりに転送されます。ブローカーはリクエストごとに 1 行を `tests/logs/credential-broker.log` に追記します（メソッド、パス、受け付けたモデル、ステータス、所要時間、最後のバイトの時刻、バイト数、回答が終わったかどうか）。ヘッダーや本文は決して記録しないので、停滞したストリームはアップロードされたログに現れます。
+上流がヘッダーの後 2 分間データを送らないレスポンスは終了されます（その行の `end=idle-timeout`）。SSE の `:` のキープアライブのコメントはデータではありません。Mantle は停滞中も含めて 15 秒ごとにそれを送ります。
 
 Claude は文書化された `ANTHROPIC_BEDROCK_BASE_URL` と `CLAUDE_CODE_SKIP_BEDROCK_AUTH=1` を使います。その t19 の preflight は、ブローカーの起動時の識別子を確認し、続いて実際の SDK のターンを行います。Codex 0.151.0 は、ループバックのエンドポイントに対して検証された、`/openai/v1` で終わるプロバイダーの `base_url` を使います。サービス固有の Bedrock Runtime の上書きだけでは、Codex の Mantle の通信はリダイレクト**されません**。
 compose、workspace、memory のジャーニーを含め、すべての一時的な Codex のホームが共有の Bedrock の設定レンダラーを使います。隔離された CI のランタイムの外では、`AIDLC_CODEX_AWS_PROFILE` を未設定または空のままにすると `config.toml` からプロファイルが省かれ、EC2 のインスタンスロールを含め、AWS SDK の既定の認証情報チェーンが認証情報を解決できるようになります。既存の名前付きプロファイルを使い続けるには、`AIDLC_CODEX_AWS_PROFILE=codex`（または実際の名前）を設定してください。`codex` という名前のプロファイルが暗黙に選ばれることはもうありません。`AIDLC_CODEX_AWS_REGION` の既定は引き続き `us-east-2` です。
@@ -1064,7 +1070,16 @@ Windows のライブのレッグは、進行しなくなったフックについ
 `scripts/ci-live-sandbox.ts` はすべての Windows のライブの系統について `AIDLC_TEST_HOOK_TRACE=1` を設定し、ランナーは `AIDLC_HOOK_TRACE_DIR` を各ファイルの試行の `e2e-artifacts/<file>/attempt-<n>/hook-trace/` に束縛します。そのため、その試行のすべてのフックのプロセスがそこにフェーズを書きます（[フックのフェーズトレース](06-hooks-and-tools.md#フックのフェーズトレース)を参照）。ライブの実行のスケジュールされたタスクが実行されている間、`.github/scripts/prepare-live-runtime.ps1` のランナー側の待機ループは 1 分に 1 回プロセスの一覧を確認します。隔離されたアカウントが所有し、コマンドラインに `engine hook ` または `engine adapter ` を含むプロセスが 10 分間実行されていると、停止したプロセスのツリー（その隔離されたアカウントの親とすべての子）とそのスレッドの状態を含む `hook-stall-<time>.json` を 1 つ、`tests/logs/windows-launch-<uuid>/hook-stalls-run-<id>/` に、プロセスごとに 1 回書きます。読むのはプロセスのメタデータだけで、所有権を確認するのは停止したプロセスとその親だけです。すべての照会は、60 秒のスナップショット予算の残り（最大 15 秒）で制限されます。スキップされた、失敗した、タイムアウトした照会は、スナップショットを `truncated` と記します。所有者を確認できなかった停止したプロセスは、別のアカウントに属する可能性があるため、その id、名前、開始時刻だけ（コマンドラインや子なし）で `ownerUnknown` の下に列挙されます。これが実行を失敗させることは決してありません。フックのトレースの `.ndjson` のファイルは、後述のトレースの保持の規則に従います。
 Linux と macOS のレッグはどちらも有効にしません。
 
-フルスイートのすべての `tests/logs/` のアップロードは、まず `scripts/ci-sanitize-logs.ts` を実行し、無害化に失敗するとブロックされます。フルスイートと共有の決定論的なジョブは、ツールの呼び出し、完了の境界、タイムアウトの振る舞いを診断に使えるよう、対象となるドライバーの NDJSON、`sdk-drive*`、`tui-drive*`、`e2e-artifacts/**/traces` を既定で保持します。リポジトリ変数 `AIDLC_NIGHTLY_UPLOAD_TRACES=0` でトレースの保持をオプトアウトできます。単体の無害化処理は、その `AIDLC_NIGHTLY_UPLOAD_TRACES` の環境変数が `1` でない限り、引き続きこれらのトレースを削除します。不正な UTF-8、UTF-16、NUL を含むファイル、その他のテキストでないファイルは常に削除され、その相対パスと理由が `sanitizer-report.json` に記録されます。バイナリ／スクリーンショットの許可リストはありません。残った UTF-8 のテキストは、AWS の認証情報、ベンダーのキー、bearer トークン、Anthropic のキーについて墨消しされます。リンクはターゲットをたどらずに削除されます。墨消しは多層防御であり、エンコードされた秘密に対する証明ではありません。生のテキストのトレースを保持すると、その残存リスクが高まります。
+フルスイートのすべての `tests/logs/` のアップロードは、まず `scripts/ci-sanitize-logs.ts` を実行し、無害化に失敗するとブロックされます。フルスイートと共有の決定論的なジョブは、ツールの呼び出し、完了の境界、タイムアウトの振る舞いを診断に使えるよう、対象となるドライバーの NDJSON、`sdk-drive*`、`tui-drive*`、`e2e-artifacts/**/traces`、`leg-evidence/` を既定で保持します。リポジトリ変数 `AIDLC_NIGHTLY_UPLOAD_TRACES=0` でトレースの保持をオプトアウトできます。単体の無害化処理は、その `AIDLC_NIGHTLY_UPLOAD_TRACES` の環境変数が `1` でない限り、引き続きこれらのトレースを削除します。不正な UTF-8、UTF-16、NUL を含むファイル、その他のテキストでないファイルは常に削除され、その相対パスと理由が `sanitizer-report.json` に記録されます。バイナリ／スクリーンショットの許可リストはありません。残った UTF-8 のテキストは、AWS の認証情報、ベンダーのキー、bearer トークン、Anthropic のキーについて墨消しされます。リンクはターゲットをたどらずに削除されます。墨消しは多層防御であり、エンコードされた秘密に対する証明ではありません。生のテキストのトレースを保持すると、その残存リスクが高まります。
+
+### すべてのライブの系統を読む: トレースの監査
+
+合格した系統にも、利用者が出会う摩擦が現れていることがあり、毎晩の実行はそのトレースを保持します。`scripts/trace-audit.ts` は、メンテナーのために、メンテナー自身のマシン上で、分けて保たれた 2 つの層でそれらを読みます。
+
+- `bun scripts/trace-audit.ts extract --run <full-suite run id>` は、メンテナー自身の `gh` で、その実行の `full-suite-live-*` の成果物をダウンロードします（または `--dir <folder>` で、ダウンロード済みの実行、`tests/logs` のフォルダー、ローカルのセッションのフォルダー、つまり使い捨てのプロジェクト、Claude Code の設定フォルダー、Codex のホームを読みます）。記録されたイベントとフィールドを数えて照合するだけで、読むフォルダーの外に、`table.txt` と `table.json`（検査の所見、ガードの拒否、エンジンのエラー、利用者に再び渡された質問、承認後に書かれたステージのファイル、10 分以上の沈黙、再試行、エージェントのツールのエラーごとに 1 行。それぞれ、その実行、ハーネス、OS、テスト、ステージ、証拠のファイルと行を示す）と、系統ごとに 1 つの `legs/<leg>/story.md` を書きます。後者は、利用者が入力し選んだもの、尋ねられたもの、エージェントが実行し言ったものを時間順に、サイズの予算に合わせて切り詰めて示し、利用者のために記録された各判断を、その人の返答を隣に置いて示すので、読み手は各返答をその記録と突き合わせて判断できます。
+- `bun scripts/trace-audit.ts judge <out>`（`scripts/trace-audit-judge.ts`。指示は `scripts/trace-audit-judge.md`）は、各テストの系統を、メンテナー自身の `claude` に print モードで渡します。読むこと（`Read`、`Grep`、`Glob`）だけができ、判定する系統自身のフォルダーの中だけで、セッションのフォルダーが置かれたホームは決して読めません。既知の一覧（`--known`）と、未解決の issue とプルリクエスト（`--issues`）も渡します。モデルは摩擦の項目を JSON で返します。ツールは各項目がいくつの系統で出会われたかを数え、`JUDGE.md` を書きます。`--dry-run` は各グループの入力を書き、モデルを呼びません。`--max-usd` と `--budget-kb` が各呼び出しを制限します。
+
+抽出器は実行が保持したものだけを読みます。SDK の駆動のトレースは各ツールの返答の最初の 240 文字を保持し、各系統の `leg-evidence/` フォルダーは、それが駆動したすべてのプロジェクトの監査と、エージェントが利用者に伝えたことを保持し、ストーリーはそれらを系統の他のイベントの間に時間で配置します。系統がどちらも保持しなかった場合、ストーリーはその冒頭でそう伝えます。
 
 ## Kiro のプロンプトフックのトランスポート制御
 
@@ -1078,13 +1093,17 @@ Kiro の agent-v1 のプロンプトフックは、シェルツールの出力�
 
 `--unit --shard N/M` は、検出したすべてのユニットファイルを、所要時間の均衡が取れた `M` 個のシャードのちょうど 1 つに割り当てます。割り当ては決定論的で、各ファイルの OS ごとの所要時間を記録した `tests/unit-shard-weights.json` を使います。現在のプラットフォームでの測定値が優先し、そこで測定されていないファイルは最も遅い OS の代替値を使います。一覧にないファイルには 1 秒の既定の重みが与えられるため、新しいテストはコマンドを変えずに最も負荷の軽いシャードに入ります。`M` が割り当て可能なグループの数を超えると、ランナーは終了コード 2 で終わるため、有効なシャードのコマンドが 0 ファイルを実行して成功を報告することはありません。
 
-各シャードは直列のままです。別々のシャードは、別々のチェックアウトまたは CI のジョブで実行してください。パッケージングのテストは `dist/` を再生成し、生成ファイルを読むテストと競合し得るため、1 つのリポジトリツリーに対してそれらを同時に実行しないでください。
+シャードはファイルを 1 つずつ実行します。ただし、重みのファイルが `parallel` の下で上限を設けるプラットフォーム（macOS。そのマージキューのユニットシャードがキューの進む速さを決める）は例外です。そこでは、シャードは一度にその数までのファイルを始め、`-P` を超えることはありません。それ以上は役に立ちません。最も重い単一のファイルが下限を決めるためです。
+並べて実行する場合、アフィニティのグループが最初に単独で、その順序で実行されます。t238 は t249 が読むバイナリをビルドし、そのリリースのパッケージング（`scripts/package-release.ts`）は共有の `dist/` と `dist-release/` をその場で再生成するため、その瞬間にそれらを読むファイルは、それらが欠けているのを見ることになります。他のファイルは、そのプラットフォームの重みで長いものから順に、それぞれ独自のプロセスと独自の一時フォルダーで始まります。
+`AIDLC_TEST_UNIT_PARALLEL=<n>` は、どのプラットフォームでも 1 回の実行の上限を設定し、macOS 以外での試行に使います。CI では何もそれを設定しません。`--shard` のない実行は直列のままです。
+
+別々のシャードは、別々のチェックアウトまたは CI のジョブで実行してください。`AIDLC_TEST_PACKAGE_READY=1` のないランナーは、最初のファイルの前に `dist/` を再生成し、同じツリーでの他の実行の読み手の下でそれを行います。
 
 アフィニティの一覧は、ファイルをまたぐ前提条件を明示的に保ちます。現在、ネイティブバイナリのビルダーのテストは、同じシャード内で Copilot のコンパイル済みアダプターのカバレッジより前に実行されます。ネイティブのビルド／インストールのアサーションがすべて合格した後、t238 は検証済みの実行ファイルと隣接する `runtime/` を、ランナー所有の `AIDLC_TEST_COMPILED_DIR` にコピーします。その非公開のビルド／インストールのフィクスチャは引き続きテスト後に削除され、公開されたコピーはランナーのクリーンアップまで存続します（または verbose のログとともに保持されます）。各ランナーは新しい引き継ぎのディレクトリを割り当てるため、共有の `build/binaries` の出力が上書きされたり、以前の実行から借用されたりすることはありません。
 シャードでのユニットの実行では、t249 がこの引き継ぎを解決することが必要です。成果物が欠けている場合は、明示的な実行ファイルや古いリポジトリのビルドが存在しても、コンパイル済みのケースを黙ってスキップせずに失敗します。シャードを使わない直接の t249 の実行は、引き続き `AIDLC_TEST_COMPILED_EXECUTABLE` やローカルのネイティブビルドの結果をオプトインで使えます。
 スモークのランナーの契約は、10 と 16 のシャードの割り当てがどちらも空でなく、互いに重複せず、ユニットの一覧全体を網羅し、生成側／利用側の順序を保ち、生成側が絞り込みで除外された場合はコンパイル済みのカバレッジを失敗させることを検証します。
 
-複数のワーカーがある場合、integration の層は `tests/integration-weights.json`（サマリーの行の名前をキーにする）に基づいて並列のファイルを長いものから順に開始するため、長いファイルが最後に始まって層の実時間を決めることはありません。重みのないファイルと同点のものは名前順を保ちます。読み取れる重みのファイルがない場合、ファイルは名前順に始まります。直列のファイルとスモーク、ユニットの層は影響を受けません。
+複数のワーカーがある場合、integration の層は `tests/integration-weights.json`（サマリーの行の名前をキーにする）に基づいて並列のファイルを長いものから順に開始するため、長いファイルが最後に始まって層の実時間を決めることはありません。重みのないファイルと同点のものは名前順を保ちます。読み取れる重みのファイルがない場合、ファイルは名前順に始まります。直列のファイルとスモークの層は影響を受けません。複数のワーカーを持つユニットシャードは、上記のとおり、ユニットの重みでファイルを並べます。
 
 `--integration --shard N/M` は、同じ integration の重みを使って、絞り込んだ integration の一覧を均衡させます。絞り込みは分割の前に行われ、除外はその後に適用されるため、ファイルを除外しても他のファイルがシャード間で移動することはありません。2 つのガードのジョブは、同じフィルターでこのモードを使います。ホスト型のジョブの数とワーカーの上限は変わりません。
 

@@ -559,6 +559,21 @@ describe("current source identity", () => {
     },
   );
 
+  it("fails closed while the work records an extra source checkout", async () => {
+    const receipt = await sourceFixture();
+    const checkouts = recordPath(".aidlc-engine/source-checkouts.json");
+    await write(checkouts, JSON.stringify({ version: 1, checkouts: [] }));
+    expect(await (await createReviewFreshnessReader(record))(receipt)).toBe(true);
+    await write(
+      checkouts,
+      JSON.stringify({
+        version: 1,
+        checkouts: [{ label: "web", path: "../web", real: path.join(root, "../web") }],
+      }),
+    );
+    expect(await (await createReviewFreshnessReader(record))(receipt)).toBe(false);
+  });
+
   it.each([
     [
       "an older stored directory with the same slug",

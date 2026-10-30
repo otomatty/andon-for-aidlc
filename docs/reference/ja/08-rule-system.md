@@ -6,7 +6,7 @@
 
 ## 配置
 
-ルールは、アクティブなスペースのメモリ層 `aidlc/spaces/<active-space>/memory/` に置かれます。ここはワークスペースルートにある、人が直接編集できる単一の集合であり、各ハーネスはそれぞれのネイティブな取り込み機構（Claude の `@` による取り込み用スタブ、Kiro CLI のエージェントリソース、メモリの本文を載せる Kiro IDE の常時取り込みステアリング、Codex ではエンジンによるステップごとのルール配信）を通じてこれを読みます。ファイル名は中立なスコープ名です。
+ルールは、アクティブなスペースのメモリ層 `aidlc/spaces/<active-space>/memory/` に置かれます。ここはワークスペースルートにある、人が直接編集できる単一の集合であり、各ハーネスはそれぞれのネイティブな取り込み機構（Claude の `@` による取り込み用スタブ、Kiro CLI のエージェントリソース、メモリの本文を載せる Kiro IDE の常時取り込みステアリング、Codex ではエンジンによるステップごとのルール配信、Cursor の常時適用ルール `.cursor/rules/aidlc.mdc`、opencode の `instructions` glob、Copilot の `AGENTS.md` による `@` 取り込み）を通じてこれを読みます。ファイル名は中立なスコープ名です。
 
 ```
 aidlc/spaces/<active-space>/memory/

@@ -12,6 +12,7 @@ import { canonicalPath } from "@andon/core-utils";
  * additions (committed text read with CRLF as LF and its raw-bytes alias,
  * .codegraph/.idea/DerivedData, dependency folders beside their manifest, the
  * registry's `exclude` list) and Guard Policy resolution (resolveGuardPolicy).
+ * v2.11.2 recorded source checkouts are not walked; their presence is unknown.
  * Never imports or executes an installed engine. Unknown inputs fail closed.
  */
 const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -646,7 +647,7 @@ export async function createReviewFreshnessReader(
         fields["Source Fingerprint"] ||
         fields["Unit Source Fingerprint"]
       ) {
-        source ??= workspaceSource(snapshot, space, layout.intent);
+        source ??= workspaceSource(snapshot, space, layout.intent, record);
         const currentSource = await source;
         if (
           currentSource === null ||
@@ -1059,6 +1060,7 @@ async function workspaceSource(
   snapshot: Snapshot,
   space: string,
   intent: string,
+  record: string,
 ): Promise<SourceState | null> {
   const registry = await json(snapshot, `${space}/intents/intents.json`);
   if (registry !== undefined) {
@@ -1082,6 +1084,14 @@ async function workspaceSource(
     }
   }
   if ((await snapshot.inspect(".aidlc/worktree-meta.json")) !== "missing") return null;
+  // v2.11.2 readRecordedSourceCheckouts: a checkout recorded with `intent
+  // add-checkout` joins the workspace fingerprint, and this reader walks none.
+  const checkouts = await json(snapshot, `${record}/.aidlc-engine/source-checkouts.json`);
+  if (
+    checkouts !== undefined &&
+    !(object(checkouts) && Array.isArray(checkouts.checkouts) && checkouts.checkouts.length === 0)
+  )
+    return null;
   const roots = await snapshot.list("");
   if (roots === null) return null;
   const shell = new Set(["aidlc", ".aidlc"]);

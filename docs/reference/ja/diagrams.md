@@ -357,7 +357,7 @@ flowchart LR
 
 ## 8. セッション再開フロー
 
-ユーザーが `/aidlc` を呼び出すと、オーケストレーターはアクティブな意図の `aidlc-state.md` を確認します。見つかった場合はチェックポイントから作業を続け（最初の呼び出しは `next --resume`）、利用者はいつでもやり直し、ステージへのジャンプ、新規開始を求められます。見つからない場合は最初の意図を作成します。コンテキスト圧縮による状態破損の可能性を検出するため、オーケストレーターは `.aidlc-engine/recovery.md` も確認します。
+ユーザーが `/aidlc` を呼び出すと、オーケストレーターはアクティブな意図の `aidlc-state.md` を確認します。見つかった場合はチェックポイントから作業を続け（最初の呼び出しは `next --resume`）、利用者はいつでもやり直し、ステージへのジャンプ、新規開始を求められます。見つからない場合は最初の意図を作成します。
 
 ```mermaid
 flowchart TD
@@ -365,9 +365,6 @@ flowchart TD
     ARG_CHECK{"引数が\nあるか?"}
     STATUS_CHECK{"引数が\n`--status` か?"}
     STATE_EXISTS{"アクティブな意図が\n存在するか?"}
-    RECOVERY_CHECK{".aidlc-engine/recovery.md が\n存在するか?"}
-    CORRUPTION{"状態がリカバリ\nファイルと一致するか?"}
-    WARN["破損の可能性を\nユーザーへ警告"]
 
     CONTINUE["チェックポイントから\n続行:\nnext --resume"]
     OTHER["利用者がやり直し、ジャンプ、\n新規開始を求める:\nreport --result resumed"]
@@ -386,13 +383,8 @@ flowchart TD
     STATUS_CHECK -->|はい| STATUS_DISPLAY
     STATUS_CHECK -->|いいえ| STATE_EXISTS
 
-    STATE_EXISTS -->|はい| RECOVERY_CHECK
+    STATE_EXISTS -->|はい| CONTINUE
     STATE_EXISTS -->|いいえ| SCOPE_DETECT
-
-    RECOVERY_CHECK -->|はい| CORRUPTION
-    RECOVERY_CHECK -->|いいえ| CONTINUE
-    CORRUPTION -->|不一致| WARN --> CONTINUE
-    CORRUPTION -->|一致| CONTINUE
 
     CONTINUE -.->|"いつでも"| OTHER
     OTHER -->|"新規開始: 確認"| CREATE
@@ -405,7 +397,6 @@ flowchart TD
     style OTHER fill:#bbdefb,stroke:#1565c0,color:#000
     style CONTINUE fill:#c8e6c9,stroke:#388e3c,color:#000
     style CREATE fill:#c8e6c9,stroke:#388e3c,color:#000
-    style WARN fill:#ffcdd2,stroke:#c62828,color:#000
 ```
 
 ---

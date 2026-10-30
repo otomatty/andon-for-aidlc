@@ -1,5 +1,5 @@
 {
-  "sourceVersion": "aidlc 2.11.1 (State Version 8)",
+  "sourceVersion": "aidlc 2.11.2 (State Version 8)",
   "generator": "scripts/build-artifact-map.ts",
   "stages": {
     "workspace-scaffold": {
@@ -1057,27 +1057,6 @@
           "descriptions": {
             "en": "Dependency install, env setup, build commands, troubleshooting",
             "ja": "依存関係インストール、環境整備、ビルドコマンド、トラブルシューティング"
-          }
-        },
-        "integration-test-instructions": {
-          "fileName": "integration-test-instructions.md",
-          "descriptions": {
-            "en": "Prerequisites, cross-unit testing, external deps, data setup",
-            "ja": "前提条件、ユニット横断テスト、外部依存、データ準備"
-          }
-        },
-        "performance-test-instructions": {
-          "fileName": "performance-test-instructions.md",
-          "descriptions": {
-            "en": "Load testing, NFR scenarios, baselines, stress/soak tests",
-            "ja": "負荷テスト、NFR シナリオ、ベースライン、ストレス／ソーク"
-          }
-        },
-        "security-test-instructions": {
-          "fileName": "security-test-instructions.md",
-          "descriptions": {
-            "en": "SAST/DAST, auth testing, injection testing, compliance",
-            "ja": "SAST／DAST、認証テスト、インジェクションテスト、コンプライアンス"
           }
         },
         "build-and-test-summary": {

@@ -1,0 +1,336 @@
+{
+  "code": 1,
+  "counts": {
+    "passed": 64,
+    "warnings": 0,
+    "failed": 1
+  },
+  "checks": [
+    {
+      "section": "machine",
+      "status": "ok",
+      "originalLabel": "Runtime hook PATH: bun -> <BUN> (non-interactive baseline)"
+    },
+    {
+      "section": "machine",
+      "status": "ok",
+      "originalLabel": "Runtime hook PATH: aidlc is not required by the selected projection"
+    },
+    {
+      "section": "machine",
+      "status": "ok",
+      "originalLabel": "Harness CLI: claude 3.0.0 (Doctor fixture CLI) at <CAPTURE>\\test-tools\\claude.exe"
+    },
+    {
+      "section": "machine",
+      "status": "ok",
+      "originalLabel": "Transaction staging: no abandoned directories"
+    },
+    {
+      "section": "machine",
+      "status": "ok",
+      "originalLabel": "Transaction recovery: no quarantined directories"
+    },
+    {
+      "section": "machine",
+      "status": "ok",
+      "originalLabel": "Windows uninstall recovery: no pending continuations"
+    },
+    {
+      "section": "machine",
+      "status": "ok",
+      "originalLabel": "Update: binary 2.11.2 is latest"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Instruction file: framework-owned file intact"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Execution mode: source checkout (no machine runtime expected)"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Project runtime stamp: 2.11.2 (claude)"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-continue-workflow.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-deliver-stage-rules.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-fold-usage.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-log-subagent.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-plan-approval-guard.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-rebuild-stage-graph.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-record-human-turn.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-review-freeze.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-reviewer-scope.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-run-sensors.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-session-end.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-session-start.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-state-transition-guard.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-sync-workflow-state.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-validate-state.ts present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "aidlc-write-audit-log.ts present"
+    },
+    {
+      "section": "project",
+      "status": "fail",
+      "originalLabel": "Hooks DISABLED via \"disableAllHooks\": true in .claude/settings.local.json — AI-DLC cannot run (audit, state sync, sensors, and stage-graph rebuild are all silently skipped even though the hook files are present)",
+      "originalFix": "Set \"disableAllHooks\": false in this project's .claude/settings.local.json; it works in the same chat."
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "settings.json present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Enabled plugins: all enabled (no selection); enabled stage counts: aidlc=30, bootstrap=3"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Plugin selection flags: harness.json agrees with stage-graph.json"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Composed plugin surface: all enabled plugin stages and recorded contributions are present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "workspace shell ready (.claude/ + aidlc/spaces/default/memory/)"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "active space method copy current (aidlc/active-memory/ holds aidlc/spaces/default/memory/)"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Submodules: no .gitmodules at workspace root"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Hooks last fired: record-human-turn 2000-01-01T00:00:00Z"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Hook drops: none recorded"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Runtime locks: none leaked"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Orphan worktrees: 0 observed"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Stale branches: 0 (0 bolt-* observed)"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Orphan state files: 0 observed"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Orphan audit: 0 observed"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Practices staleness: state file absent (informational)"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "MERGE_DISPATCH: 0 orphan INVOKED (0 bracketed)"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Composed scope durability: no composed scopes"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Duplicate producers: every consumed artifact has a single producer"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Intent registry: all rows match their record dirs"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Workspace records: no uncommitted changes under aidlc/"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Plugins: no AIDLC plugins installed"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Models: recorded policy is expressible"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Flags: no recorded project answers"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Providers: using shipped fallback; no recorded answers"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "Workspace siblings: complete projection is present"
+    },
+    {
+      "section": "project",
+      "status": "ok",
+      "originalLabel": "AI-DLC files: not checked, no record of what AI-DLC wrote"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Enabled stage compile coverage: every enabled stage file is in the full graph"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Agent filename/name consistency: all agent files match declared names"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Scope filename/name consistency: all scope files match declared names"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Cycle detection: 0 cycles"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Orphan stage files: 33 graph entries all have files"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Uncompiled stage files: 0 stage files missing from the compiled graph"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Scope validation: 11 scopes valid (47 advisories)"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Schema validation: 33/33 stages validated"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Graph references: 122 artifacts + edges resolved"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Keyword overlap: no conflicts"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Rule drift: no team/project rule overlaps org policy"
+    },
+    {
+      "section": "framework",
+      "status": "ok",
+      "originalLabel": "Paired sensor coverage: no sensor-bound rules (0 feedforward-only)"
+    }
+  ]
+}

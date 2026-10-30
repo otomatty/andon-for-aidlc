@@ -23,19 +23,20 @@ AI-DLC は、すべてのタスクを同じライフサイクルに押し込め�
 
 | ワークフロープロファイル | 向いている作業 | ステージ | 深度 | テスト戦略 | 開始コマンド |
 |------------------|----------|--------|-------|---------------|------------|
-| **Classic** | v1 型の Inception と Construction。Build and Test で完了 | 18 / 33 | Standard | Standard | `/aidlc classic` |
-| **Express** | 要件からコードとテストまでの最も軽い経路 | 10 / 33 | Minimal | Minimal | `/aidlc express` |
-| **Feature** | 完全なライフサイクルで作る本番機能 | 33 / 33 | Standard | Standard | `/aidlc feature` |
-| **Enterprise** | 完全な追跡可能性を要する規制対象・高保証の作業 | 33 / 33 | Comprehensive | Comprehensive | `/aidlc enterprise` |
-| **MVP** | 運用フェーズを含まない、実際の最初のプロダクト増分 | 23 / 33 | Standard | Standard | `/aidlc mvp` |
-| **Proof of concept** | 最小限の実装経路で実現可能性を確かめる | 8 / 33 | Minimal | Minimal | `/aidlc poc` |
-| **Bugfix** | 既知の不具合に対する的を絞った修正とリグレッションテスト | 9 / 33 | Minimal | Minimal | `/aidlc bugfix` |
-| **Refactor** | プロダクトの挙動を変えずに既存コードを改善する | 10 / 33 | Minimal | Minimal | `/aidlc refactor` |
-| **Infrastructure** | 環境、IaC、デプロイ基盤、コスト関連の作業 | 13 / 33 | Standard | Standard | `/aidlc infra` |
-| **Security patch** | CVE 対応や範囲を絞った脆弱性対応 | 10 / 33 | Minimal | Minimal | `/aidlc security-patch` |
-| **Workshop** | ファシリテーター主導のトレーニングや共同デリバリーのセッション | 26 / 33 | Standard | Minimal | `/aidlc workshop` |
+| **Classic** | v1 型の Inception と Construction。Build and Test で完了 | 15 / 30 | Standard | Standard | `/aidlc classic` |
+| **Express** | 要件からコードとテストまでの最も軽い経路 | 7 / 30 | Minimal | Minimal | `/aidlc express` |
+| **Feature** | 完全なライフサイクルで作る本番機能 | 30 / 30 | Standard | Standard | `/aidlc feature` |
+| **Enterprise** | 完全な追跡可能性を要する規制対象・高保証の作業 | 30 / 30 | Comprehensive | Comprehensive | `/aidlc enterprise` |
+| **MVP** | 運用フェーズを含まない、実際の最初のプロダクト増分 | 20 / 30 | Standard | Standard | `/aidlc mvp` |
+| **Proof of concept** | 最小限の実装経路で実現可能性を確かめる | 5 / 30 | Minimal | Minimal | `/aidlc poc` |
+| **Bugfix** | 既知の不具合に対する的を絞った修正とリグレッションテスト | 6 / 30 | Minimal | Minimal | `/aidlc bugfix` |
+| **Refactor** | プロダクトの挙動を変えずに既存コードを改善する | 7 / 30 | Minimal | Minimal | `/aidlc refactor` |
+| **Infrastructure** | 環境、IaC、デプロイ基盤、コスト関連の作業 | 10 / 30 | Standard | Standard | `/aidlc infra` |
+| **Security patch** | CVE 対応や範囲を絞った脆弱性対応 | 7 / 30 | Minimal | Minimal | `/aidlc security-patch` |
+| **Workshop** | ファシリテーター主導のトレーニングや共同デリバリーのセッション | 23 / 30 | Standard | Minimal | `/aidlc workshop` |
 
-ステージ数は静的な経路を表します。条件付きと記されたステージは、条件が当てはまら
+ステージ数は静的な経路を表します。どのプロファイルも最初に実行する Initialization の
+3 つのセットアップステージの後のステージを数えたもので、計画のオファーが示す数です。条件付きと記されたステージは、条件が当てはまら
 なければ自らスキップされることがあります（グリーンフィールドのプロジェクトにおける
 リバースエンジニアリングなど）。プロファイルごとの正確なステージ構成は
 [ステージ×スコープ・マトリクス](05-scopes-and-depth.md#stage-by-scope-matrix)
@@ -43,7 +44,7 @@ AI-DLC は、すべてのタスクを同じライフサイクルに押し込め�
 
 ## `classic`
 
-**Classic を選ぶとき:** 各ステージで人が一度承認し、v1 型の Inception と Construction を進めたい場合です。Ideation を省き、Operation は予約枠として残します。ステージで定義された実行モードとサポートエージェントは変わりません。
+**Classic を選ぶとき:** v1 型の手続きで進めたい場合です。Inception では各ステージで人が一度承認し、Construction は Unit ごとに構築します。そこでは各 Unit のコード計画と、**Review each checkpoint** を選んだ場合はそのチェックポイントを承認します（Unit の設計ステージには独自の停止がありません。チームが所有する Unit は、ステージごとまたは Unit の終わりの独自のゲートを保ちます）。Ideation を省き、Operation は予約枠として残します。ステージで定義された実行モードとサポートエージェントは変わりません。
 
 Classic は、利用者と `AWS_AIDLC_DEFAULT_SCOPE` のどちらも別のプロファイルを指定しない場合の暗黙の既定値です。対話で詳細なタスクを説明すると、作成前に適応コンポーズが提案される場合があります。成果物とテストは Standard です。Walking Skeleton とサマリー確認は無効、センサーと学びの手順は有効です。レビューは各ステージで助言を一度実行し、所見を承認ゲートに表示します。明示的な自律実行ではマージ前の一度のレビューを維持します。Guard Policy の既定値は off です。指示外の操作に対して、計画の再承認、review freeze、state transition、reviewer read scope のガードは道を譲り、そのたびに `GUARD_STOOD_ASIDE` 行を記録します。Plan Approval は引き続きエンジンが尋ねます。人間のターンによる権限と監査は維持します。
 
@@ -80,7 +81,7 @@ Express を選ばないでください。その速さは、それらの判断面
 **Feature を選ぶとき:** 本番機能を作っており、完全なライフサイクルを実務的な深さで
 回したい場合です。
 
-Feature は 33 ステージすべてを Standard の深度で実行し、意図の発見から設計、実装、
+Feature はセットアップの後の 30 ステージすべてを Standard の深度で実行し、意図の発見から設計、実装、
 デプロイ、フィードバックまでを通します。Enterprise ほど重い文書化の下限を課さずに、
 未知のものを洗い出す機会を最も広く与えます。
 
@@ -89,7 +90,7 @@ Feature は 33 ステージすべてを Standard の深度で実行し、意図�
 **Enterprise を選ぶとき:** 規制対象、高リスク、監査が重視される作業、あるいは
 形式的なコンプライアンスと運用上の証跡が必要な場合です。
 
-Enterprise は 33 ステージすべてを Comprehensive の深度で実行します。市場、
+Enterprise はセットアップの後の 30 ステージすべてを Comprehensive の深度で実行します。市場、
 コンプライアンス、セキュリティ、設計、オブザーバビリティ、インシデント対応、
 パフォーマンスの作業を残します。文書化されていない判断のコストが、追加の手続きの
 コストを上回るためです。
@@ -109,7 +110,7 @@ Enterprise へ移ってください。
 **Proof of Concept を選ぶとき:** 主たる問いが「そのアプローチが成り立つか」である
 場合です。
 
-PoC は 8 ステージを Minimal の深度で使います。プロダクト、設計、運用の手続きの多くを
+PoC は 5 ステージを Minimal の深度で使います。プロダクト、設計、運用の手続きの多くを
 省き、要件・コード・テストへ素早く到達します。PoC は後の判断のための証拠であり、
 本番対応可否を判断するプロファイルではありません。
 
@@ -118,11 +119,11 @@ PoC は 8 ステージを Minimal の深度で使います。プロダクト、�
 **Bugfix を選ぶとき:** 不具合が特定されており、望む結果が検証を伴う的を絞った修正で
 ある場合です。
 
-Bugfix は 9 ステージを Minimal の深度で使います。ワークスペースの理解、要件、
+Bugfix は 6 ステージを Minimal の深度で使います。ワークスペースの理解、要件、
 コード生成、ビルドとテスト、そしてデプロイの経路は残し、発見、広範な設計、無関係な
 運用の作業は落とします。
 
-Bugfix は学びとサマリー確認も off にするため、「Anything to add for next time?」で終わるステージはありません。
+Bugfix は学びとサマリー確認も off にするため、日誌を残すステージも、修正の後に「Keep that for next time?」と尋ねるステージもありません。
 センサー、ステージ承認、plan approval は on のままです。
 
 ## `refactor`
@@ -130,7 +131,7 @@ Bugfix は学びとサマリー確認も off にするため、「Anything to ad
 **Refactor を選ぶとき:** 挙動は安定させたまま、内部構造、保守性、技術的負債を改善
 する場合です。
 
-Refactor は 10 ステージを Minimal の深度で使います。既存コードの理解、内部変更の
+Refactor は 7 ステージを Minimal の深度で使います。既存コードの理解、内部変更の
 定義、その実装、挙動が退行していないことの証明、そして検証済みの結果をデプロイまで
 運ぶことを重視します。利用者から見える挙動が変わる作業なら、代わりに Feature を
 使ってください。
@@ -140,7 +141,7 @@ Refactor は 10 ステージを Minimal の深度で使います。既存コー�
 **Infrastructure を選ぶとき:** 成果物が環境、IaC の変更、デプロイ基盤、プラット
 フォーム機能、コスト最適化である場合です。
 
-Infrastructure は 13 ステージを Standard の深度で使います。利用者向けプロダクトの
+Infrastructure は 10 ステージを Standard の深度で使います。利用者向けプロダクトの
 手続きを取り除き、要件、非機能要件、インフラ設計、CI/CD、デプロイ、オブザーバビリティ
 に集中します。
 
@@ -149,7 +150,7 @@ Infrastructure は 13 ステージを Standard の深度で使います。利用
 **Security Patch を選ぶとき:** 既知の CVE、脆弱性、範囲の狭いセキュリティ不具合へ
 対応する場合です。
 
-Security Patch は 10 ステージを Minimal の深度で使います。セキュリティに関わる要件、
+Security Patch は 7 ステージを Minimal の深度で使います。セキュリティに関わる要件、
 検証、実装、デプロイの経路を保ちつつ、無関係なプロダクトの手続きを避けます。的を
 絞ったパッチではなく、より広いセキュリティ／コンプライアンスのプログラムであれば
 Enterprise を使ってください。

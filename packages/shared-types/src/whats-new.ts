@@ -13,6 +13,13 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "workflows-2-11-2",
+    date: "2026-10-30",
+    title: "aidlc-workflows 2.11.2 に対応しました",
+    body: "同梱ドキュメントと導入・更新の対象を 2.11.2 にそろえ、変更のあった日本語ページも更新しました。対応版が変わるため、各プロジェクトの更新が必要です。Doctor の新しい診断（更新確認の経過日数、別のクローンで進んだ作業など）も日本語で表示します。主な変更は「ドキュメント」の更新のハイライトで確認できます。",
+    action: { label: "ドキュメントを開く", target: "docs" },
+  },
+  {
     id: "renamed-to-andon",
     date: "2026-10-29",
     title: "名前を「Andon for AI-DLC」に変えました",

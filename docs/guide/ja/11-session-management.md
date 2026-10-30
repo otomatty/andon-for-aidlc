@@ -15,9 +15,6 @@ flowchart TD
     START(["/aidlc invoked"])
     MODE{"Invocation"}
     STATE_EXISTS{"aidlc-state.md\nexists?"}
-    RECOVERY_CHECK{".aidlc-engine/recovery.md\nexists?"}
-    CORRUPTION{"State matches\nrecovery file?"}
-    WARN["Warn about possible\nstate corruption"]
     RESUME_STATE{"aidlc-state.md\nexists?"}
     PARKED{"Workflow parked?"}
     UNPARK["Clear park marker"]
@@ -31,13 +28,8 @@ flowchart TD
     MODE -->|"bare /aidlc"| STATE_EXISTS
     MODE -->|"/aidlc --resume"| RESUME_STATE
     MODE -->|"/aidlc --resume --stage"| JUMP
-    STATE_EXISTS -->|Yes| RECOVERY_CHECK
+    STATE_EXISTS -->|Yes| PARKED
     STATE_EXISTS -->|No| SCOPE_DETECT
-
-    RECOVERY_CHECK -->|Yes| CORRUPTION
-    RECOVERY_CHECK -->|No| RESUME_STATE
-    CORRUPTION -->|Mismatch| WARN --> RESUME_STATE
-    CORRUPTION -->|Match| RESUME_STATE
 
     RESUME_STATE -->|No| NO_STATE
     RESUME_STATE -->|Yes| PARKED
@@ -48,11 +40,10 @@ flowchart TD
     style START fill:#e1bee7,stroke:#7b1fa2,color:#000
     style OTHER fill:#bbdefb,stroke:#1565c0,color:#000
     style CONTINUE fill:#c8e6c9,stroke:#388e3c,color:#000
-    style WARN fill:#ffcdd2,stroke:#c62828,color:#000
     style NO_STATE fill:#ffcdd2,stroke:#c62828,color:#000
 ```
 
-<!-- Text fallback: 状態があるときの素の /aidlc は復旧パンくずを確認し、/aidlc --resume と同じように続ける。やり直し、ジャンプ、新規開始はいつでも頼める。状態がないときはプランの提案から始める。状態があるときの /aidlc --resume は、必要ならパーク印を消して直接続ける。状態がないときはエラー。/aidlc --resume --stage は指定ステージへジャンプする。 -->
+<!-- Text fallback: 状態があるときの素の /aidlc は /aidlc --resume と同じように続ける。やり直し、ジャンプ、新規開始はいつでも頼める。状態がないときはプランの提案から始める。状態があるときの /aidlc --resume は、必要ならパーク印を消して直接続ける。状態がないときはエラー。/aidlc --resume --stage は指定ステージへジャンプする。 -->
 
 コマンドからは `/aidlc park` でワークフローを保留できます。エンジンが保留コマンドを示し、コンダクターが停止位置を報告します。`/aidlc --resume` で戻ります。
 
@@ -63,7 +54,7 @@ flowchart TD
 | 選択肢 | 動き | 残るもの | 失うもの |
 |--------|-------------|-------------------|-------------|
 | **最後のチェックポイントから再開** | 進行中、または次の未着手ステージから続ける。セッションにタスクツールがあれば、タスクサイドバーを状態ファイルから組み直す | 成果物、状態、監査証跡の全部 | 前セッションのメモリ上の会話文脈 |
-| **いまのステージをやり直す** | いまのステージのチェックボックスを戻し（`aidlc-jump.ts execute --direction redo`）、最初から再実行する。Construction が 1 度に 1 つの Unit を実行していて、作業を終えた Unit がある場合は、代わりにアクティブな Unit のステップだけを最初からやり直す。その Unit が一時停止中、または要約確認やチェックポイント承認を待っている場合も同様。Code Generation では計画も含むため、新しい計画は承認のためにあなたへ戻る（plan approval が off の場合を除く） | ほかの成果物と状態（1 度に 1 Unit の場合は、ほかの Unit の完了済み作業も） | いまのステージの完了状態と途中作業（1 度に 1 Unit の場合は、その Unit のステップ） |
+| **いまのステージをやり直す** | いまのステージのチェックボックスを戻し（`aidlc-jump.ts execute --direction redo`）、最初から再実行する。Construction が 1 度に 1 つの Unit を実行していて、作業を終えた Unit がある場合は、代わりにアクティブな Unit のステップだけを最初からやり直す。その Unit が一時停止中、または要約確認やチェックポイント承認を待っている場合も同様。Code Generation では計画も含むため、計画は承認のためにあなたへ戻る（plan approval が off の場合を除く） | ほかの成果物と状態（1 度に 1 Unit の場合は、ほかの Unit の完了済み作業も） | いまのステージの完了状態と途中作業（1 度に 1 Unit の場合は、その Unit のステップ） |
 | **ステージへジャンプ** | 指定ステージへ飛ぶ（`next --stage <slug>`）。前へ飛んだ後、AI-DLC はスキップしたステージと戻り方を 1 行で伝える | 既存の成果物すべて | いまの位置と目標の間のステージは `[S]`（スキップ） |
 | **新規開始** | 既存の横に新しいインテントを始める（スコープと説明の確認のあと `next --new-intent`） | 既存ワークフローの成果物、状態、監査証跡（その場に残る） | なし。前のインテントは再開できる |
 
@@ -72,18 +63,6 @@ flowchart TD
 ディスパッチした編成作業は、ディスク上の証跡から再開します。Practices Discovery では、コンダクターがリード下書きと既存の寄与ファイルをすべて残し、足りない quality / developer / devsecops スポークだけをディスパッチし、人へのインタビューとリード統合へ進みます。完了したスポークは繰り返しません。
 
 Code Generation は計画のチェックから再開します。developer エージェントは、`code-generation-plan.md` の各ステップを終えるたびにチェックを付けます。ビルドが途中で止まった場合（モデルやプロバイダーのエラー、エディターを閉じたなど）、同じ計画の次の実行は最初の未チェックのステップから再開し、「Picking up unit-2's code at step 5 of 9 (1-4 done).」のような 1 行が表示されます。チェックが 1 つもないのに最初のステップが挙げるファイルが書かれている場合は、代わりにその後から再開します（「(1-4 wrote their files)」）。コードは書かれているのにどのステップが完了したかを示すものが何もない場合は、「Picking up unit-2's code: the plan marks none of its 9 steps done, checking what is built.」と表示され、developer は終えたステップにチェックを付けます。developer は完了した各ステップが挙げるファイルを確認し、作るはずのファイルがない場合にだけそのステップをやり直します。やり直し、Request Changes、計画の再承認では、ステップを最初から始めます。新しいビルドが始まるときに計画のチェックはクリアされ、そのビルドもまた途中で止まった場合は、そのビルドで付けたチェックだけが数えられます。ビルド開始後に計画を編集した場合も最初から始めます。ビルド前に編集した計画は、ほかの計画と同じように再開します。
-
----
-
-## 復旧パンくず
-
-Claude Code が会話文脈をコンパクトする前に、`aidlc-validate-state.ts` フックが隠し復旧ファイル `.aidlc-engine/recovery.md` を、アクティブインテントのレコードディレクトリに書きます。中身は次です。
-
-- 最後に検証した時刻
-- いまのステージ名（`aidlc-state.md` から抽出）
-- 状態ファイルが妥当かどうか
-
-次の `/aidlc` で、AI-DLC は `.aidlc-engine/recovery.md` と `aidlc-state.md` を比べます。「Current stage」が食い違っていれば、コンパクション由来の状態壊れの可能性を警告します。
 
 ---
 
@@ -98,13 +77,12 @@ Claude Code はコンテキスト窓が埋まると、それまでの会話を�
 | レコードディレクトリの成果物（ディスク上のファイル）全部 | メモリ上の会話文脈（それまでの議論） |
 | `aidlc-state.md`（ステージ進捗、スコープ、プロジェクト情報） | まだファイルに書いていない途中作業 |
 | `audit/` シャード（判断と動作の全履歴） | タスク ID（再開時に状態ファイルから組み直す） |
-| `.aidlc-engine/recovery.md`（ステージのチェックポイント） | エージェントのペルソナ文脈（エージェントファイルから読み直す） |
+| | エージェントのペルソナ文脈（エージェントファイルから読み直す） |
 
 ### コンパクション後の復旧
 
 1. `/aidlc` を実行します。AI-DLC が状態ファイルを読み、作業が止まったところから続けます
-2. 復旧パンくずが食い違いを警告したら、いまのステージのやり直しを頼み、コンパクション中に進んでいたステージを再実行します。Construction が 1 度に 1 つの Unit を実行している場合、再開の文脈はアクティブな Unit がいるステップを示し（例: `Current Step: code-generation for unit beta`）、やり直しはその Unit のステップだけをやり直します。ほかの Unit の完了済み作業は承認されたままです
-3. 警告が出なければ、ほかにすることはありません。作業は通常どおり続きます
+2. 進んでいたステージをもう一度行わせるには、そのやり直しを頼みます。Construction が 1 度に 1 つの Unit を実行している場合、再開の文脈はアクティブな Unit がいるステップを示し（例: `Current Step: code-generation for unit beta`）、やり直しはその Unit のステップだけをやり直します。ほかの Unit の完了済み作業は承認されたままです
 
 長いセッションではコンパクションは普通です。状態ファイルとディスク上の成果物があるので、完了した作業は失われません。
 
@@ -152,13 +130,13 @@ Construction が 1 度に 1 つの Unit を実行しているとき（unit-major
 
 ### ジャンプとスコープの併用
 
-状態ファイルがないプロジェクトでは、`--stage` または `--phase` を `--scope` と組み合わせられます。
+`--stage` または `--phase` を `--scope` と組み合わせられます。
 
 ```
 /aidlc --stage code-generation --scope bugfix
 ```
 
-指定スコープで新しいワークフローを作り、目標ステージへ直接飛びます。
+ワークフローがまだなければ、指定スコープで新しいワークフローを作り、目標ステージへ直接飛びます。実行中の作業では、AI-DLC はまずスコープを変え、その後に新しいスコープでジャンプします。一緒に入力した `--depth`、`--test-strategy`、`--guard-policy` の設定は、その変更とともに適用されます。`--review` や、`--sensors` などのセレモニーのスイッチは、ジャンプの前に単独で設定してください。
 
 ---
 
@@ -205,6 +183,7 @@ Construction が 1 度に 1 つの Unit を実行しているとき（unit-major
     Fired:            9
     Passed:           9
     Failed:           0
+    Could not run:    0
     Budget-override:  0
     Incomplete:       0
   Learnings captured
@@ -233,4 +212,4 @@ aidlc engine runtime summary --json   # machine-readable, same numbers
 - [スキルとランナー](17-skills.md) — 読み取り専用のセッションビュー（`/aidlc-session-cost`、`/aidlc-replay`、`/aidlc-outcomes-pack`）とランナー一式
 - [CLI コマンド](12-cli-commands.md) — `--stage`、`--phase`、そのほかのフラグ
 - [トラブルシュート](15-troubleshooting.md) — コンパクション復旧と状態壊れ
-- [用語集](glossary.md) — コンパクション、復旧パンくず、セッション
+- [用語集](glossary.md): コンパクション、セッション

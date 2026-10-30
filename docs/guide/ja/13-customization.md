@@ -81,7 +81,7 @@ cp .claude/settings.local.json.example .claude/settings.local.json
   ok    AWS_AIDLC_DEFAULT_SCOPE=classic (valid)
 ```
 
-Claude Code の外のターミナルで実行した `aidlc doctor` は `.claude/settings.json` の `env` ブロックを受け取らないため、そこでは同じ行が `AWS_AIDLC_DEFAULT_SCOPE (unset - no project default)` になります。作業が実行されるスコープは、`/aidlc --status` の `Scope:` 行に表示されます。
+Claude Code の外のターミナルで実行した `aidlc doctor` は `.claude/settings.json` の `env` ブロックを受け取らないため、そこでは、シェルが `AWS_AIDLC_DEFAULT_SCOPE` を設定しているか、`aidlc config flags --default-scope` で既定値が記録されている場合にだけこの行が表示されます。作業が実行されるスコープは、`/aidlc --status` の `Scope:` 行に表示されます。
 
 なぜスコープだけで、深度やテスト戦略はないのか。各スコープが深度を宣言し、テスト戦略はスコープが上書きしない限りその深度に従います。だから `classic` は Standard/Standard、`workshop` は Standard/Minimal、`express` は Minimal/Minimal で始まります。どちらかを変えたいときは CLI で `--depth` か `--test-strategy` を渡してください。
 
@@ -166,8 +166,8 @@ Test strategy will be minimal for the piece of work you start now (set by you).
 | `plan_approval` | `/aidlc --plan-approval on\|off` | `AIDLC_DISABLE_PLAN_APPROVAL_GUARD=1` | 各コード計画をビルド前に承認するよう求める停止（[Plan approval](#plan-approval)） |
 | `collaborators` | `/aidlc --collaborators on\|off` | `AIDLC_DISABLE_COLLABORATORS=1` | ステージのサポートエージェント。off ではすべてのステージをリードだけで実行する（互いに見えないスポーク、モブのラウンド、パイプラインのサポートリンクなし）。レビュアーには影響しない |
 
-優先順位は、全体を無効化する環境変数（`1`）→ 有効なインテントのフィールド → スコープの既定値 → `on` です。無効化の環境変数は `aidlc config flags --bypass <NAME>` でも記録できます。新しいインテントは、`aidlc-state.md` の `Guard Policy` の後に `Sensors`、`Learnings`、`Summary Confirmation`、`Plan Approval`、`Collaborators` を、それぞれ `on (from scope classic)` のような設定元ラベル付きで保存します。この作業のために合成された計画では、`--status` はそのラベルを `(from the approved plan)` と表示し、状態ファイルはスコープを保持します。ラベルが `set by you` になるのは、あなたが頼んだことを記録が示すときです。つまり、自分の行にスイッチをフラグとして入力した（その横に入力した設定も含む）、自分の端末でコマンドを実行した、または自分の言葉で頼み、エージェントがその言葉を設定コマンドに渡した（`--person-words`）うえで、直前の判断以降のこのチャットにあるあなたのメッセージがちょうどその言葉である、のいずれかです。あなたの言葉は監査行に載ります。それを頼んでいない返答（「looks good, carry on」）の後にエージェントが自分で実行した設定も効果は持ちますが、`set by a command` になります。要求と一緒に入力した sensors、learnings、summary confirmation（`/aidlc --learnings on build the export`）や、作業が存在する前に入力したものも、その要求で作られる作業では `set by you` になります。あなたがそのチャットで頼んだ後に、新しい作業を始めるコマンドが持つ plan approval や Guard Policy も同様です。エンジンはフラグの背後に、コマンドではなくあなたの言葉を置きます。背後にあなたのメッセージがなく、エージェントが自分で追加したフラグは、エージェントやスクリプトが実行するコマンドによるもので、`set by a command` になります。進行中の作業への変更は、どちらの場合も `CEREMONY_SET` を記録します。新しい作業を始めるコマンドのフラグは、それを記録せずに新しい状態ファイルに保存されます。進行中の作業で summary confirmation や plan approval を off にするには、あなた自身のターンが必要です。エージェントが実行すると、入力するよう求めるメッセージとともに拒否されます。フックにメッセージ本文を渡さない Kiro IDE のビルドでは入力しても効かないため、拒否のメッセージは Kiro IDE の更新を求めます（[Kiro IDE ガイド](harnesses/kiro-ide.md#kiro-で違うところ)）。`/aidlc --status` は実効値と設定元を表示します。
-スコープを変えると、あなたの上書きを保ったまま、スコープ由来の設定を更新します。存在しない、または不正なフィールドは、実行を止めずにスコープの値へフォールバックします。
+優先順位は、全体を無効化する環境変数（`1`）→ 有効なインテントのフィールド → スコープの既定値 → `on` です。無効化の環境変数は `aidlc config flags --bypass <NAME>` でも記録できます。新しいインテントは、`aidlc-state.md` の `Guard Policy` の後に `Sensors`、`Learnings`、`Summary Confirmation`、`Plan Approval`、`Collaborators` を、それぞれ `on (from scope classic)` のような設定元ラベル付きで保存します。この作業のために合成された計画では、`--status` はそのラベルを `(from the approved plan)` と表示し、状態ファイルはスコープを保持します。ラベルが `set by you` になるのは、あなたが頼んだことを記録が示すときです。つまり、自分の行にスイッチをフラグとして入力した（その横に入力した設定も含む）、自分の端末でコマンドを実行した、または自分の言葉で頼み、エージェントがその依頼をしたメッセージを設定コマンドで示した（`--message <id>`）、のいずれかです。エンジンは、そのメッセージがあなたのものであり、このチャットのもので、後の判断で使い切られていないことを証明します。あなたのメッセージ全体が監査行に載ります。それを頼んでいない返答（「looks good, carry on」）の後にエージェントが自分で実行した設定も効果は持ちますが、`set by a command` になります。要求と一緒に入力した sensors、learnings、summary confirmation（`/aidlc --learnings on build the export`）や、作業が存在する前に入力したものも、その要求で作られる作業では `set by you` になります。あなたがそのチャットで頼んだ後に、新しい作業を始めるコマンドが持つ plan approval や Guard Policy も同様です。エンジンはフラグの背後に、コマンドではなくあなたの言葉を置きます。背後にあなたのメッセージがなく、エージェントが自分で追加したフラグは、エージェントやスクリプトが実行するコマンドによるもので、`set by a command` になります。進行中の作業への変更は、どちらの場合も `CEREMONY_SET` を記録します。新しい作業を始めるコマンドのフラグは、それを記録せずに新しい状態ファイルに保存されます。進行中の作業で summary confirmation や plan approval を off にするには、あなた自身のターンが必要です。エージェントが実行すると、入力するよう求めるメッセージとともに拒否されます。フックにメッセージ本文を渡さない Kiro IDE のビルドでは入力しても効かないため、拒否のメッセージは Kiro IDE の更新を求めます（[Kiro IDE ガイド](harnesses/kiro-ide.md#kiro-で違うところ)）。`/aidlc --status` は実効値と設定元を表示します。
+スコープを変えると、あなたの上書きを保ったまま、スコープ由来の設定を更新します。存在しない、または不正なフィールドは、実行を止めずにスコープの値へフォールバックします。summary confirmation を設定またはスコープの変更で on にすると、その後に実行される作業に適用されます。ゲートで待っているステージや、すでに終わった Unit の作業に、受けたことのない要約の確認が求められることはありません。
 
 コンポーザーは compose ゲートで、これら 5 つとスコープの `review_cap` を提案し、承認前にどれでも変えられます。コンポーザーが自分から off にしないのは plan approval だけです。ゲートで「skip plan approval for this work」と言えば、作業は plan approval が off、設定元 set by you の状態で作られます。これらの値が適用されるのは、ストックの計画でもカスタムの計画でも、この作業だけです。スコープとして保存した計画は値を frontmatter に保存するため、そのスコープの新しいインテントはすべてその値で始まります。それでも無効化の環境変数は優先します。ゲートはそれが強制的に off にする `on` の値に印を付け、ワークフローの途中では、エージェントがどこで設定されているかを探さずに、そのスイッチはワークフローの外で外す必要があると 1 行で伝えます。
 
@@ -184,11 +184,11 @@ Test strategy will be minimal for the piece of work you start now (set by you).
 - **On**（express と poc 以外のすべての出荷スコープ）: 各計画を要約とパスとともに **Approve Plan**、**Request Changes**、**I'll edit the files** で示し、あなたが答えるまで何もビルドしません。
 - **Off**（express と poc）: 計画が書かれると 1 行が表示され、ビルドが始まります。
 
-  > Plan written: aidlc/spaces/default/intents/260820-checkout/construction/code-generation/code-generation-plan.md. Plan approval (you approve each code plan before it is built) is off for this piece of work (from scope poc). Starting code generation now. Do you want me to go over the plan with you?
+  > Plan written: aidlc/spaces/default/intents/260820-checkout/construction/code-generation/code-generation-plan.md. Plan approval (you approve each code plan before it is built) is off for this piece of work (from scope poc). Starting code generation now. You can ask me to go over the plan at any time.
 
   監査証跡には、ビルドした計画のフィンガープリントを持つ `PLAN_APPROVAL_SKIPPED` 行が入り、質問ファイルは `[Answer]: Plan approval off` になります。あなたが承認したという記録は残りません。
 
-**先に計画を確認する。** plan approval が off の場合、各計画を示す行は先に見たいかどうかを尋ねます。はいと答えるか、いつでも自分の言葉で計画の確認を頼めば、ビルドを待たせたままその計画が承認のために示されます。設定は off のままで、次の計画は尋ねずにビルドされます。頼んだときにすでにその計画がビルド中の場合は、そのビルドが終わってから、ビルドされたものと並べて計画が示され、あなたが答えるまでほかには何も始まりません。承認すればビルドされたものを保ちます。頼んだ変更は、その Unit の承認ゲートに戻ってきます。そこで **Request Changes** を選ぶと、あなたの言葉とともに差し戻されます。
+**先に計画を確認する。** plan approval が off の場合、各計画を示す行は、いつでもその計画の確認を頼めることを伝え、ビルドが始まります。自分の言葉で頼めば、ビルドを待たせたままその計画が承認のために示されます。設定は off のままで、次の計画は尋ねずにビルドされます。頼んだときにすでにその計画がビルド中の場合は、そのビルドが終わってから、ビルドされたものと並べて計画が示され、あなたが答えるまでほかには何も始まりません。承認すればビルドされたものを保ちます。頼んだ変更は、その Unit の承認ゲートに戻ってきます。そこで **Request Changes** を選ぶと、あなたの言葉とともに差し戻されます。
 
 **off にできるのはあなただけ。** 自分の言葉で伝える（「skip plan approval for this work」）とエージェントが off にします。または `/aidlc --plan-approval off` か `/aidlc config set plan-approval off` と入力すると、エージェントが設定コマンドを実行します。どちらの場合もこの作業に適用され、`CEREMONY_SET` 行を記録します。あなたの回答を待っていた計画は、その時点でビルドされます。plan approval に言及した質問や発言は何も変えません。作業が存在する前、compose ゲートやスコープ確認の時点では、あなたの言葉はその要求への回答になります。その要求から作られる作業は、plan approval が off、設定元 set by you で始まります。作業を説明する前に言った場合は、次に行う要求への回答になります。ただし、ここにほかの作業があり、代わりにそれを再開した場合は、その作業に適用され、そのことが 1 回伝えられます。ほかの要求から作られた作業はスコープの値を保ち、先に `/aidlc --plan-approval on` と入力すると、その言葉を取り消せます。エージェントが自分から off にすることも、提案することもありません。直前の判断以降にあなたの返答がない状態で実行すると、その設定コマンドは拒否されます。on にする操作（`/aidlc --plan-approval on`）は、エージェントを含めどこからでも可能で、次の計画から適用されます。`guard.plan-approval` は同じスイッチの別名です。`/aidlc config set guard.plan-approval off` は plan approval を off にし、`Guards Off` 行は書きません。
 
@@ -216,7 +216,7 @@ Guard Policy は `strict`、`relaxed`、`off` の 3 つの値を持つ 1 つの�
 
 **承認済みの入力が変わったとき。** レビュー済みの文書がレビュー後に編集された、または現在の要約確認なしに出力が保存された場合です。
 
-- `strict` は承認を開き直します。変わったものを示す平易な一文とともに実行が止まり、もう一度あなたに尋ねます。
+- `strict` は承認を開き直します。変わったものを示す平易な一文とともに実行が止まり、もう一度あなたに尋ねます。あなたの確認が最新で、エージェントがその前に保存したドキュメントがまだ保存し直されていないだけで、まだ何もそれをレビューしていない場合は、エージェントがまずそれを保存し直し、それで解消しない場合にだけあなたに尋ねます。
 - `relaxed` と `off` はそのまま進みます。変更は監査証跡に `CHANGE_ACCEPTED` 行として 1 回記録され、それについて 1 行が伝えられ、実行は続きます。何も削除されません。承認とその証拠は元のまま残ります。
 
 コード計画を承認した後にほかのコードが動いた場合（`git pull`、別の Unit の着地など）は、後述の 1 つの例外を除き、どの値でも再び尋ねません。計画の承認は、計画とそのテスト指示についてのものだからです。ビルドは続き、どのファイルが動いたかが伝えられ（例: `2 files changed since this plan was approved: src/api.ts, src/db.ts. Building auth now.`）、`CHANGE_ACCEPTED` 行が記録されます。あなたが取り込んだ AI-DLC の更新はあなたの変更ではありません。そのファイルが示されることはなく、動いたのがそれだけなら、何も伝えられず記録もされず、Unit の並行ビルドもそれらのコミットを求めずに始まります。
@@ -289,9 +289,9 @@ Plan Approval は AI-DLC 自身が尋ねます。計画の要約とパスを **A
 
 ガードやポリシーの語を下げるのは、その人の判断です。自分の言葉で頼めばエージェントが設定コマンドを実行します（「turn the guards off」のようにガード全体を off にするよう頼むと、Guard Policy が `off` になります）。または `/aidlc config set guard.<fence> off`、`/aidlc --guard-policy relaxed|off`、確認の言葉 `guard policy relaxed|off` のいずれかを、値を 1 つ選んで入力します。エージェントの設定コマンドは、入力されたスイッチを `--intent <name>` と `--space <name>` で選ばれた作業へ、これらのセレクターが省略された場合はチャットのワークフロー選択で選ばれた作業へ適用し、状態と監査行を書き込みます。注入に対応するハーネスでは `AIDLC Guard Policy: ...` をフックコンテキストとして報告します。存在しない名前のインテントは拒否します。作業が存在する前に入力した Guard Policy の `relaxed` または `off` のスイッチは、このチャットが次に始める作業のためのものです（`Guard Policy relaxed for the piece of work you start now (set by you).`）。要求と同じメッセージで入力した場合は、その要求に付きます（`Guard Policy relaxed for the work you are asking for (set by you).`）。新しい作業は作成時にそれを受け取り、代わりに開いている作業を続けると選んだ場合はそちらに適用されます。メッセージだけで開いている作業が変わることはありません。`/aidlc --guard.review-freeze off fix the parser` のようなガードのスイッチも同様に働きます（`The review freeze check is off for the work you are asking for (set by you).`）。唯一の例外は、コード計画の質問が開いていて、あなたが計画ファイルを編集していないときです。このとき、言葉と一緒に入力した設定（`/aidlc --guard-policy off approve the plan`、または選択とともに `strict`）はこの作業のためのもので、言葉はその質問へのあなたの返答になります。引用符で囲まれていない `--` の後の言葉は、引き続き新しい作業の説明です。作業が存在する前に入力した plan approval の `off`、ガードのスイッチ、そのほかのすべての設定（手続き、collaborators、深度、テスト戦略、レビュー）も同様に、このチャットが次に始める作業のために保持されます。無関係な返答は何も開きません。
 
-CLI の設定コマンドが弱化するのは、直前の判断以降にあなたの返答が届いている場合だけで、スイッチの権限についてセッションの照会は行いません。同じメッセージで与えた承認は、メッセージの残りを有効なまま残します。「approve, and turn plan approval off」は承認してから off にし、「approve the plan, and run Construction on its own from here」は両方を行います。そのメッセージでエージェント自身の質問に答えた回答も、残りを有効なまま残します（エージェントが変更を提示したときに選んだ選択肢は、その変更の要求です）。あなたのメッセージの後に記録されたほかの判断はそれを使い切り、承認には常にそれ自身の返答が必要です。フックは Windows でも動くため、プロンプトを転送するすべてのハーネスで入力によるスイッチが使えます。すでに off のガードや、すでに `set by you` となっている同一のポリシーの語は、CLI の更新が何もしないためキーが不要です。
+CLI の設定コマンドが弱化するのは、直前の判断以降にあなたの返答が届いている場合だけで、スイッチの権限についてセッションの照会は行いません。承認と同じメッセージで頼んだ設定は、その承認に乗ります。「approve, and turn plan approval off」は 1 つのステップで off にして承認します。「Approve the plan, and run Construction on its own from here」も両方を行います。設定はどちらの順序でも、どの質問でも有効です。エージェントは、まだその返答の上にいる間なら、先にあなたの回答（承認、または要約、コード計画、Construction の質問への回答）を記録し、その後に設定を記録できます。すでに承認やほかの判断を与えたあなたのメッセージは、あなたが別のメッセージを送った後、検査がエージェントを止めた後、または次の質問が出た後には、もう設定を変えません。そのため、エージェントがあなたの以前の「Approve」をもとにあなたの検査を off にすることはできません。それ自身のメッセージで頼めば、すぐに行われます。承認のためのコード計画が書かれた後は、plan approval が off になるのは、その質問が表示された後にあなたが送ったメッセージによってだけです。それより前に頼んだ場合は、その計画について理由を示す 1 行とともに一度だけ尋ねられ、もう一度そう伝えると off になります。そのメッセージでエージェント自身の質問に答えた回答も、残りを有効なまま残します（エージェントが変更を提示したときに選んだ選択肢は、その変更の要求です）。あなたのメッセージの後に記録されたほかの判断はそれを使い切り、承認には常にそれ自身の返答が必要です。フックは Windows でも動くため、プロンプトを転送するすべてのハーネスで入力によるスイッチが使えます。すでに off のガードや、すでに `set by you` となっている同一のポリシーの語は、CLI の更新が何もしないためキーが不要です。
 
-ガードの質問が「turn the check off for this piece of work」を提示したときは、それを選ぶだけで十分です。エージェントが代わりに off にし、この作業では off で、次の作業では on に戻ること、そして on に戻すよう頼めることを 1 行で伝えます。Codex ではスキルは `$aidlc` です。
+ガードの質問が「turn the check off for this piece of work」を提示したときは、それを選ぶだけで十分です。エージェントが代わりに off にし、スイッチが出力する行で、この作業では off であることと、いつでも on に戻せることを一度だけ伝えます。Codex ではスキルは `$aidlc` です。
 
 スイッチの入力として数えられるもの: `/aidlc`（または `$aidlc`、`aidlc`）で始まり、フラグを先に置いたメッセージ。例: `/aidlc --guard-policy relaxed`、`/aidlc --guard-policy off --guard.state-transition off`、`/aidlc --guard-policy relaxed build the auth service`（説明はフラグの後に続き、読み取られません）。同じコマンドの頭に続く `config set guard-policy relaxed|off` または `config set guard.<fence> off` で、その後に任意でほかの設定（`--depth minimal --sensors off`）と `--intent <name>`、`--space <name>` の組が続くもの。または、それだけで入力した確認の言葉 `guard policy relaxed|off`。未知のフラグや不正な値は、それを示して行全体を拒否します。大文字小文字と末尾の句点は問いません。スイッチに言及した質問や発言はスイッチではありません。`/aidlc why was config set guard.plan-approval off suggested?` は何も変えず、説明の後に置いたフラグも同様です。
 
@@ -307,21 +307,21 @@ memory が保持する strict は、以前に下げたガードにも優先し�
 
 reviewer-scope の設定は、委譲レビュアーの読取り／検索の境界を扱います。1 つのチーム Unit を所有するとスタンプされたチェックアウトは、引き続き別の Unit の `construction/` サブツリーに書き込めません。この所有権の境界は、Guard Policy、作業ごとのガード設定、`AIDLC_DISABLE_REVIEWER_SCOPE_HOOK` のいずれでも切り替えられません。
 
-自分の言葉で頼めばエージェントが実行します。入力によるスイッチも同じ設定コマンドで、エージェントが最初の `next` から実行します。切り替え可能なガードのメインセッションでの拒否は、そのスイッチを示します。ガードを off にする設定コマンドを、直前の判断以降にあなたの返答が届いていない状態で実行すると、次のように表示されます。
+自分の言葉で頼めばエージェントが実行します。入力によるスイッチも同じ設定コマンドで、エージェントが最初の `next` から実行します。切り替え可能なガードのメインセッションでの拒否は、そのスイッチを示します。ガードを off にする設定コマンドを、あなたが頼んだメッセージを示さずに実行すると、次のように表示されます。
 
-> Turning the review-freeze check off is the person's call. No reply from the person has arrived since the last decision: run it when they ask for it.
+> Turning the review-freeze check off is the person's call. Run it with --message <id>, the message they asked in, when they ask for it.
 
 plan approval を off にする CLI の設定コマンドは、次のように表示します。
 
-> Turning plan approval off lets code generation start without the person approving the plan, so it is their call. No reply from the person has arrived since the last decision: run it when they ask for it.
+> Turning plan approval off lets code generation start without the person approving the plan, so it is their call. Run it with --message <id>, the message they asked in, when they ask for it.
 
-ポリシーを `relaxed` に変える設定コマンドを、直前の判断以降にあなたの返答が届いていない状態で実行すると、次のように表示されます。
+ポリシーを `relaxed` に変える設定コマンドを、あなたが頼んだメッセージを示さずに実行すると、次のように表示されます。
 
-> Setting Guard Policy relaxed lowers fences, which is the person's call. No reply from the person has arrived since the last decision: run it when they ask for it.
+> Setting Guard Policy relaxed lowers fences, which is the person's call. Run it with --message <id>, the message they asked in, when they ask for it.
 
 スコープの既定値より低い明示的な `relaxed` フラグ付きの作成（`enterprise` で）を、そのチャットにあなたのメッセージが記録されていない状態で実行すると、同じように表示されます。
 
-> Setting Guard Policy relaxed lowers fences, which is the person's call. No reply from the person has arrived since the last decision: run it when they ask for it.
+> Setting Guard Policy relaxed lowers fences, which is the person's call. Run it with --message <id>, the message they asked in, when they ask for it.
 
 ほかのガード名や `off` では、対応する名前や値が使われます。無人実行ではドライバー向けの案内が追加されます。memory が保持する strict は、スイッチの適用やバイパスの確認の前に拒否し、代わりに編集すべき memory ファイルを示します。human-presence の拒否はスイッチを示しません。その人の返答が記録されていないことと、すでに送った返答がどうなったか（ハーネスのフックの手順、または `/aidlc --doctor`）を伝え、もう一度返答するよう求めることはありません。
 
@@ -343,7 +343,7 @@ human presence は 5 つの中で最も厳しいガードです。あなたの�
 
 ### ガードの判断の見え方
 
-- **道を譲る。** ガードを下げたものを示す 1 行が表示され、作業は続きます。`Continuing past the plan-approval check because it is off for this piece of work (guard policy off (from scope classic)). Recorded in the audit trail: dispatch of aidlc-developer-agent` `GUARD_STOOD_ASIDE` 行が 1 つ、ガード、有効だった権限、許可がどう証明されたか、操作者がメインセッションか委譲エージェントかを記録します。「本当によいですか」と聞かれることはありません。ガードはすでに off です。
+- **道を譲る。** ガードを下げたものを示す 1 行が表示され、作業は続きます。`Continuing past the plan re-approval check because it is off for this piece of work (guard policy relaxed (set by you)). Recorded in the audit trail: dispatch of aidlc-developer-agent` `GUARD_STOOD_ASIDE` 行が 1 つ、ガード、有効だった権限、許可がどう証明されたか、操作者がメインセッションか委譲エージェントかを記録します。「本当によいですか」と聞かれることはありません。ガードはすでに off です。
 
   Claude Code ではフックが JSON の `systemMessage` を 1 つ出し、Claude Code はそれをフックメッセージとしてあなたに表示します。モデルはそれを見ず、`GUARD_STOOD_ASIDE` 行が記録になります。Codex、opencode、Kiro CLI では素のフック行が表示されます。Kiro IDE では表示されません。IDE がフックの出力をエージェントに渡すのはセッション開始時とプロンプト送信時だけなので、そこでの道を譲る動作は無言で、監査行が唯一の記録です。拒否は別です。フックがツール呼び出しをブロックしたときは、エージェントがその理由を見ます。行が書かれるのはインテントにすでに監査証跡がある場合だけなので、まだ台帳のない新規プロジェクトに対する Kiro IDE では、道を譲っても行も監査行も残りません。下げたガードが何を通したかを知りたい場合は、行を見たことに頼らず、インテントの `audit/` シャードの `GUARD_STOOD_ASIDE` 行を読んでください。
 - **守る。** memory が Guard Policy の strict を保持していない場合、切り替え可能なガードのメインセッションでの拒否は、何が足りないかを伝え、通り抜ける方法を提示するようエージェントに指示する一文を加えます。いまこれを行うつもりなら、この作業について review-freeze の検査を off にするかを尋ね、あなたがそう言えば off にして 1 行で伝えます。memory が strict を保持している場合、拒否はスイッチを提示する代わりに memory ファイルを示します。human presence は代わりに、その人の返答が記録されていないと伝え、繰り返すよう求めることはなく、スイッチを示すこともありません。
@@ -391,7 +391,7 @@ Claude Code では、`mvp` プランでの実行から取ると次のように�
 [AIDLC] inventory-api - IDEATION [##--------] 1/4 > Feasibility -- Architect Agent
 ```
 
-順に、作業、現在のフェーズ、フェーズ内進捗（バーと比率。どちらも今のフェーズ範囲）、ステージの表示名、リードエージェントです。作業が選ばれる前は `[AIDLC] ready` と表示されます。右側には Claude Code のモデル、続いてコンテキストウィンドウの使用量を示す `ctx:N%` が出ます。Claude の usage ledger にデータがあれば、続けて入出力のトークン数と `$<usd>` が出ます。対象はアクティブなワークフローと今のトランスクリプト / セッションだけで、以前のワークフローやセッションは入りません。`AIDLC_DISABLE_USAGE_TRACKING=1` を設定すると使用量追跡が完全に止まり、この区間も消えます。各区間の説明は [最初のワークフロー](02-your-first-workflow.md) にあります。
+順に、作業、現在のフェーズ、フェーズ内進捗（バーと比率。どちらも今のフェーズ範囲）、ステージの表示名、リードエージェントです。Reverse Engineering が 10 以上のリポジトリを解析している間は、ステージ名の後に、そのうちいくつが終わったかが `> Reverse Engineering 37/190` のように続きます。作業が選ばれる前は `[AIDLC] ready` と表示されます。右側には Claude Code のモデル、続いてコンテキストウィンドウの使用量を示す `ctx:N%` が出ます。Claude の usage ledger にデータがあれば、続けて入出力のトークン数と `$<usd>` が出ます。対象はアクティブなワークフローと今のトランスクリプト / セッションだけで、以前のワークフローやセッションは入りません。`AIDLC_DISABLE_USAGE_TRACKING=1` を設定すると使用量追跡が完全に止まり、この区間も消えます。各区間の説明は [最初のワークフロー](02-your-first-workflow.md) にあります。
 
 `$<usd>` の値は **公開の定価** から計算したローカルの見積もりで、請求額ではありません。記録されたプロバイダーが Amazon Bedrock（`CLAUDE_CODE_USE_BEDROCK=1`）の場合、Bedrock が実際に請求する額は、推論プロファイル、リージョン、サービス階層、交渉済みやサブスクリプションの価格によって変わるため、この数字は請求書と一致しないことがあります。長いワークフローのトークン量の大半はキャッシュ読込みで（割引されたキャッシュ読込み料金で課金されます）、件数と見積もりは着実に増えていきます。これは実際の使用量で、水増しではありません。新しい使用量を自分の料金で計算するには、`AIDLC_MODEL_RATES` に料金ファイルを指定します（[Rate table and overrides](../reference/06-hooks-and-tools.md#レート表と上書き) を参照）。すでに記録された合計は、計算時の料金のままです。発表中、画面共有中、録画中などで見積もりを表示したくない場合は、`AIDLC_DISABLE_USAGE_TRACKING=1` を設定してください（[トラブルシュート](15-troubleshooting.md#statusline-shows-a-cost-segment-you-dont-want-or-usage-tracking-concerns) を参照）。
 

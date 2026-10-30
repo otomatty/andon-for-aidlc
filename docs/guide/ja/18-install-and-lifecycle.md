@@ -383,7 +383,7 @@ aidlc config providers --reset --yes
 
 | ハーネス | 記録された回答の適用 |
 |---------|-----------------------------|
-| Claude Code | Bedrock を有効にし、`.claude/settings.json` に `AWS_REGION` と任意の `AWS_PROFILE` を書く。`.mcp.json` の AWS MCP の URL と `AWS_REGION` のメタデータも同じリージョンに保つ |
+| Claude Code | Bedrock を有効にし、あなた自身の `.claude/settings.local.json`（git が無視する。プロファイルは `harness.json` に記録しない）に `AWS_REGION` と任意の `AWS_PROFILE` を書く。`.mcp.json` の AWS MCP の URL と `AWS_REGION` のメタデータも同じリージョンに保つ |
 | Codex CLI | 選択を記録し、プロバイダー、資格情報、モデルを `~/.codex/config.toml` に保つよう利用者に指示する |
 | Kiro CLI | プロバイダーの回答なし。モデルアクセスは Kiro に付いてくる |
 | Kiro IDE | プロバイダーの回答なし。モデルアクセスは Kiro に付いてくる |
@@ -392,13 +392,15 @@ aidlc config providers --reset --yes
 | Cursor | 手動のプロバイダーとモデルピッカーの設定の確認を記録する |
 
 Bedrock のモデルアクセスと IAM の権限の検証はオフラインでは自動化できません。そのため、記録は名前付きの保留中の対応を持ちます。`--show` はそれらを一覧し、`--check` は保留中の間は非ゼロのままで、`--mark-done <id>` が完了を記録します。Codex のプロバイダーの設定は、実効の利用者の設定と代わりの資格情報の経路をオフラインでは解決できないため、完了後も明示的に自己申告のままです。`--check` は、設定を検証済みと記述する代わりに、その警告とともに成功を返します。
-`--provider current` はハーネスに設定されたプロバイダーを保ち、Claude、Codex、opencode のプロジェクトのファイルから、AI-DLC が同梱の既定値や以前の記録に帰属できる Bedrock の値だけを削除します。カスタマイズされた Claude のモデルの別名は保たれます。カスタマイズされた旧来の Codex の Bedrock のブロックも保たれます。それがまだそのプロバイダーを指している場合、`--check` は設定に問題がないとは言わず、警告を報告します。`--provider other` は手動で設定した Bedrock 以外のプロバイダーを記録し、`--acknowledge` が指定されるまでその設定を保留中と報告します。`--reset` は、Claude、Codex、opencode のプロジェクトのファイルから、旧来の AI-DLC の Bedrock の既定値と完全に一致するものや、以前に記録された回答のために書かれた値を削除します。証明できない値は保たれます。
+`--provider current` はハーネスに設定されたプロバイダーを保ち、Claude、Codex、opencode のプロジェクトのファイルから、AI-DLC が同梱の既定値や以前の記録に帰属できる Bedrock の値だけを削除します。カスタマイズされた Claude のモデルの別名は保たれます。カスタマイズされた旧来の Codex の Bedrock のブロックも保たれます。それがまだそのプロバイダーを指している場合、`--check` は設定に問題がないとは言わず、警告を報告します。`--provider other` は手動で設定した Bedrock 以外のプロバイダーを記録し、`--acknowledge` が指定されるまでその設定を保留中と報告します。`--reset` は、Claude、Codex、opencode のプロジェクトのファイルから、旧来の AI-DLC の Bedrock の既定値と完全に一致するものや、以前に記録された回答のために書かれた値を削除します。証明できない値は保たれます。Claude Code では、`--provider current`、`--provider other`、`--reset` は、あなたの `.claude/settings.local.json` から Bedrock のスイッチとリージョンも取り除きます。そこにある `AWS_PROFILE` は残り、コマンドがそのことを伝えます。
+
+Claude Code では、Bedrock の回答は一人ひとりのものです。チームメイトのクローンはプロジェクトの記録を持ちますが、あなたの設定は何も持たないので、`aidlc config providers --check` と doctor は、Bedrock が記録されているもののその人には on になっていないことを、その人に一度警告します。以前のリリースで設定したプロジェクトは、誰かが `aidlc config providers` に答え直すまで、回答を共有の `.claude/settings.json` に保ちます。答え直すと回答はその人自身のファイルへ移り、そのことが伝えられます。プロジェクトの更新や AI-DLC の更新では、そのまま残ります。
 
 質問は目の前のハーネスに合わせた言葉で示されるため、各インストールは実際にそのハーネスに存在する 2 つの経路を提示します。
 
 | ハーネス | `amazon-bedrock` が記録するもの |
 |---------|--------------------------|
-| Claude Code | `settings.json` の AWS のリージョンとプロファイル、そしてある場合は `.mcp.json` の AWS MCP のリージョン |
+| Claude Code | あなた自身の `settings.local.json` の AWS のリージョンとプロファイル、そしてある場合は `.mcp.json` の AWS MCP のリージョン |
 | Codex CLI | プロジェクトの記録の AWS のリージョンとプロファイル。その後 `$CODEX_HOME/config.toml` での利用者単位のプロバイダーの設定を案内する |
 | OpenCode | AWS のリージョンとプロファイル。それらを `opencode.json` に書くことを提案する |
 | GitHub Copilot | Copilot の BYOK のプロバイダーの変数を自分で設定したこと |
@@ -417,7 +419,7 @@ Kiro では、`--check` は回答が不要だと伝え、旧来の記録があ�
 
 ### 信頼診断
 
-`aidlc config trust` は、ホストネイティブの信頼を読み、検証します。信頼のシード、権限ルール、IDE の設定を再生成することはありません。プロジェクトの外に書き込むのは、Kiro IDE の Workflows スイッチと、Windows での Kiro IDE の既定の端末だけで、それも求めた場合に限ります。
+`aidlc config trust` は、ホストネイティブの信頼を読み、検証します。信頼のシード、権限ルール、IDE の設定を再生成することはありません。プロジェクトの外に書き込むのは、Kiro IDE と Kiro CLI の Workflows スイッチと、Windows での Kiro IDE の既定の端末だけで、それも求めた場合に限ります。
 
 ```bash
 aidlc config trust --show
@@ -425,10 +427,11 @@ aidlc config trust --check
 aidlc config trust --acknowledge --yes
 aidlc config trust --reset --yes
 aidlc config trust --kiro-workflows off --yes   # Kiro IDE; or: on
+aidlc config trust --kiro-cli-workflows off --yes   # Kiro CLI; or: on
 aidlc config trust --kiro-terminal powershell --yes   # Kiro IDE on Windows
 ```
 
-Kiro IDE では、`--show` と `--check` は Kiro の Workflows スイッチも読みます（Kiro のユーザー設定の `kiroAgent.workflows.enabled` なので、すべてのプロジェクトに及びます。これが on の間、AI-DLC のレビューとヘルパーは動きません）。`--kiro-workflows off|on` はその 1 つのキーだけを変え、ファイルのほかのバイトはすべて保ちます。Workflows が on で、このコンピューターでまだ回答していない間は、セットアップが 1 回尋ね、`aidlc config --yes` はそれを off にします。回答は AI-DLC のインストールフォルダの `kiro-ide-workflows` に保持されるため、ほかのプロジェクトが再び尋ねることはありません。その設定ファイルに AI-DLC が読み進められないエラーがある場合、Kiro は Workflows を on と読むことがあるため、`--show` は読めなかったと伝え、`--check` とセットアップはファイルが再び読めるまで（以前の回答にかかわらず）警告し、次の Kiro IDE のチャットが 1 回伝えます。そのファイルのエラーを直してください。[Kiro の Workflows 機能は AI-DLC のレビューと補助を止める](harnesses/kiro-ide.md#kiro-の-workflows-機能は-ai-dlc-のレビューと補助を止める) を参照してください。
+Kiro IDE では、`--show` と `--check` は Kiro の Workflows スイッチも読みます（Kiro のユーザー設定の `kiroAgent.workflows.enabled` なので、すべてのプロジェクトに及びます。これが on の間、AI-DLC のレビューとヘルパーは動きません）。`--kiro-workflows off|on` はその 1 つのキーだけを変え、ファイルのほかのバイトはすべて保ちます。Workflows が on で、このコンピューターでまだ回答していない間は、セットアップが 1 回尋ね、`aidlc config --yes` はそれを off にします。回答は AI-DLC のインストールフォルダの `kiro-ide-workflows` に保持されるため、ほかのプロジェクトが再び尋ねることはありません。その設定ファイルに AI-DLC が読み進められないエラーがある場合、Kiro は Workflows を on と読むことがあるため、`--show` は読めなかったと伝え、`--check` とセットアップはファイルが再び読めるまで（以前の回答にかかわらず）警告し、次の Kiro IDE のチャットが 1 回伝えます。そのファイルのエラーを直してください。同じ Kiro の行で、`--show` と `--check` は Kiro CLI 自身の Workflows スイッチ（Kiro CLI の設定の `chat.enableWorkflows`。`kiro-cli settings` を通じて読みます）も読みます。これは Kiro CLI のチャットで同じツールを取り上げます。`--kiro-cli-workflows off|on` はそれを Kiro CLI を通じて設定し、その回答は Kiro IDE のものとは別に `kiro-cli-workflows` に保持されます。応答する Kiro CLI がない場合は表示されません。[Kiro の Workflows 機能は AI-DLC のレビューと補助を止める](harnesses/kiro-ide.md#kiro-の-workflows-機能は-ai-dlc-のレビューと補助を止める) を参照してください。
 
 Windows では、Kiro IDE はエージェントのコマンドを既定の端末プロファイル（Kiro のユーザー設定の `terminal.integrated.defaultProfile.windows`）で実行します。それがコマンドプロンプト（Kiro はコマンドが 1 秒以内に終わった場合にだけその返答を表示するため、AI-DLC の返答のほとんどが空で返ってきます）で、このコンピューターでまだ回答していない間は、セットアップが PowerShell にするかを 1 回尋ね、`aidlc config --yes` がそれを設定し、`--kiro-terminal powershell` は単独でそれを設定します（すでに PowerShell ならそう伝えます）。どれもその 1 つのキーだけを変え、ファイルのほかのバイトはすべて保ち、回答は AI-DLC のインストールフォルダの `kiro-ide-terminal` に保持されます。[Windows で Kiro のターミナルが Command Prompt のとき](harnesses/kiro-ide.md#windows-で-kiro-のターミナルが-command-prompt-のとき) を参照してください。
 
@@ -526,7 +529,7 @@ Fish は `... completions fish | source`、PowerShell は `... completions power
 
 既存のプロジェクトのスタンプは、更新のハーネスを固定します。新しい対話的なプロジェクトはハーネスを尋ね、非対話の実行には `--harness` が必要です。`.aidlc-version` がある場合、config は、その正確な版で、一致するプロジェクトのハーネスを持つソースを要求します。
 
-config が認識するのは、`.git`、`package.json`、`Cargo.toml`、`go.mod`、`pyproject.toml` を含むディレクトリです。それらの形の外では、対話モードは確認を求め、非対話モードは `--project-dir` を必要とします。
+config が認識するのは、`.git`、`package.json`、`Cargo.toml`、`go.mod`、`pyproject.toml` を含むディレクトリか、すでに AI-DLC のハーネスのツリーが設定されているディレクトリです。それらの形の外では、対話モードは確認を求め、非対話モードは `--project-dir` を必要とします。
 
 Claude の任意の MCP の統合は、TTY がないときの既定が `none` です。以前の選択がない場合、人が使う TTY では尋ねられます。`--yes` と `--json` は MCP への同意を与えません。確実な自動化では `--project-dir`、`--harness`、`--mcp defaults|none` を明示します。JSON は出力を制御しますが、それだけでは TTY のプロンプトを止めません。
 
@@ -830,7 +833,7 @@ aidlc system config global clear ca-bundle
 
 ネイティブのリリースのクライアントは `HTTPS_PROXY` / `https_proxy` と `NO_PROXY` / `no_proxy` に従います。プロキシの URL は HTTP か HTTPS を使わなければなりません。`HTTP_PROXY` は読みません。ブートストラップのスクリプトは、プロキシの振る舞いを `curl`、`wget`、`Invoke-WebRequest` に任せます。Windows では、独自の CA バンドルには `curl.exe` が必要です。
 
-引数なしのヘルプと管理用の一覧は、決してネットワークを更新しません。有効なキャッシュ済みの更新の通知を表示することはあります。人が使う対話的な `aidlc doctor` は、古いまたは存在しないメタデータを 750 ms 以内に更新することがあります。TTY でない実行、`--json`、`--quiet` の doctor は、`--check-updates` を明示しない限りキャッシュだけを使います。
+引数なしのヘルプと管理用の一覧は、決してネットワークを更新しません。有効なキャッシュ済みの更新の通知を表示することはあります。人が使う対話的な `aidlc doctor` と、端末の有無にかかわらず `aidlc doctor --export` は、古いまたは存在しないメタデータを 750 ms 以内に更新することがあります。それ以外の TTY でない実行、`--json`、`--quiet` の doctor は、`--check-updates` を明示しない限りキャッシュだけを使います。24 時間より前の確認から読んだ doctor の更新の行は、その版を既知の最新版として示し、どれくらい前に確認したかを伝えます。
 `doctor --check-updates` と `update --check` は、メタデータに 5 分の安全上限を使います。プレビューの発見とメタデータのダウンロードは同じ期限を共有し、プレビューのリリースを探してもタイムアウトはやり直しになりません。
 更新の確認は 84 文字以内の版の識別子を受け付け、各数値の成分は安全な整数（9,007,199,254,740,991 以下）でなければなりません。リリースのメタデータや既存のキャッシュにある不正な識別子は、通知を表示する前に拒否されます。
 キャッシュは 24 時間で期限切れになります。失敗した更新や、同じチャネルでインストール済みのバイナリより古いメタデータは、有効なキャッシュを置き換えません。
@@ -967,9 +970,135 @@ bun scripts/package.ts
 
 これにより、Bun を呼び出す `dist/<harness>/`、ネイティブの `dist-release/<harness>/`、プラグインの投影がローカルに作られます。生成されたどちらのルートもコミットしません。直接の `bun .../tools/*.ts` の呼び出しは、ソース／開発とデバッグのための仕組みのままで、2 つ目のネイティブのライフサイクルのインターフェースではありません。
 
+<a id="remove-ai-dlc-from-a-project"></a>
+
+## プロジェクトから AI-DLC を取り除く
+
+一つのプロジェクトから AI-DLC を取り除くコマンドはありません。`aidlc uninstall` はマシンのインストールを、このマシンのすべてのプロジェクトについて取り除き、プロジェクトのファイルには触れません。以下の手順は、プロジェクトを AI-DLC が加えられる前の状態に戻します。AI-DLC とフォルダやファイルを共有している、あなた自身のハーネスのファイルと設定（以前からあった `.kiro/`、あなた自身の `.claude/settings.json` のエントリ、`AGENTS.md` のあなたの部分）は保ちます。先に、そのプロジェクトで開いているハーネスを閉じてください。
+
+<a id="1-keep-your-records"></a>
+
+### 1. 記録を保つ
+
+プロジェクトがピン留めされている（`.aidlc-version` ファイルがある）場合は、AI-DLC がまだインストールされている間に、先にピンを外してください。`aidlc config --unpin`、コピーしたプロジェクトでは `bun <harness folder>/tools/aidlc.ts config --unpin` です。これはマシンのピンの記録も消します。ファイルを削除するだけでは、それは消えません。
+
+Claude Code では、AI-DLC がまだインストールされている間に、AI-DLC のステータスラインも off にしてください。`aidlc config --statusline off`、コピーしたプロジェクトでは `bun .claude/tools/aidlc.ts config --statusline off` です。AI-DLC のステータスラインがあなた自身のものを置き換えていた場合、あなたのものを元に戻すのはこの手順だけです。AI-DLC はそれを `aidlc.settings.local.json` に保持しており、そのファイルは下で削除するからです。
+
+`aidlc/` にはあなたの作業が入っています。各インテントの状態、成果物、監査証跡、そしてスペースの memory と knowledge です。削除する前にアーカイブしてください。POSIX シェルでは次のとおりです。
+
+```bash
+tar -czf aidlc-records.tar.gz aidlc && rm -rf aidlc
+```
+
+PowerShell では次のとおりです（Windows 10 以降は `tar` を含みます）。
+
+```powershell
+tar -czf aidlc-records.tar.gz aidlc; if ($?) { Remove-Item -Recurse -Force aidlc }
+```
+
+次のものもあれば削除してください。`aidlc.settings.json`、`aidlc.settings.local.json`、そして config が `.git/info/exclude` に追加したかもしれない `aidlc.settings.local.json` の行です。
+
+<a id="2-delete-ai-dlcs-own-files"></a>
+
+### 2. AI-DLC 自身のファイルを削除する
+
+`aidlc config` は、インストールしたものを `<harness folder>/tools/data/aidlc-manifest.json` に記録します。すべてのファイルとその SHA-256、そして自分の部分を追加した共有ファイルです。このスクリプトはその記録を読み、記録に載っているファイルのうち、内容がまだ一致するものだけを削除します。違いが改行コードだけのファイル（CRLF のチェックアウト）は、変更なしと数えます。あなたが変更したファイルは残して一覧に出し、記録に載っていないファイルは、AI-DLC が動作中に生成するいくつかを除いて決して削除せず、自分が空にしたフォルダだけを取り除きます。プロジェクトを含むフォルダに、プロジェクトのフォルダの中ではなくその隣に、`remove-aidlc.cjs` として保存してください。
+
+```js
+// Usage, from the project root: node <path to>/remove-aidlc.cjs <harness folder>   (Bun works too)
+const fs = require("node:fs");
+const path = require("node:path");
+const { createHash } = require("node:crypto");
+const dir = process.argv[2];
+const manifestPath = path.join(dir, "tools", "data", "aidlc-manifest.json");
+const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+if (manifest.shippedOnly !== true) {
+  console.log(`${manifestPath} predates the shipped-files-only record. Refresh it first with aidlc config --harness <harness>, then run this again.`);
+  process.exit(1);
+}
+const sha = (bytes) => "sha256:" + createHash("sha256").update(bytes).digest("hex");
+// A file whose only difference is its line endings (a CRLF checkout) is unchanged.
+const unchanged = (file, hash) => {
+  const bytes = fs.readFileSync(file);
+  const lf = bytes.toString("latin1").replaceAll("\r\n", "\n");
+  return [bytes, Buffer.from(lf, "latin1"), Buffer.from(lf.replaceAll("\n", "\r\n"), "latin1")].some((form) => sha(form) === hash);
+};
+const roots = manifest.rootContributions ?? {};
+const shared = new Set([...Object.keys(manifest.entries ?? {}), ...Object.keys(roots)]);
+const owned = Object.entries(manifest.files).filter(([file]) => !shared.has(file));
+for (const [file, part] of Object.entries(roots)) if (part.policy === "whole-file") owned.push([file, part.hash]);
+const removed = [];
+for (const [file, hash] of owned) {
+  if (!fs.existsSync(file)) continue;
+  if (unchanged(file, hash)) { fs.rmSync(file); removed.push(file); }
+  else console.log(`kept, changed since install: ${file}`);
+}
+// Files AI-DLC generates while it runs, which the record does not list.
+for (const file of ["harness.json", "scope-grid.json", "stage-graph.json"].map((name) => path.join(dir, "tools", "data", name))
+  .concat(path.join(dir, "steering", "aidlc-active-memory.md"), manifestPath)) {
+  if (fs.existsSync(file)) { fs.rmSync(file); removed.push(file); }
+}
+// Remove only the folders this emptied, never one that holds anything else.
+for (const file of removed) {
+  for (let folder = path.dirname(file); folder !== "." && folder !== path.dirname(folder); folder = path.dirname(folder)) {
+    try { fs.rmdirSync(folder); } catch { break; }
+  }
+}
+for (const file of shared) if (fs.existsSync(file)) console.log(`edit by hand: ${file}`);
+```
+
+Node.js か Bun で、プロジェクトのルートから、プロジェクト内のハーネスのフォルダごとに一度実行します。同じコマンドが POSIX シェルでも PowerShell でも動きます。
+
+| ハーネス | 実行 |
+|---------|-----|
+| Claude Code | `node ../remove-aidlc.cjs .claude` |
+| Kiro CLI、Kiro IDE | `node ../remove-aidlc.cjs .kiro` |
+| Codex CLI | `node ../remove-aidlc.cjs .codex` |
+| Cursor | `node ../remove-aidlc.cjs .cursor` |
+| OpenCode、GitHub Copilot | `node ../remove-aidlc.cjs .aidlc` |
+
+スクリプトが、記録は shipped-files-only の記録より前のものだと伝えた場合は、以前のリリースがその記録を書いています。先に `aidlc config --harness <name>` で更新し（コピーしたプロジェクトでは `bun <harness folder>/tools/aidlc.ts config --harness <name>`）、それからスクリプトを再び実行してください。スクリプトが残したファイルはどれも見直してください。それはあなたが編集した AI-DLC のファイルなので、その編集をまだ残したい場合にだけ保ってください。
+
+<a id="3-take-ai-dlcs-part-out-of-shared-files"></a>
+
+### 3. 共有ファイルから AI-DLC の部分を取り除く
+
+スクリプトは、まだ AI-DLC の部分を持っている共有ファイルをそれぞれ一覧に出します。AI-DLC が加えられる前のプロジェクトが git にあるなら、そのコミットからそれらを復元するのがいちばん早い方法です。たとえば `git checkout <commit> -- .gitignore AGENTS.md .claude/settings.json` です。これはその後にあなたがそれらに加えた変更も元に戻すので、コミットする前に `git diff --cached` を確認してください。そうでなければ、AI-DLC の部分を手で取り除きます。値を取り除くのは、それがまだ AI-DLC が書いたものを持っている場合だけにしてください。チームが変えた値はあなたのものなので、保ってください。
+
+| ファイル | 取り除くもの |
+|------|--------|
+| `.gitignore` | `# BEGIN AI-DLC:gitignore` から `# END AI-DLC:gitignore` までの行と、その上の空行。複数のハーネスがこの一つのブロックを共有する。 |
+| `AGENTS.md` | `<!-- BEGIN AI-DLC:agents -->` から `<!-- END AI-DLC:agents -->` までの行と、その上の空行。 |
+| `.claude/settings.json` | `companyAnnouncements`（チームが独自に設定したものでない限り）。コマンドが `aidlc` を実行する `statusLine`。コマンドが `aidlc` を実行するすべてのフックグループ（`aidlc engine hook ...`、コピーしたプロジェクトでは `bun "$CLAUDE_PROJECT_DIR/.claude/tools/aidlc.ts" engine hook ...`）。`aidlc` を名指す `permissions.allow` のエントリと、自分で追加したのでない限り `Edit(/**)`、`Task`、`WebSearch`。`AIDLC_` か `AWS_AIDLC_` で始まる `env` のキーと、`aidlc config providers` で選んだプロバイダーのキー。 |
+| `.claude/settings.local.json` | コマンドが `aidlc` を実行する `statusLine`。AI-DLC のステータスラインは、on にするとここに入る。手順 1 の `--statusline off` がそれを取り除く。 |
+| `.mcp.json`（Claude Code）、`.kiro/settings/mcp.json`（Kiro CLI） | AI-DLC が出荷する MCP サーバー（`context7`、`aws-mcp`、`aws-pricing`、`aws-iac`、`aws-serverless`）。自分で設定したものは除く。Kiro CLI は既定でそれらを off の状態で受け取る。Claude Code は、`aidlc config` が端末で尋ねたときに yes と答えるか、`config project --mcp defaults` で on にしたときに受け取る。 |
+| `.codex/config.toml` | `developer_instructions`、`sandbox_mode`、`suppress_unstable_features_warning`、`tool_output_token_limit`。`[shell_environment_policy]`（`AIDLC_RULES_DIR` を持つ `set`）、`[sandbox_workspace_write]`（`network_access`）、`[agents]`（`max_depth`）、`[features]`（`default_mode_request_user_input`）、`[tools]`（`experimental_request_user_input`）、`[tui]`（`status_line`）の中の AI-DLC のキー。それらの直上の `#` コメント。そして空になったそれらのテーブル。自分で設定したキーは、それらのテーブルの中のものも保つ。 |
+| `opencode.json`（または `opencode.jsonc`） | あなたのものでない限り `$schema`。`skills.paths` の `.aidlc/skills`。`.aidlc/` と `aidlc/` の下の `instructions` のエントリ。そして AI-DLC の `permission` の規則。つまり `.aidlc/` を名指すもの、`bash` の下の `"aidlc engine *": "allow"`（ネイティブ導入）、`rm -r*` と `git push *` の前の確認、以前のリリースが `edit` と `bash` の下に追加した `"*"` の規則。ただし、同じ規則を自分で書いた場合は除く。 |
+| `.vscode/settings.json`（Copilot） | `chat.agent.maxRequests`（`200`）と `chat.useHooks`（`true`）。自分で設定した場合は除く。 |
+
+あなたのものが何も残っていないファイルは削除してください。AI-DLC が作ったものです。Cursor のルートの `install.ts` と、AI-DLC がプロジェクトのルートに書いたほかのファイル全体は、手順 2 のスクリプトが削除します。Codex は、プロジェクトのフックに対する信頼をプロジェクトの外、`$CODEX_HOME/config.toml`（既定では `~/.codex/config.toml`）に保持します。Codex にそれを忘れさせたい場合は、そこにあるプロジェクトのエントリを取り除いてください。
+
+<a id="4-check"></a>
+
+### 4. 確認する
+
+`git status` には、AI-DLC のファイルが削除され、共有ファイルが以前の内容に戻ったことが表示されます。手順 3 の各共有ファイルを `AI-DLC` と `aidlc` で検索しても、AI-DLC のものは何も見つからないはずです。
+
+```bash
+grep -n "AI-DLC\|aidlc" .gitignore AGENTS.md
+```
+
+```powershell
+Select-String -Path .gitignore, AGENTS.md -Pattern 'AI-DLC|aidlc'
+```
+
+`aidlc-copy-runtime-X.Y.Z.tar.gz` からコピーしたプロジェクトは、そのセットアップのコマンドを実行したときにマニフェストを受け取ります（[コピー経路](#copy-channel) を参照）。そのコマンドを一度も実行していなければ、マニフェストはありません。コピーした `runtime/<harness>/` フォルダとバイト単位で同一のファイルを削除し、それから手順 3 と 4 に従ってください。コピーは、プロジェクトがすでに持っていた同名のファイル（あなた自身の `.claude/settings.json` など）も置き換えます。それらは git かバックアップから復元してください。
+
 <a id="uninstall"></a>
 
 ## アンインストール
+
+`aidlc uninstall` はマシンのインストールを取り除きます。一つのプロジェクトから AI-DLC を取り除くには、[プロジェクトから AI-DLC を取り除く](#remove-ai-dlc-from-a-project) を参照してください。
 
 ```bash
 aidlc uninstall

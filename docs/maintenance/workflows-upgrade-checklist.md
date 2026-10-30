@@ -22,6 +22,23 @@ AI は版上げの調査・実装前にこのファイルを読み、確認し�
 - [x] docs / shell の同期を `aidlc-workflows-update.yml` に統合。書き込み権限は PR 公開ジョブだけに限定し、検査結果と採取物を保存。
 - [ ] GitHub の required checks を有効化。テンプレートは更新済み。専用 Release App の variable / secret が未登録のため、既存リリースを止めないよう適用を保留。設定後に main 上で統合同期の初回実行と保護ルールの有効性を確認する。
 
+v2.11.2 対応作業（2026-10-30）:
+
+対象は公式 v2.11.2、タグが指すコミット `10a9bc9d85395a601de2624cf5bdd35292c10db4`。比較元は manifest の公式 v2.11.1 `895a35d86d20336d9b7bc4aedc9440e4a12c83ab`。公式タグの独立 checkout から配布物を生成し、drift は blocking 0 / findings 5。State Version 8・基本33ステージ・14エージェントは維持。
+
+- [x] シェル同期: audit の Windows 追記修正と Cursor adapter のパッチを 2.11.2 の元ファイルへ再適用し、override のハッシュを更新する。`.aidlc-version` を揃える（`.gitignore` ブロックと `.mcp.json` は変更なし）。
+- [x] ステージグラフ: Build and Test の 3 つのテスト指示が `optional_produces` に移った。bridge-map の出力と説明を合わせ、成果物 map の位置対応を `produces` + `optional_produces` の並びで判定する。
+- [x] reader: `intent add-checkout` の記録（`.aidlc-engine/source-checkouts.json`）がある間は strict のレビュー判定を保留する。ソース指紋・レビュー記録・State・Unit DAG・`intents.json` の読み取りは上流で変更がないことを確認。
+- [x] Doctor: 採取スクリプトがネイティブ版を導入したコマンドで動かすよう直し、warning シナリオの更新確認を 30 日前に固定する。新しい診断を訳し、Linux の 9 ケースと 2.11.2 の契約（依存ソースの指紋 70 ファイル）を登録した。
+- [x] Doctor: 採取先を短くして Windows のフォルダーの深さの警告を避け、CI 実行 40997010556 で 3 OS × 9 ケースを登録した。
+- [x] 英語66ページと新規1ページ、版宣言・bridge・索引・成果物 map を同期する。
+- [x] 日本語は変更のあった全ページを英語の差分と照合し、2.11.2 の更新履歴と改善点ガイドを追加する。
+- [x] `bun run check`（272 ファイル・4,931 件成功）と `bun run package:extension`（710 ファイル）が成功。
+- [ ] `[masked]` など 2.11.2 で記録に入る新しい値の画面表示、承認後の成果物補正（`STAGE_OUTPUT_AMENDED`）と `Review Kept` のレビュー判定への反映。現状は判定を保留する側に倒れる。
+- [ ] 実拡張ホストでの操作（バージョン確認画面、更新後のプロジェクト更新）。
+
+実施内容は[2.11.2 更新記録](../reviews/workflows-2.11.2-update.md)。
+
 v2.11.1 対応作業（2026-10-22）:
 
 対象は公式 v2.11.1、タグが指すコミット `895a35d86d20336d9b7bc4aedc9440e4a12c83ab`。比較元は manifest の公式 v2.11.0 `6a378b53c0a4fe0641ed7d8de8dfff94264d5b6a`。公式タグの独立 checkout から配布物を生成し、drift は blocking 0 / findings 5。State Version 8・基本33ステージ・14エージェントは維持。毎日の同期は Doctor の未訳行で止まっていた。
