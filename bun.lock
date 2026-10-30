@@ -125,7 +125,7 @@
     },
     "packages/vscode-extension": {
       "name": "andon-for-aidlc",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@andon/api-core": "workspace:*",
         "@andon/core-utils": "workspace:*",
