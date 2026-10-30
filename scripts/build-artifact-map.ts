@@ -292,9 +292,10 @@ export function splitStageSections(markdown: string, phase: string): StageSectio
  * as `test-results.md`, and so does `load-test-results` in another stage.
  *
  * The bridge is each stage file's `outputs:` frontmatter line, which lists the
- * real filenames in `produces[]` order. An exact stem match wins wherever one
- * exists, so a reordered list only affects the genuinely aliased names; when the
- * two lists disagree in length, position means nothing and is not used.
+ * real filenames in `produces[]` order, followed by the `optional_produces[]`
+ * files after `CONDITIONAL:`. An exact stem match wins wherever one exists, so a
+ * reordered list only affects the genuinely aliased names; when the two lists
+ * disagree in length, position means nothing and is not used.
  */
 export interface ResolvedFileName {
   /** Filenames to look for, best first. */
@@ -310,7 +311,9 @@ export interface ResolvedFileName {
 export function resolveFileNames(
   produces: readonly string[],
   outputsLine: string | null,
+  optionalProduces: readonly string[] = [],
 ): Record<string, ResolvedFileName> {
+  const listed = [...produces, ...optionalProduces];
   const declared: string[] =
     outputsLine === null
       ? []
@@ -325,14 +328,14 @@ export function resolveFileNames(
   // at a different index than its own filename, the two lists are not
   // positionally aligned and position tells us nothing about the rest.
   const aligned =
-    declared.length === produces.length &&
-    produces.every((artifact, at) => {
+    declared.length === listed.length &&
+    listed.every((artifact, at) => {
       const exact = exactOf(artifact)[0];
       return exact === undefined || declared[at] === exact;
     });
 
   const resolved: Record<string, ResolvedFileName> = {};
-  for (const [at, artifact] of produces.entries()) {
+  for (const [at, artifact] of listed.entries()) {
     const exact = exactOf(artifact);
     const positional = aligned ? [declared[at] ?? ""] : [];
     // Probing both extensions keeps a stage with no `outputs:` line working,
@@ -486,6 +489,7 @@ interface GraphNode {
   number: string;
   phase: string;
   produces: string[];
+  optional_produces?: string[];
 }
 
 export function readStageGraph(workspaceRoot: string): GraphNode[] {
@@ -586,7 +590,7 @@ export function buildArtifactMap(
       stageDocPaths[node.slug] ?? null,
     );
     const outputsLine = docPath === null ? null : readStageOutputsLine(workspaceRoot, docPath);
-    const fileNames = resolveFileNames(node.produces, outputsLine);
+    const fileNames = resolveFileNames(node.produces, outputsLine, node.optional_produces);
     const sameLength =
       enSection !== null && jaSection !== null && enSection.rows.length === jaSection.rows.length;
 

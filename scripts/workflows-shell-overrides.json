@@ -1,17 +1,17 @@
 {
   ".cursor/hooks/aidlc-cursor-adapter.ts": {
-    "upstreamSha256": "1310b178b5e97cd11a31604fcc731092fd93acec35aec1a6dd0c9ec505865305",
-    "workspaceSha256": "cbc86f93969885efe335ae24b034b8cac031667f1d9860a15d25b01050c1a8bf",
+    "upstreamSha256": "a42f4914b8b861de8ecfd90f7b052259687ddc659000bd465385edb29ef7dc67",
+    "workspaceSha256": "2a834edce5468c5a3f8d1098298b19ba9eaedd675b2e30a3fa5ce8d64300e373",
     "reason": "Repository-owned Cursor adapter patch; covered by .cursor/hooks/aidlc-cursor-adapter.test.ts"
   },
   ".claude/tools/aidlc-audit.ts": {
-    "upstreamSha256": "b4e7e893da89c64b15f87b7da06cfca6756f6f1d44854f8674a4203f48f5eb81",
-    "workspaceSha256": "99e8e22d03d32766402995872017bd8889da9a10621194e6230f31b10c402100",
+    "upstreamSha256": "6ad256d0ec2e9e1176b5d26f196da0bbcd50dbe442dc0bbc6d370e838d6b460a",
+    "workspaceSha256": "96a769677102ceab61459c0f42750952dbbb0661f3cd00e2056559363a1157fd",
     "reason": "On Windows an O_APPEND write without an explicit position overwrote the audit shard head; append at the end instead"
   },
   ".cursor/tools/aidlc-audit.ts": {
-    "upstreamSha256": "b4e7e893da89c64b15f87b7da06cfca6756f6f1d44854f8674a4203f48f5eb81",
-    "workspaceSha256": "99e8e22d03d32766402995872017bd8889da9a10621194e6230f31b10c402100",
+    "upstreamSha256": "6ad256d0ec2e9e1176b5d26f196da0bbcd50dbe442dc0bbc6d370e838d6b460a",
+    "workspaceSha256": "96a769677102ceab61459c0f42750952dbbb0661f3cd00e2056559363a1157fd",
     "reason": "Same Windows audit append fix as the .claude twin"
   }
 }

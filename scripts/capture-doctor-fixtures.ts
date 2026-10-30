@@ -41,10 +41,14 @@ function run(executable: string, args: string[], cwd: string, env?: NodeJS.Proce
   };
 }
 
+/** Age of the warning scenario's update check: past the cache TTL, read as "30 days ago". */
+const STALE_UPDATE_CHECK_MS = 30 * 24 * 60 * 60 * 1000;
+
 // Doctor prints when the hooks last fired, which differs on every capture. A
 // fixed instant keeps fresh captures byte-identical to the committed evidence
 // while still reading as a timestamp to the label patterns.
 export const CAPTURE_TIMESTAMP = "2000-01-01T00:00:00Z";
+
 export function normalizeCaptureTimes(text: string): string {
   return text.replace(/\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\b/g, CAPTURE_TIMESTAMP);
 }
@@ -330,12 +334,14 @@ export async function captureDoctor(options: {
         if (committed.code) throw new Error(committed.stderr);
         // Since 2.11.1 a machine that never checked passes ("Update: not checked
         // yet"), so the warning scenario is an update check that went stale.
+        // Since 2.11.2 Doctor prints its age, so it is a fixed age, not a date.
         writeFileSync(
           path.join(machine, "update-check.json"),
           JSON.stringify({
             schemaVersion: 1,
-            checkedAt:
-              scenario === "warning" ? "2000-01-01T00:00:00.000Z" : new Date().toISOString(),
+            checkedAt: new Date(
+              Date.now() - (scenario === "warning" ? STALE_UPDATE_CHECK_MS : 0),
+            ).toISOString(),
             latestVersion: provenance.version,
             releaseDate: "2026-09-15",
           }),
@@ -355,13 +361,10 @@ export async function captureDoctor(options: {
           const seeded = run(bun, [seed], project, env);
           if (seeded.code) throw new Error(seeded.stderr);
         }
-        // Every scenario is a project someone has chatted in: the harness runs
-        // its human-turn hook on the first message, and since 2.11 Doctor warns
-        // until that hook has left a heartbeat. Run the official hook itself,
-        // as the harness would, rather than writing the heartbeat by hand.
-        // A native project's hook runs through the installed command, whose
-        // runtime tree sits beside it; the raw release asset has none.
-        const hookCommand =
+        // A native project's hooks and Doctor run through the installed command,
+        // whose runtime tree sits beside it; the raw release asset has none, and
+        // since 2.11.2 Doctor fails every hook it cannot find beside itself.
+        const command =
           channel === "native"
             ? path.join(
                 machine,
@@ -370,7 +373,11 @@ export async function captureDoctor(options: {
                 process.platform === "win32" ? "aidlc.exe" : "aidlc",
               )
             : executable;
-        const turn = spawnSync(hookCommand, [...prefix, "engine", "hook", "record-human-turn"], {
+        // Every scenario is a project someone has chatted in: the harness runs
+        // its human-turn hook on the first message, and since 2.11 Doctor warns
+        // until that hook has left a heartbeat. Run the official hook itself,
+        // as the harness would, rather than writing the heartbeat by hand.
+        const turn = spawnSync(command, [...prefix, "engine", "hook", "record-human-turn"], {
           cwd: project,
           env: { ...env, CLAUDE_PROJECT_DIR: project, AIDLC_PROJECT_DIR: project },
           input: JSON.stringify({
@@ -384,9 +391,9 @@ export async function captureDoctor(options: {
         if (turn.error || turn.status !== 0)
           throw new Error(`first-message hook failed: ${turn.stderr ?? String(turn.error)}`);
         const args = [...prefix, "doctor", "--verbose", "--no-color"];
-        const result = run(executable, args, project, env);
+        const result = run(command, args, project, env);
         const jsonResult = run(
-          executable,
+          command,
           [...prefix, "doctor", "--verbose", "--json", "--no-color"],
           project,
           env,
@@ -436,7 +443,7 @@ export async function captureDoctor(options: {
           return { path: name, sha256: hash(normalized) };
         };
         const runtimeVersion = run(
-          executable,
+          command,
           channel === "copy" ? ["--version"] : ["version"],
           project,
           env,
@@ -460,7 +467,7 @@ export async function captureDoctor(options: {
           ],
           runtime: {
             version: runtimeVersion.stdout.trim(),
-            sha256: hash(readFileSync(executable)),
+            sha256: hash(readFileSync(command)),
           },
           code: result.code,
           stdout: save("stdout.txt", result.stdout),

@@ -428,7 +428,12 @@ own sentinel markers. On disable, `select-plugins` and every config refresh
 (`aidlc config project --plugins` among them) strip both from the installed
 stage source inside their own rollback transaction, through one rule
 (`stripPluginsTurnedOff()`), so a disabled or paused plugin's contributions stop
-steering enabled stages. Re-enabling restores them on the next session start (on
+steering enabled stages. The structural adds come out through one strip,
+`stripRecordedAdds()` in `aidlc-plugin.ts`, which a plugin turned off, a plugin
+removed or updated by sync, and a config refresh's check of a composed stage
+share: each recorded value takes out the entry spelled as compose wrote it, else
+one entry that means the same, so a quoted line the stage already had stays.
+Re-enabling restores the contributions on the next session start (on
 Kiro CLI and opencode, which run no compose hook, when the person runs
 `aidlc engine plugin sync --plugin-root <folder>` with the plugin's folder): the
 plugin's compose re-merges, byte-identical. The select line says which, and so
@@ -593,15 +598,27 @@ supports; a `reviewer:` on any gated stage regardless of mode) names an agent
 without the complete installed dispatch surface, and records the stage, agent,
 and remediation in the compose drops log. On Kiro CLI, the JSON and
 `trustedAgents` registration are checked independently: having only one still
-rejects the stage. On Kiro IDE, author the installed `.md` with both required
-blocks or change the stage to `mode: inline`; the IDE path never reads
-`aidlc.json`. On OpenCode — the one harness whose native surface compose itself emits
-— a plugin-shipped persona counts as the surface when it would survive the
-native-twin emission (closed frontmatter, no un-projectable
-`disallowedTools`); Kiro/Codex surfaces are always hand-authored, so a
-plugin's own files never satisfy those checks. Hand-authoring the missing
-surface and re-running compose accepts the stage. The Markdown persona remains
-composed for any accepted inline stage that also uses it.
+rejects the stage. On Kiro IDE the IDE path never reads `aidlc.json`, and
+compose gives a plugin's own agent that surface itself: to each agent the
+plugin ships it adds the lines the install keeps in
+`.kiro/tools/data/plugin-agent.md` (the `tools`, `includeMcpJson` and
+`permissions` of a persona with no role of its own, its shell deny included),
+each key the agent does not declare, and the `tools` line only beside those
+permissions; it writes the persona without them to
+`.kiro/aidlc-common/personas/<agent>.md` for the lead that reads it inline, and
+judges a stage that dispatches the agent on the copy it writes. An agent the
+plugin does not ship still needs its installed `.md` authored with both blocks,
+or the stage changed to `mode: inline`. On Kiro CLI the same file holds the
+personas' two prompt lines (`tools`, `includeMcpJson`), which every plugin agent
+gets; its agent-v1 JSON and `trustedAgents` entry stay hand-authored. These
+lines reach a plugin built with an AI-DLC that writes them (the compose hook
+ships inside the plugin). On OpenCode, a plugin-shipped persona counts as the
+surface when it would survive the native-twin emission (closed frontmatter, no
+un-projectable `disallowedTools`); Kiro CLI and Codex surfaces are always
+hand-authored, so a plugin's own files never satisfy those checks.
+Hand-authoring the missing surface and re-running compose accepts the stage.
+The Markdown persona remains composed for any accepted inline stage that also
+uses it.
 
 `agent-team` is schema-reserved but has no runtime consumer, so compose rejects
 plugin stages that select it on every harness instead of silently treating them

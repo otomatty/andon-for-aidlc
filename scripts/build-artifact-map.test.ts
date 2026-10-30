@@ -197,6 +197,20 @@ describe("resolveFileNames", () => {
   });
 
   /**
+   * 2.11.2 moved conditional files to `optional_produces`; the `outputs:` line
+   * still lists them after `CONDITIONAL:`, so position spans both lists.
+   */
+  it("aligns position over produces followed by optional_produces", () => {
+    const outputs =
+      "build-instructions.md, build-and-test-summary.md, test-results.md, " +
+      "CONDITIONAL: integration-test-instructions.md (Standard and above)";
+    const resolved = resolveFileNames(produces, outputs, ["integration-test-instructions"]);
+    expect(resolved["build-test-results"]?.candidates[0]).toBe("test-results.md");
+    expect(resolved["build-test-results"]?.guessed).toBe(false);
+    expect(resolveFileNames(produces, outputs)["build-test-results"]?.guessed).toBe(true);
+  });
+
+  /**
    * Equal length is not alignment. The artifacts that match by name are the
    * witnesses: here `build-instructions.md` sits at index 2 while its artifact
    * is at index 0, which proves the lists are not positionally aligned — so the

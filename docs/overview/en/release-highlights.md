@@ -2,6 +2,16 @@
 
 This guide summarizes selected improvements from the upstream CHANGELOG. [All releases](changelog.md) includes the complete entries, with fixes and upgrade instructions, from the bundled source revision.
 
+## 2.11.2
+
+[2.11.2, released October 28, 2026](releases/2.11.2.md), retains State Version 8 and the 33-stage base graph.
+
+Replies are read in the person's own words at every question and from any chat, and the record keeps the reply each decision was made on; a key or password typed in the chat is masked in the committed record. The learnings step asks only when the person corrected the agent in that stage. Far fewer gates end in a question with no way on, under Guard Policy strict too, and the review summary says which open findings Approve accepts as risk. Plan switches, skips, undos, jumps and `--single` runs carry on from where the work stands, and Requirements Analysis and Domain Design can offer "Approve, and add <Stage> next".
+
+A workspace of many repositories reaches Reverse Engineering's gate, asking once before reading ten or more repositories nobody named, and `/aidlc intent add-repo <name>` adds a repository at any stage. Side-by-side builds start from the person's own branch, land back on it and bring their record edits home. Code Generation names any file the person brought that the build changed or deleted, with the git command to put it back; Build and Test owes four files every run, with the other test instructions only at the strategies that call for them. `aidlc config --yes` asks nothing at a terminal, and `aidlc doctor` says how old an update check is and warns, naming the machine, when the work ran in another clone.
+
+Run `aidlc update`, then `aidlc config --yes` per project; open work carries on. Copy users replace the complete `runtime/<harness>/` tree from `aidlc-copy-runtime-2.11.2.tar.gz`. Three changes affect scripts: a copied project's own `config` with no `--from` on a machine that also has a native `aidlc` now needs `--download` or `--from`; a script or CI job that drives AI-DLC sets `AIDLC_UNATTENDED=1`; and on Claude Code an Amazon Bedrock answer goes to the git-ignored `.claude/settings.local.json`, so a script reads the profile from `aidlc config providers --show --json` instead of `harness.json`.
+
 ## 2.11.1
 
 [2.11.1, released October 20, 2026](releases/2.11.1.md), retains State Version 8 and the 33-stage base graph.

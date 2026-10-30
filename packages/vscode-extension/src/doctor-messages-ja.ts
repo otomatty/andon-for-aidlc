@@ -1,5 +1,5 @@
 /**
- * Local translations of the core doctor messages shipped with AI-DLC 2.8.x–2.11.0.
+ * Local translations of the core doctor messages shipped with AI-DLC 2.8.x–2.11.2.
  * Keep templates anchored: captures are paths, commands, names, counts, or explicitly
  * marked original OS/parser details. Unknown explanations stay available verbatim.
  */
@@ -196,9 +196,24 @@ const labels: Readonly<Record<string, string>> = {
   "Kiro terminal: Kiro runs its agent's commands in Command Prompt, where most AI-DLC steps come back with no reply and your words can get split":
     "Kiro のターミナル: Kiro はエージェントのコマンドをコマンド プロンプトで実行します。コマンド プロンプトでは AI-DLC のほとんどの手順が応答を返さず、入力した言葉が分割されることがあります",
   "Kiro terminal: PowerShell (Kiro's default)": "Kiro のターミナル: PowerShell（Kiro の既定）",
+  // 2.11.2
+  "Kiro CLI Workflows is off": "Kiro CLI Workflows: オフです",
+  "Kiro CLI Workflows is on, so AI-DLC's reviews and helpers do not run in your Kiro CLI chats":
+    "Kiro CLI Workflows がオンのため、Kiro CLI のチャットでは AI-DLC のレビューと補助エージェントが動きません",
+  "This workflow was run in another clone; this clone has no hook record for it yet":
+    "この作業は別のクローンで進められました。このクローンにはまだフックの記録がありません",
+  "This workflow was run in other clones; this clone has no hook record for it yet":
+    "この作業は他のクローンで進められました。このクローンにはまだフックの記録がありません",
+  "Workspace records: no uncommitted changes under aidlc/ other than doctor's own entries in the audit log":
+    "ワークスペースの記録: aidlc/ 配下に、監査ログへの doctor 自身の記録以外の未コミットの変更はありません",
 };
 
 const fixes: Readonly<Record<string, string>> = {
+  // 2.11.2
+  "nothing to fix in this clone: its hooks record this workflow once you carry on with it here. To check the hooks where it ran, run doctor in that clone":
+    "このクローンで直すことはありません。ここで作業を続けると、このクローンのフックが記録を始めます。作業したクローンのフックを確認するには、そのクローンで doctor を実行してください",
+  "nothing to fix in this clone: its hooks record this workflow once you carry on with it here. To check the hooks where it ran, run doctor in those clones":
+    "このクローンで直すことはありません。ここで作業を続けると、このクローンのフックが記録を始めます。作業したクローンのフックを確認するには、それらのクローンで doctor を実行してください",
   "The resolve output is corrupt. Re-run the resolve step (`/aidlc` will recompute the plan), or remove .aidlc-engine/plan.json to force a fresh resolve.":
     "計画の解決結果が壊れています。`/aidlc` で計画を再計算するか、.aidlc-engine/plan.json を削除して計画を作り直してください。",
   "host inventory unavailable; run sync through the host SessionStart adapter":
@@ -308,6 +323,31 @@ const fixes: Readonly<Record<string, string>> = {
 };
 
 const labelPatterns: readonly TranslationPattern[] = [
+  // 2.11.2
+  [
+    /^(aidlc-[\w-]+\.ts) is not in this install's runtime: `([^`]+)` exits 1 without running it$/,
+    "$1 はこのインストールのランタイムに含まれていません。`$2` は実行せずに終了コード 1 で終わります",
+  ],
+  [
+    /^This workflow was run in another clone \((.+)\); this clone has no hook record for it yet$/,
+    "この作業は別のクローン（$1）で進められました。このクローンにはまだフックの記録がありません",
+  ],
+  [
+    /^This workflow was run in other clones \((.+)\); this clone has no hook record for it yet$/,
+    "この作業は他のクローン（$1）で進められました。このクローンにはまだフックの記録がありません",
+  ],
+  [
+    /^Project folder: (\d+) characters deep; Git refuses paths over (\d+) characters and AI-DLC's records add about (\d+)$/,
+    "プロジェクトフォルダー: パスが $1 文字あります。Git は $2 文字を超えるパスを扱えず、AI-DLC の記録でさらに約 $3 文字増えます",
+  ],
+  [
+    /^Project folder: (\d+) characters deep; Windows tools refuse paths over (\d+) characters and AI-DLC's records add about (\d+)$/,
+    "プロジェクトフォルダー: パスが $1 文字あります。Windows のツールは $2 文字を超えるパスを扱えず、AI-DLC の記録でさらに約 $3 文字増えます",
+  ],
+  [
+    /^Project folder: (\d+) characters deep; Copilot CLI asks before every read of a path over (\d+) characters \(copilot -p refuses it\), and AI-DLC's records add about (\d+)$/,
+    "プロジェクトフォルダー: パスが $1 文字あります。Copilot CLI は $2 文字を超えるパスを読むたびに確認し（copilot -p では拒否されます）、AI-DLC の記録でさらに約 $3 文字増えます",
+  ],
   // 2.11.1
   [
     /^Update: not checked yet \(run `([^`]+)` to check\)$/,
@@ -952,6 +992,31 @@ const labelPatterns: readonly TranslationPattern[] = [
 ];
 
 const fixPatterns: readonly TranslationPattern[] = [
+  // 2.11.2
+  [
+    /^`([^`]+ engine hook)` runs only the hooks the installed runtime ships; register a project hook in \.claude\/settings\.json with a command that runs its own file$/,
+    "`$1` が実行できるのは、インストール済みのランタイムに含まれるフックだけです。プロジェクト独自のフックは、そのファイル自体を実行するコマンドで .claude/settings.json に登録してください",
+  ],
+  [
+    /^ask the agent to turn Kiro CLI Workflows off, or run `([^`]+)` \(a Kiro CLI setting for all your projects\); then quit Kiro CLI and start `kiro-cli` again$/,
+    "Kiro CLI Workflows をオフにするようエージェントに頼むか、`$1` を実行してください（すべてのプロジェクトに効く Kiro CLI の設定です）。その後、Kiro CLI を終了し、`kiro-cli` を起動し直してください",
+  ],
+  [
+    /^move the project to a shorter folder \(for example (.+?)\)$/,
+    "プロジェクトを短いフォルダー（例: $1）に移してください",
+  ],
+  [
+    /^move the project to a shorter folder \(for example (.+?)\), or turn Git's long paths on: run (git config --global core\.longpaths true)$/,
+    "プロジェクトを短いフォルダー（例: $1）に移すか、Git の長いパスを有効にしてください（$2 を実行します）",
+  ],
+  [
+    /^move the project to a shorter folder \(for example (.+?)\), or turn Windows long paths on: set LongPathsEnabled to 1 in (\S+) as an administrator$/,
+    "プロジェクトを短いフォルダー（例: $1）に移すか、Windows の長いパスを有効にしてください（管理者として $2 の LongPathsEnabled を 1 にします）",
+  ],
+  [
+    /^move the project to a shorter folder \(for example (.+?)\), or turn long paths on: set LongPathsEnabled to 1 in (\S+) as an administrator, then run (git config --global core\.longpaths true)$/,
+    "プロジェクトを短いフォルダー（例: $1）に移すか、長いパスを有効にしてください（管理者として $2 の LongPathsEnabled を 1 にしてから、$3 を実行します）",
+  ],
   // 2.11.1
   [/^run `([^`]+ engine plugin sync)`$/, "`$1` を実行してください"],
   [/^run `([^`]+ --session-model \S+)`$/, "`$1` を実行してください"],
@@ -1325,6 +1390,36 @@ function translateOpenCodeNote(value: string): string | null {
   return `opencode の設定は${parts.join("、")}するようになっていますが、このプロジェクトでは AI-DLC の権限ルールがこれらの省略形を置き換えます。この動作を保つには、${many[3]} に ${many[2]} と書いてください。`;
 }
 
+// 2.11.2: an update check that went stale says how long ago it ran.
+function checkedAgo(age: string): string | null {
+  if (age === "less than an hour ago") return "1 時間以内に確認";
+  const m = /^(\d+) (day|hour)s? ago$/.exec(age);
+  return m ? `${m[1]} ${m[2] === "day" ? "日" : "時間"}前に確認` : null;
+}
+
+function translateStaleUpdate(value: string): string | null {
+  const known = /^Update: binary (\S+), latest known (?:(preview) )?(\S+), checked (.+)$/.exec(
+    value,
+  );
+  if (known?.[4]) {
+    const age = checkedAgo(known[4]);
+    return age === null
+      ? null
+      : `更新確認: 使用中 ${known[1]}、前回確認した${known[2] ? " preview の" : ""}最新 ${known[3]}（${age}）`;
+  }
+  const newer =
+    /^Update: You're on (\S+), newer than the latest known (stable|preview) (\S+), checked (.+?)\. To go back to (stable|preview): aidlc update --channel \5\.(?: To keep getting (?:previews|stable releases): aidlc config --channel (stable|preview)\.)?$/.exec(
+      value,
+    );
+  if (!newer?.[4]) return null;
+  const age = checkedAgo(newer[4]);
+  if (age === null) return null;
+  const keep = newer[6]
+    ? `、今のチャンネルを使い続けるには aidlc config --channel ${newer[6]} を`
+    : "";
+  return `更新確認: 使用中の ${newer[1]} は、前回確認した ${newer[2]} の最新 ${newer[3]}（${age}）より新しいバージョンです。${newer[5]} に戻すには aidlc update --channel ${newer[5]} を${keep}実行します。`;
+}
+
 function translateOne(value: string, kind: MessageKind): string | null {
   const exact = (kind === "label" ? labels : fixes)[value];
   if (typeof exact === "string") return exact;
@@ -1338,6 +1433,8 @@ function translateOne(value: string, kind: MessageKind): string | null {
   if (kind === "label") {
     const note = translateOpenCodeNote(value);
     if (note !== null) return note;
+    const update = translateStaleUpdate(value);
+    if (update !== null) return update;
     const hook = /^AI-DLC hook ([\w.-]+) is switched off in Kiro's Agent Hooks: (.+)$/.exec(value);
     if (hook?.[2] && Object.hasOwn(kiroHookEffects, hook[2]))
       return `AI-DLC のフック ${hook[1]} が Kiro の Agent Hooks でオフになっています: ${kiroHookEffects[hook[2]]}`;
