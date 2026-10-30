@@ -146,7 +146,7 @@ export function customizePrompt(
     "Rules:",
     '- Return "changes": [] when the user only asks a question, when the request is unclear (ask in the reply), or when it cannot be done safely.',
     '- A history answer may end with {"previousProposal": ...}: the changes you proposed then, and whether they were applied. When the user asks to adjust it, return the complete revised set of changes; it replaces that proposal. Applied changes are already in the catalog.',
-    `- Make the fewest changes that do what was asked, at most ${MAX_CHANGES}. Never invent item ids.`,
+    `- Make the fewest changes that do what was asked, at most ${MAX_CHANGES}, and at most one change per item. Never invent item ids.`,
     '- Replace or remove only items whose catalog entry says "editable": true. Replace only items whose content is shown without "truncated". Keep every part you were not asked to change exactly as it is.',
     "- content is the whole file text, never a diff. Keep YAML frontmatter valid and keep the existing frontmatter keys.",
     '- rule-section: a section of the team\'s rule files. Its content starts with "## <heading>". target: {"layer":"org"|"team"|"project"|"phase","heading":"<heading>"}, plus "phase" when layer is "phase". Prefer layer "project" unless the user names another one.',
@@ -271,6 +271,8 @@ export function parseProposal(
   for (const change of created) plugins.add(String((change as { runtimeId: string }).runtimeId));
   const changes: CustomizationChange[] = [];
   const entries: CustomizationProposalEntry[] = [];
+  // Saving applies changes in order, so a second change to one item would hide the first.
+  const touched = new Set<string>();
   for (const raw of value.changes.slice(0, MAX_CHANGES)) {
     if (!object(raw)) {
       error("変更の形式を読み取れません。");
@@ -286,6 +288,14 @@ export function parseProposal(
         error(`「${base.title}」は標準または読み取り専用の設定のため変更できません。`, base.id);
         continue;
       }
+      if (touched.has(base.id)) {
+        error(
+          `「${base.title}」への変更が複数あります。1つの変更にまとめるよう依頼し直してください。`,
+          base.id,
+        );
+        continue;
+      }
+      touched.add(base.id);
       if (raw.operation === "remove") {
         changes.push({ operation: "remove", itemId: base.id });
         entries.push({

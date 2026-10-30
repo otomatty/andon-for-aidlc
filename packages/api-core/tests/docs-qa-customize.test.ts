@@ -251,6 +251,30 @@ describe("customize turns", () => {
     expect(job.proposal?.canApply).toBe(false);
   });
 
+  it("refuses two changes to one item, since saving would keep only the last", () => {
+    const current = catalog();
+    const full = customizationContext(current, { question: "Code Review" }).full;
+    const draft = parseProposal(
+      JSON.stringify({
+        reply: "2つ追加します。",
+        changes: [
+          { operation: "replace", itemId: rule.id, content: "## Code Review\n\nCI.\n" },
+          { operation: "replace", itemId: rule.id, content: "## Code Review\n\nTwo reviewers.\n" },
+          { operation: "remove", itemId: rule.id },
+        ],
+      }),
+      current,
+      full,
+    );
+    expect(draft.proposal?.changes).toHaveLength(1);
+    expect(draft.proposal?.entries.map((entry) => entry.after)).toEqual(["## Code Review\n\nCI.\n"]);
+    expect(draft.proposal?.diagnostics.map((entry) => entry.message)).toEqual([
+      expect.stringContaining("変更が複数あります"),
+      expect.stringContaining("変更が複数あります"),
+    ]);
+    expect(draft.proposal?.canApply).toBe(false);
+  });
+
   it("does not let the model rewrite an item it only saw in part", () => {
     const long: CustomizationItem = { ...rule, content: `## Code Review\n\n${"x".repeat(20_000)}` };
     const current = catalog({ items: [long] });
