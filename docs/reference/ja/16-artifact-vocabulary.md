@@ -60,7 +60,7 @@ consumes:
   マッピング」を参照してください。
 - **ファイル名。** ディスク上の `.md` ファイルと正規名は一致する必要が
   ありません（衝突時を除けば、通常は一致します）。
-- **状態管理用ファイル。** `aidlc-state.md`、`audit/` シャード、`.aidlc-engine/recovery.md` は
+- **状態管理用ファイル。** `aidlc-state.md` と `audit/` シャードは
   `produces[]` を通じてステージが管理するのではなく、ツール
   （`aidlc-state.ts`、フックスクリプト）が管理します。レジストリには決して
   現れません。
@@ -129,18 +129,20 @@ consume 解決には所有する生成元が 1 つ必要なため、`aidlc-graph
 消費される概念を 2 つのステージが出力する場合は、区別できる 2 つの異なる名前を選びます。
 
 どのステージも消費しない名前であれば、共有は有効です。出荷されている `traceability`
-アーティファクトはこのパターンに従います。8 つのステージがそれぞれ自分のレコード
+アーティファクトはこのパターンに従います。9 つのステージがそれぞれ自分のレコード
 ディレクトリ配下に自分の `traceability.json` を書き、下流のどのステージも
-`producersOf()` を通じて `traceability` を解決しません。
+`producersOf()` を通じて `traceability` を解決しません（トレーサビリティチェックは
+Requirements Analysis のレコードをそのパスで読み取ります）。
 
 現時点の例は 1 つです。`build-and-test`（構築）と
 `performance-validation`（運用）は、どちらも `test-results.md` という
 ファイルを書き込みます。ワイヤ上で衝突しないように、正規名は分けられています。
 
 - `build-test-results` — `build-and-test` が出力します。このステージでは
-  `build-instructions`、`integration-test-instructions`、
-  `performance-test-instructions`、`security-test-instructions`、
-  `build-and-test-summary` と対になります。
+  `build-instructions`、`build-and-test-summary`、そしてテスト戦略によって
+  変わる `integration-test-instructions`、`performance-test-instructions`、
+  `security-test-instructions` と対になります。後の 3 つは、このステージが
+  `optional_produces` に宣言します。
 - `unit-test-instructions` は `code-generation` がユニット単位で生成し、
   `build-and-test` が消費します。
 - `source-manifest.json` は、`code-generation` の宣言済み成果物に対する、
@@ -193,7 +195,7 @@ consume 解決には所有する生成元が 1 つ必要なため、`aidlc-graph
 `traceability` を除くすべてのアーティファクトは `<canonical-name>.md` に解決され、
 `traceability` は `traceability.json` に解決されます。
 
-**レビュー記録は成果物ではありません。** レビュアーを持つステージのレビュー結果（判定、指摘、レビュアー、リクエスト ID、結び付くフィンガープリント、レビュー本文）は、フレームワークが管理する記録へ保存します。ステージ全体の保存先は `<record>/.aidlc-engine/reviews/<stage>/stage/<attempt>/<iteration>.json`、Unit ごとの保存先は `<record>/.aidlc-engine/reviews/<stage>/units/<unit>/<attempt>/<iteration>.json` です。書き込めるのは `aidlc-log.ts review --verdict` だけで、`REVIEW_COMPLETED` 行がそのパスとダイジェストを記録します。同じコマンドは、レビュアーの報告の代わりにその時点でエンジンが管理する指摘リストを載せた、レビューの読みやすいコピーを、レビュー対象の成果物の隣の `<stage dir>/reviews/review-NN.md` に書きます。このコピーは人向けであり、成果物ではなく、読み戻されることもありません。ステージの `review_artifact` は、宣言済み成果物のうちレビュー対象となるものを指定します。ゲートの `**Review:**` パスと `--reject-finding` / `--reopen-finding <artifact>#R-NN` のセレクターキーもこの成果物を指しますが、レビュアーが成果物へ書き込むことはありません。成果物末尾の `## Review` 節は、専用のレビュー記録が導入される前の形式です。移行のために読み取ることはありますが、新規には書き込みません。
+**レビュー記録は成果物ではありません。** レビュアーを持つステージのレビュー結果（判定、指摘、レビュアー、リクエスト ID、結び付くフィンガープリント、レビュー本文）は、フレームワークが管理する記録へ保存します。ステージ全体の保存先は `<record>/.aidlc-engine/reviews/<stage>/stage/<attempt>/<iteration>.json`、Unit ごとの保存先は `<record>/.aidlc-engine/reviews/<stage>/units/<unit>/<attempt>/<iteration>.json` です。書き込めるのは `aidlc-log.ts review --verdict` だけで、`REVIEW_COMPLETED` 行がそのパスとダイジェストを記録します。同じコマンドは、レビュアーの報告の代わりにその時点でエンジンが管理する指摘リストを載せた、レビューの読みやすいコピーを、レビュー対象の成果物の隣の `<stage dir>/reviews/review-NN.md` に書きます。このコピーは人向けであり、成果物ではなく、読み戻されることもありません。ステージの `review_artifact` は、宣言済み成果物のうちレビュー対象となるものを指定します。ゲートの `**Review:**` パスと `--reject-finding` / `--reopen-finding` / `--fix-finding <artifact>#R-NN` のセレクターキーもこの成果物を指しますが、レビュアーが成果物へ書き込むことはありません。成果物末尾の `## Review` 節は、専用のレビュー記録が導入される前の形式です。移行のために読み取ることはありますが、新規には書き込みません。
 
 **要約の確認記録も成果物ではありません。** ステージ（および Unit）の有効な要約確認は、ステージ全体では `<record>/.aidlc-engine/summary-authorization/<stage>/stage.json`、Unit ごとでは `<record>/.aidlc-engine/summary-authorization/<stage>/units/<unit>.json` に保存されます。`aidlc-log.ts answer --checkpoint summary-confirmation` が `Looks correct` の回答時に作成し、`Request changes` の回答時に削除します。記録には、受領行にも記載される `Summary Authorization Id` が含まれます。書き込み監査フックはこの記録を読み、ステージの `ARTIFACT_CREATED`／`ARTIFACT_UPDATED` 行へ同じ ID を付けます。完了処理は、その ID と現在の受領記録を照合します。これは出力でもレビュー対象でもなく、`produces[]` に列挙しません。
 
@@ -208,7 +210,12 @@ consume 解決には所有する生成元が 1 つ必要なため、`aidlc-graph
 `resolveArtifactPath` の `isCodekb` 分岐
 （`core/tools/aidlc-orchestrate.ts`）により、レコード相対規則の
 外で解決されます。同じディレクトリは、読み取り専用のユーティリティ直接呼び出し
-`aidlc engine workspace codekb` でも出力されます。
+`aidlc engine workspace codekb` でも出力されます。複数のリポジトリを記録する作業では、
+ステップはこれらのアーティファクトをそれぞれ一度だけ
+`aidlc/spaces/<space>/codekb/{repo}/<name>.md` として示し、その `repos_note` が
+`{repo}` がどのリポジトリを表すかを伝えます（`resolveArtifactPaths`）。そのため、
+どの規模のワークスペースでも 1 つのステップに収まります。完了チェックとセンサーは、
+引き続きすべてのリポジトリのファイルを読み取ります。
 
 **衝突時は正規名とファイル名が異なります。** 衝突を分割した場合（上記参照）、
 ディスク上のファイル名は分割前の形式（`test-results.md`）を維持できますが、正規名は

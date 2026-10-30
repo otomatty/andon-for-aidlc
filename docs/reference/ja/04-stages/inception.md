@@ -76,7 +76,7 @@ Inception はステージ 2.1 から 2.9（9 ステージ）を走り、Construc
 
 Reverse Engineering は、brownfield プロジェクト向けに既存コードベースを包括的に分析します。2 段パイプライン（`mode: pipeline`）で走ります。先に aidlc-developer-agent が、AI-DLC 自身のインストールを除いてコードベース全体をスキャンし、続けて aidlc-architect-agent がスキャン結果を 9 つの構造化成果物へ合成して書きます。これらの成果物が、以降の Inception と Construction のステージが乗る技術基盤です。
 
-**再実行ガード:** Reverse Engineering はスキャンの前に、各リポジトリに記録したスコープと作業ツリーのフィンガープリントを見ます。フィンガープリントは AI-DLC 自身のインストール、設定、それが書き込むルートのファイルを除くため、AI-DLC の更新や設定変更でストアが古くなることはありません。人は、カバレッジがインテントに合う verified-current ストアを再利用できます。古い、未検証、レガシー、不一致のストアは、フルまたは焦点の再スキャンが要ります。フル再スキャンはストアを置き換え、焦点再スキャンは新しく分析した領域をマージしつつ、以前の散文を残します。複数リポジトリのインテントでは、ステージ単位のライフサイクル報告の前に、判断をすべて解決します。
+**再実行ガード:** Reverse Engineering はスキャンの前に、各リポジトリに記録したスコープと作業ツリーのフィンガープリントを見ます。フィンガープリントは AI-DLC 自身のインストール、設定、それが書き込むルートのファイルを除くため、AI-DLC の更新や設定変更でストアが古くなることはありません。人は、カバレッジがインテントに合う verified-current ストアを再利用できます。古い、未検証、レガシー、不一致のストアは、フルまたは焦点の再スキャンが要ります。このステージの今回の実行ですでにスキャンして公開したストア（新しいチャットがステージを引き継いだ場合）は、再び選択肢として出されません。ステージはそのまま承認へ進みます。フル再スキャンはストアを置き換え、焦点再スキャンは新しく分析した領域をマージしつつ、以前の散文を残します。複数リポジトリのインテントでは、ステージ単位のライフサイクル報告の前に、判断をすべて解決します。
 
 ### Inputs
 
@@ -217,7 +217,7 @@ Practices Discovery は、AI-DLC で二軸設定モデルの両行へ書く唯�
 
 ### Notes
 
-- 昇格は `team.md` の各節の本文を置き換え、見出しは残します（`.claude/tools/aidlc-lib.ts` の `replaceSection`）。そのため再実行しても、`appendUnderHeading` のように重複が積み上がることはありません。
+- 昇格は `team.md` の各節の本文を置き換え、見出しは残します（`.claude/tools/aidlc-markdown.ts` の `replaceSection`）。そのため再実行しても、`appendUnderHeading` のように重複が積み上がることはありません。
 - `org.md` と `team.md` は同じ Title Case 見出し集合を共有します（`## Way of Working`、`## Walking Skeleton`、`## Testing Posture`、`## Deployment`、`## Code Style`）。ステージは `extractMarkdownSection` で一致する Title Case 見出しから `org.md` の各節を読み、同じ見出しを `team.md` で節置換します。
 - Code Generation の決定論的な姿勢リゾルバは、構造化した Testing Posture フィールドを、カバレッジ、ツール、スコープの注記から独立して読みます。プロジェクトだけのカバレッジ注記は、チーム節の方法論を消さずに専門化します。
 - 再開時は、リード下書きと既存の寄与ファイルをすべて残します。欠けたスポークだけディスパッチし、インタビューとリード統合へ続けます。完了したサポート作業は繰り返しません。
@@ -278,7 +278,7 @@ Requirements Analysis は、利用者のインテントと、あればリバー�
 
    各次元の穴を特定します。Standard と Comprehensive の深さでは、ユーザーシナリオの次元を product エージェントの `corner-checklist.md` で洗います。依頼が名指しする各コンポーネントを、それが関わる端の条件（空、欠落、部分的な失敗、同じ事実の 2 つのコピーなど）と掛け合わせ、当てはまる条件はすべて `requirements.md` に、要件、理由付きの仮定、スコープ外の項目のいずれかとして入れます。端のケースが質問になるのは、エージェントが知り得ない利用者の世界の事実に依存するときだけです。Minimal の深さではチェックリストを読み込みません。
 
-6. **Generate Clarifying Questions** -- PROACTIVE: 6 次元すべてで要件が例外なく明確で完全でない限り、確認質問をいつも出します。`<record>/inception/requirements-analysis/requirements-analysis-questions.md` を `[Answer]:` タグ形式で作ります。文脈に合う質問に A–E 選択肢を付けます。普通の確認質問は、最後の選択肢を必ず `X. Other (please specify)` で終わります。`[Answer]:` タグはすべて空です。
+6. **Generate Clarifying Questions** -- PROACTIVE: 6 次元すべてで要件が例外なく明確で完全でない限り、確認質問をいつも出します。`<record>/inception/requirements-analysis/requirements-analysis-questions.md` を `[Answer]:` タグ形式で作ります。文脈に合う質問に A–E 選択肢（Claude Code では A–D）を付けます。普通の確認質問は、最後の選択肢を必ず `X. Other (please specify)` で終わります。`[Answer]:` タグはすべて空です。
 
    三モードの質問フローを出します: Guide Me / Edit File / Chat。
 
@@ -302,7 +302,7 @@ Requirements Analysis は、利用者のインテントと、あればリバー�
 
 11. **Present Completion & Request Approval** -- :mag: 絵文字とレビューパス付きで完了メッセージを出します。承認ゲートは 2 変種です:
 
-    **実行状態で User Stories が SKIP のとき:** 3 択ゲート: Approve / Request Changes / Add User Stories（いま飛ばしている User Stories ステージを入れる）。"Add User Stories" を選んだら `aidlc engine recompose --add user-stories` を走らせます。チェックボックスは直接編集しません。
+    **実行状態で User Stories が SKIP のとき:** 3 択ゲート: Approve / Request Changes / Approve, and add User Stories next（いま飛ばしている User Stories ステージを入れて、それを始める）。これを選んだら `aidlc engine orchestrate next --add user-stories` を走らせ、そのステップに従います。ステップは承認を記録する報告を示します。チェックボックスは直接編集しません。承認を含まない User Stories 追加の依頼も同じ `next --add` で、ゲートがもう一度問われます。
 
     **User Stories が SKIP でないとき:** 標準の 2 択ゲート: Approve / Request Changes。
 
@@ -314,12 +314,13 @@ Requirements Analysis は、利用者のインテントと、あればリバー�
 |--------------------------------------|---------------------------------------------------------|
 | `requirements.md`                    | 正式な要件: インテント分析、機能／非機能要件、制約、仮定、スコープ外、未決の問い |
 | `requirements-analysis-questions.md` | `[Answer]:` タグ付きの確認質問（入力成果物） |
+| `traceability.json`                  | `requirements.md` が定義する FR と NFR の ID。`requirements.md` での表記のまま、それぞれの `kind` と、下位要件の場合は所属する要件（`of`）を持つ。後段のステージはこのリストからトレースする |
 
 ### Approval Gate
 
 条件付きゲート形式:
 
-- **User Stories がスキップのとき:** 3 択ゲート -- **Approve** / **Request Changes** / **Add User Stories**
+- **User Stories がスキップのとき:** 3 択ゲート -- **Approve** / **Request Changes** / **Approve, and add User Stories next**
 - **User Stories がスキップでないとき:** 標準の 2 択ゲート -- **Approve** / **Request Changes**
 
 ### Notes
@@ -560,7 +561,7 @@ aidlc-aws-platform-agent はマネージドサービス依存の補助視点を�
 
 5. **Prepare Completion** -- 設計成果物を検証します。状態は編集しません。ゲート結果は `aidlc-orchestrate.ts` で報告します。
 
-6. **Present Completion & Request Approval** -- :building_construction: 絵文字、設計成果物の要約、主要なアーキテクチャ判断の強調、レビューパス付きで完了メッセージを出します。3 択承認ゲート: Approve / Request Changes / Add Units Generation（実行計画で飛ばしていれば）。Add Units Generation を選ぶと `aidlc-utility.ts recompose --add units-generation` を走らせます。状態のチェックボックスは直接編集しません。
+6. **Present Completion & Request Approval** -- :building_construction: 絵文字、設計成果物の要約、主要なアーキテクチャ判断の強調、レビューパス付きで完了メッセージを出します。3 択承認ゲート: Approve / Request Changes / Approve, and add Units Generation next（実行計画で飛ばしていれば）。これを選ぶと `aidlc engine orchestrate next --add units-generation` とそのステップを走らせます。ステップは承認を記録する報告を示します。状態のチェックボックスは直接編集しません。
 
 ### Outputs
 
@@ -584,7 +585,7 @@ aidlc-aws-platform-agent はマネージドサービス依存の補助視点を�
 
 - **Approve** -- 次のステージへ進む
 - **Request Changes** -- 改訂フィードバックを出す
-- **Add Units Generation** -- いま飛ばしている Units Generation ステージを入れる（実行計画で飛ばしていれば）`aidlc-utility.ts recompose --add units-generation` 経由
+- **Approve, and add Units Generation next** -- 承認し、いま飛ばしている Units Generation ステージを入れる（実行計画で飛ばしていれば）`aidlc engine orchestrate next --add units-generation` 経由
 
 ### Notes
 
