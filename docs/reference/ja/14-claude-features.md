@@ -175,7 +175,7 @@ Gitignore:
   - aidlc/active-space, aidlc/spaces/*/intents/active-intent  (per-user cursors)
   - aidlc/.aidlc-clone-id, aidlc/.aidlc-sessions/             (machine-local)
   - aidlc/spaces/*/intents/*/runtime-graph.json              (re-derivable)
-  - aidlc/spaces/*/intents/*/.aidlc-*                          (incl. .aidlc-engine/recovery.md)
+  - aidlc/spaces/*/intents/*/.aidlc-*
 ```
 
 監査証跡は **クローンごとのシャード**（`audit/<host>-<clone>.md`）としてコミットします: 各クローンは自分のシャードへ追記するので、並行追記は git 衝突しません。利用者ごとのセッションカーソルと機械局所の派生状態は無視します。
@@ -340,7 +340,7 @@ MCP のアクセス制御で押さえるべき制約は次のとおりです。*
 | Workflow-spine hooks | `.claude/settings.json` | いつもオン。ワークフローが無ければ自己ゲート | PostToolUse、PreCompact、SubagentStop、Stop |
 | Agents (inline) | `.claude/agents/*.md` | ペルソナ起動 | 33 ステージ のうち 29: コンダクターがエージェントペルソナを採用 |
 | Agents (dispatched) | `.claude/agents/*.md` | Task ツール委譲 | ステージ 4（2.1 パイプライン、2.2 サブエージェント、2.4 モブ、3.5 サブエージェント）: 隔離実行 |
-| Knowledge (Tier 1) | `.claude/knowledge/` | ペルソナ起動（ステップ 2–3） | 方法論参照ファイル 60 |
+| Knowledge (Tier 1) | `.claude/knowledge/` | ペルソナ起動（ステップ 2–3） | 方法論参照ファイル 61 |
 | Knowledge (Tier 2) | スペース単位 `aidlc/knowledge/`（`intents/` の兄弟） | ペルソナ起動（ステップ 4–5） | チームが管理するカスタマイズ |
 | Stage protocol | `stage-protocol.md` + 条件モジュール | 静的コアはどのステージでも。モジュールは引き金で | 必須の振る舞い契約 |
 | Stage files | `stages/**/*.md` | エンジンルーティング | 個々のステージ定義 33 |
