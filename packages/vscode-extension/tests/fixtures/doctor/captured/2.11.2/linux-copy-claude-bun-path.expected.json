@@ -9,7 +9,7 @@
     {
       "section": "machine",
       "status": "ok",
-      "originalLabel": "Runtime hook PATH: bun -> /usr/local/bin/bun (non-interactive baseline)"
+      "originalLabel": "Runtime hook PATH: bun -> <BUN> (this project's hooks found it; last fired 2000-01-01T00:00:00Z)"
     },
     {
       "section": "machine",

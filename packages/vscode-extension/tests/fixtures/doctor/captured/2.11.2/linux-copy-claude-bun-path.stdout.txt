@@ -1,7 +1,7 @@
 AI-DLC doctor
 
 Machine
-  ok    Runtime hook PATH: bun -> /usr/local/bin/bun (non-interactive baseline)
+  ok    Runtime hook PATH: bun -> <BUN> (this project's hooks found it; last fired 2000-01-01T00:00:00Z)
   ok    Runtime hook PATH: aidlc is not required by the selected projection
   ok    Harness CLI: claude 3.0.0 (Doctor fixture CLI) at <CAPTURE>/test-tools/claude
   ok    Transaction staging: no abandoned directories
