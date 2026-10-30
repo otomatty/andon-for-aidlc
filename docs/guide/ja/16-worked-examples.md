@@ -314,6 +314,8 @@ aidlc-architect-agent が通知サービスのアーキテクチャを設計し�
 aidlc engine bolt checkpoint --action verify --unit "notification-core" --kind skeleton
 ```
 
+より長いプロジェクトチェックでは、`--action verify` に `--timeout-ms 3600000`（1 時間）を加えます。既定は 30 分で、値は 2,147,483,647 ミリ秒以下の正の整数でなければなりません。タイムアウトすると、所有するプロセスグループ/ツリーを終了させて、失敗した検証を記録します。終了を確認できない場合は、クリーンアップが不完全であることを報告します。[タイムアウトの契約](../reference/12-state-machine.md#construction-チェックポイント検証のタイムアウト) を参照してください。
+
 `verify` が `verified: true` を報告し、現在のチェックポイントが `ready: true` になった後でのみ、コンダクターはセッションに結び付いた承認の質問を開きます。
 
 ```bash

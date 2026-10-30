@@ -359,6 +359,18 @@ consume のレコードは `artifact`、`required`、任意の `conditional_on` 
   OpenCode の合成では、ネイティブの `.opencode/agents/` サブエージェントの片割れも作成し、
   入れ子の `task` 委譲を拒否します。[エージェントを追加する](03-adding-an-agent.md) を
   参照してください。
+  Kiro IDE と Kiro CLI v3（`kiro-ide` の投影）では、合成があなたのエージェントに、AI-DLC 自身の
+  ペルソナが持つツール、MCP サーバー、ルールを与えます。そのため、Kiro の `tools:` と
+  `permissions:` はエージェントに書かないでください（Claude Code は `tools:` の行を許可リストとして
+  読んでしまいます）。あなたのステージはそれをディスパッチできます。aidlc エージェントがそれに作業を
+  渡す前に、Kiro は本人に確認します。各 MCP 呼び出しの前に確認するのと同じく、本人が Always allow を
+  選ぶまで確認は続きます（aidlc エージェントは AI-DLC 自身のペルソナだけを名前で許可しています）。
+  これには、このリリース以降でビルドしたプラグインが必要です。ビルドし直して、もう一度置いてください。
+  Kiro CLI V2（`kiro` の投影）では、ステージがディスパッチするプラグインのエージェントに、手書きの
+  エージェントファイル `.kiro/agents/<agent>.json`（agent-v1 JSON で、使う各 MCP サーバーを `tools` の中で
+  `@<server>` として名指しします）と、`.kiro/agents/aidlc.json` の
+  `toolsSettings.subagent.trustedAgents` にあるそのエージェントの信頼エントリが必要です。V3 と
+  Kiro IDE では、どちらも不要です。
   Kiro CLI でネイティブにディスパッチされるプラグインの名簿ワーカーでは、手書きの agent-v1 JSON の
   `resources` 配列にも `file://aidlc/active-memory/**/*.md`（アクティブなスペースのメモリの
   エンジンによるコピーで、どのインストールでも同じパス）を含め、既存の

@@ -163,8 +163,12 @@ Review outcome: Concerns remain for your decision.
 > R-03 Required action: Human should confirm at the gate that a single integration-adoption
   metric is sufficient, or ask a follow-up to add a data-accuracy or reliability metric ...
 
+Approve accepts the open review findings R-01 (...), R-02 (...) and R-03 (The table carries a
+single, binary success metric ("at least one real...) as risk; you can also approve and ask for
+one to be fixed, or reject one as not applying, saying why.
+
 Decision options:
-- Approve - continue with the open findings accepted.
+- Approve - continue.
 - Request Changes - return to the listed artifacts so the required actions can be addressed.
 
  Approval
@@ -173,7 +177,7 @@ Decision options:
    2. Request Changes
 ```
 
-各指摘事項には、ID、重大度、場所、それを解決するものがあります。安定した指摘事項の一覧はエンジンが管理します。後の確認では変わった点だけが報告され、あなたの判断はしたとおりに保たれます。未解決の指摘事項をすべて受け入れたうえで先へ進むには **Approve**、列挙された成果物へ戻るには **Request Changes** を選びます。未解決の指摘事項を「該当しない」として却下する場合は、その ID と理由を伝えてください。レビュアーが修正済みとした指摘事項に同意できない場合は、その ID を挙げて修正されていない理由を説明し、変更を依頼します。エンジンは次の確認に向けてその指摘事項を再び開きます。通常の修正フィードバックでは、指摘事項の判断は何も変わりません。後方ジャンプの後、Keep と Modify ではこの一覧と判断が保たれ、Redo from scratch では `R-01` から新しい一覧が始まります。ワークフローの途中でアップグレードしても、それまでの判断は ID ごとに保たれます。修正プロセスの詳細は [対話モード](07-interaction-modes.md) を参照してください。
+各指摘事項には、ID、重大度、場所、それを解決するものがあります。安定した指摘事項の一覧はエンジンが管理します。後の確認では変わった点だけが報告され、あなたの判断はしたとおりに保たれます。未解決の指摘事項をすべてリスクとして受け入れたうえで先へ進むには **Approve**（指摘事項の下の行がそれらを挙げています）、列挙された成果物へ戻るには **Request Changes** を選びます。1 つだけ別の判断をするには、自分の言葉でそう伝えてください。承認しつつ R-03 の修正を頼むと、修正を頼んだことが記録され、次の確認でそれがもう一度確認されます。R-03 を「該当しない」として却下すると、理由とともにそのように記録され、他に何も変わっていないため、レビューはそのままの状態で同じゲートが戻ってきます。未解決の指摘事項を「該当しない」として却下する場合は、その ID と理由を伝えてください。レビュアーが修正済みとした指摘事項に同意できない場合は、その ID を挙げて修正されていない理由を説明し、変更を依頼します。エンジンは次の確認に向けてその指摘事項を再び開きます。通常の修正フィードバックでは、指摘事項の判断は何も変わりません。後方ジャンプの後、Keep と Modify ではこの一覧と判断が保たれ、Redo from scratch では `R-01` から新しい一覧が始まります。ワークフローの途中でアップグレードしても、それまでの判断は ID ごとに保たれます。修正プロセスの詳細は [対話モード](07-interaction-modes.md) を参照してください。
 
 承認後には進捗行が表示されます。
 
@@ -206,6 +210,8 @@ Delivery Planningでは、コンダクターが `bun test`、`pytest`、`make ch
 skeleton-onでは、DAGの最初のUnitを最小の動作する統合スライスにします。そのUnitは、あなたのPlan Approvalと必要な要約確認を含めて、設計とコードを完成させます。続いて、記録済みで人間が許可したプロジェクト検証がスライスをエンドツーエンドで実証し、承認の質問に **Verified with `<verification_command>` (exit 0)** と表示されてから、あなたがスケルトンを承認し、後続のUnitが始まります。最初の設計ステージをレビューするだけでは、動作するスケルトンの実証になりません。
 
 計画した作業をビルドから外すよう頼むと（「残りのストーリーは飛ばして」）、ビルドはそれなしで進み、その承認で何を外したかが示されます。例えば「Left out of this build: AC2.1.1, AC2.1.2 and AC2.2.1.」です。Unit の `traceability.json` は、外したそれぞれの項目をあなたの言葉とともに `Deferred` として保ちます。
+
+Code Generation には、作業を始める前からあったファイルが伝えられ、計画がそのファイルを変更しない限り、それらを避けてビルドします。作業を始める前からあったファイル（README、LICENSE、ドキュメントや設定。既存のコードでは、削除するすべてのファイルと、AI-DLC が名前からコードやビルドファイルとして読まない変更ファイル。つまり README や `.env` は含まれますが、`package.json`、`Dockerfile`、YAML の設定は含まれません）をビルドが変更または削除すると、その承認で一度だけそのことが示されます。git にあなたのコピーがあれば、それぞれを元に戻すコマンドも示されます。例えば「The build changed README.md, a file you had before this work started. To put it back, run `git checkout HEAD -- README.md`.」です。そうでなければ、戻せるコミット済みのコピーがないことが示されます。セットアップや後の `aidlc config` が書いたとおりの AI-DLC 自身のファイルは、これに含まれません。AGENTS.md や `.gitignore` のようにあなたと共有するファイルの中で AI-DLC の印が付いた部分も、git にあなたのコピーがあれば含まれません。そのファイルのあなたの部分は引き続き含まれます。
 
 自律方針の選択がまだ記録されていなければ、ワークフローは次に、残りの作業をどうビルドし続けるかを尋ねます。**Continue automatically** か **Review each checkpoint** です。
 

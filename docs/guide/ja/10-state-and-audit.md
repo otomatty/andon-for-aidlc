@@ -8,7 +8,7 @@
 
 インテントごとに、`aidlc/spaces/<space>/intents/<YYMMDD>-<label>/aidlc-state.md`（インテントのレコードディレクトリの下）に 1 本あります。そのインテントの進捗の正本です。エンジンはセッション開始のたびにアクティブインテントの状態ファイルを読み、終わったこと、進行中、次を決めます。
 
-確定した説明文そのものは隣の `project-description.json` に、JSON 文字列 1 本で残します。`aidlc-state.md` はその確定ソースを指し、安全な 1 行の `Project` プレビューだけを持ちます。複数行の入力が状態フィールドを増やさないためです。2.6.115 より前の記録でソース印がないものは、従来どおり `Project` 欄を説明として使います。印のある新しい記録でファイルがない・壊れているときは、黙って劣化せずソース検証に失敗します。Git が sidecar 末尾の改行を正規化しても、JSON 復号は元の説明を保ちます。
+最初の説明文は隣の `project-description.json` に、JSON 文字列 1 本で残します。キー、トークン、パスワードの形をしたものがマスクされる以外は、入力したとおりです（[入力したキーとパスワード](#入力したキーとパスワード) を参照）。`aidlc-state.md` はその確定ソースを指し、安全な 1 行の `Project` プレビューだけを持ちます。複数行の入力が状態フィールドを増やさないためです。2.6.115 より前の記録でソース印がないものは、従来どおり `Project` 欄を説明として使います。印のある新しい記録でファイルがない・壊れているときは、黙って劣化せずソース検証に失敗します。Git が sidecar 末尾の改行を正規化しても、JSON 復号は元の説明を保ちます。
 
 ### 中身
 
@@ -129,15 +129,15 @@ stateDiagram-v2
 
 監査証跡は、後のステージと復旧のために、アクティブなインテントの判断とイベントを記録します。書き込むのは AIDLC のツールとフックで、読み取りはどんな方法でもかまいません。書き込みのガードはガードレールであって、セキュリティ境界ではありません。書き込みを担うコマンドと読み取り専用の照会の契約は [Audit Trail Rules](../reference/04-stage-protocol.md#監査証跡の規則) を参照してください。
 
-### 120 種のイベント分類
+### 126 種のイベント分類
 
-イベントは 25 カテゴリです。
+イベントは 26 カテゴリです。
 
 | カテゴリ | 件数 | イベント |
 |----------|------:|--------|
-| **Workflow Lifecycle** | 7 | `WORKFLOW_STARTED`, `WORKFLOW_COMPLETED`, `WORKFLOW_PARKED`, `WORKFLOW_UNPARKED`, `WORKFLOW_ARCHIVED`, `WORKFLOW_UNARCHIVED`, `INTENT_REPOS_CHANGED` |
+| **Workflow Lifecycle** | 8 | `WORKFLOW_STARTED`, `WORKFLOW_COMPLETED`, `WORKFLOW_PARKED`, `WORKFLOW_UNPARKED`, `WORKFLOW_ARCHIVED`, `WORKFLOW_UNARCHIVED`, `INTENT_REPOS_CHANGED`, `INTENT_CHECKOUTS_CHANGED` |
 | **Phase Lifecycle** | 4 | `PHASE_STARTED`, `PHASE_COMPLETED`, `PHASE_VERIFIED`, `PHASE_SKIPPED` |
-| **Stage Lifecycle** | 8 | `STAGE_STARTED`, `STAGE_AWAITING_APPROVAL`, `STAGE_REVISING`, `STAGE_COMPLETED`, `STAGE_SKIPPED`, `STAGE_JUMPED`, `STAGE_DEFINITION_CHANGED`, `SOURCE_WORK_NOT_FOUND`（Code Generation が探した場所に新しいコードが見つからなかったことと、そのときに取った行動: エージェントに伝えた、あなたに質問した、Guard Policy off のもとで身を引いた） |
+| **Stage Lifecycle** | 9 | `STAGE_STARTED`, `STAGE_AWAITING_APPROVAL`, `STAGE_REVISING`, `STAGE_COMPLETED`, `STAGE_SKIPPED`, `STAGE_JUMPED`, `STAGE_DEFINITION_CHANGED`, `STAGE_OUTPUT_AMENDED`（あなたが承認した後、次のメッセージより前に、ステージ自身のドキュメントが変わった）、`SOURCE_WORK_NOT_FOUND`（Code Generation が探した場所に新しいコードが見つからなかったことと、そのときに取った行動: エージェントに伝えた、あなたに質問した、Guard Policy off のもとで身を引いた） |
 | **Session** | 6 | `SESSION_STARTED`, `SESSION_RESUMED`, `SESSION_COMPACTED`, `SESSION_ENDED`, `HUMAN_TURN`（フック発行）、`HOST_TURN`（フック発行、助言: ホストがエージェント向けに作ったプロンプトで、人のターンではない） |
 | **Initialization** | 3 | `WORKSPACE_SCAFFOLDED`, `WORKSPACE_SCANNED`, `WORKSPACE_INITIALISED` |
 | **Navigation** | 9 | `SCOPE_CHANGED`, `SCOPE_DETECTED`, `DEPTH_CHANGED`, `TEST_STRATEGY_CHANGED`, `REVIEW_CLASS_CHANGED`, `RECOMPOSED`, `WORKSPACE_RECLASSIFIED`, `SCOPE_SAVED`, `PLUGIN_SELECTION_CHANGED` |
@@ -146,9 +146,10 @@ stateDiagram-v2
 | **Interaction** | 17 | `DECISION_RECORDED`, `GATE_APPROVED`, `GATE_REJECTED`, `QUESTION_ANSWERED`, `QUESTION_REPLIED`, `QUESTION_UNANSWERED`, `REQUEST_ROUTED`, `SUMMARY_CONFIRMATION_RECORDED`, `VERIFICATION_COMMAND_RECORDED`, `CONSTRUCTION_POLICY_RECORDED`, `CHECKPOINT_VERIFICATION_RECORDED`, `PLAN_APPROVAL_RECORDED`, `PLAN_APPROVAL_SKIPPED`, `PLAN_APPROVAL_OVERRIDDEN`, `REVIEW_REQUESTED`, `REVIEW_COMPLETED`, `PIPELINE_LINK_COMPLETED` |
 | **Unit Configuration and Lifecycle** | 9 | `UNIT_OWNERSHIP_SET`, `UNIT_GATE_RHYTHM_SET`, `CONSTRUCTION_POLICY_SET`, `UNIT_STARTED`, `UNIT_PAUSED`, `UNIT_RESUMED`, `UNIT_COMPLETED`, `UNIT_SKIPPED`, `UNIT_MERGED` |
 | **Artifact** | 3 | `ARTIFACT_CREATED`, `ARTIFACT_UPDATED`（write-audit-log フック）、`ARTIFACT_REUSED` |
-| **Subagent** | 3 | `SUBAGENT_COMPLETED`（log-subagent フック）、`SUBAGENT_PROMPT_UNMATCHED`（Copilot アダプタ、助言）、`REVIEW_VERDICT_DICTATED`（もう書かれない。以前のリリースの plan-approval-guard フック。レビュアー自身の `**Verdict Dictated:**` 行は現在 `REVIEW_COMPLETED` に載る） |
+| **Subagent** | 4 | `SUBAGENT_DISPATCHED`（deliver-stage-rules フック。Cursor と Kiro IDE では log-subagent）、`SUBAGENT_COMPLETED`（log-subagent フック）、`SUBAGENT_PROMPT_UNMATCHED`（Copilot アダプタ、助言）、`REVIEW_VERDICT_DICTATED`（もう書かれない。以前のリリースの plan-approval-guard フック。レビュアー自身の `**Verdict Dictated:**` 行は現在 `REVIEW_COMPLETED` に載る） |
 | **Reviewer Enforcement** | 2 | `REVIEWER_SCOPE_BLOCKED`（reviewer-scope フック）、`REVIEW_FREEZE_BLOCKED`（review-freeze フック） |
 | **Plan Approval** | 2 | `PLAN_APPROVAL_BLOCKED`, `GUARD_DISABLED`（plan-approval-guard フック、またはこの作業でオフにしたフェンス） |
+| **Guard Refusals** | 2 | `STATE_TRANSITION_BLOCKED`（state-transition ガードが、委譲エージェントのライフサイクルまたはルーティングのコマンドを拒否した）、`STAGE_RULES_BLOCKED`（ステージのルールがサイズのため拒否された、または必要なルールファイルを読めなかった）。どちらも `Guard`、`Reason`、拒否した `Target`/`Session` を持ち、拒否 1 回につき 1 行 |
 | **Documents** | 3 | `DOCUMENT_INDEXED`, `DOCUMENT_UPDATED`, `DOCUMENT_REMOVED` — インテント範囲でもスペース単位のシャード |
 | **Utility** | 1 | `HEALTH_CHECKED` |
 | **Error/Recovery** | 3 | `ERROR_LOGGED`, `RECOVERY_COMPLETED`, `COORDINATION_STOOD_ASIDE` |
@@ -156,7 +157,7 @@ stateDiagram-v2
 | **Worktree** | 7 | `WORKTREE_CREATED`, `WORKTREE_MERGED`, `WORKTREE_DISCARDED`, `STATE_FORKED`, `STATE_MERGED`, `AUDIT_FORKED`, `AUDIT_MERGED` |
 | **Practices** | 4 | `PRACTICES_DISCOVERED`, `PRACTICES_AFFIRMED`, `PRACTICES_OVERRIDE`, `PRACTICES_SECTION_EMPTY` |
 | **Merge Dispatch** | 3 | `MERGE_DISPATCH_INVOKED`, `MERGE_DISPATCH_RETURNED`, `MERGE_DISPATCH_FALLBACK` |
-| **Sensors** | 5 | `SENSOR_FIRED`, `SENSOR_PASSED`, `SENSOR_FAILED`, `SENSOR_BUDGET_OVERRIDE`, `GUARDRAIL_LOADED` |
+| **Sensors** | 6 | `SENSOR_FIRED`, `SENSOR_PASSED`, `SENSOR_FAILED`, `SENSOR_COULD_NOT_RUN`, `SENSOR_BUDGET_OVERRIDE`, `GUARDRAIL_LOADED` |
 | **Learning Loop** | 3 | `MEMORY_EMPTY`, `RULE_LEARNED`, `SENSOR_PROPOSED` |
 | **Swarm** | 7 | `SWARM_STARTED`, `SWARM_UNIT_CONVERGED`, `SWARM_SOURCE_MERGED`, `SWARM_UNIT_FAILED`, `SWARM_BATON_RETURNED`, `SWARM_COMPLETED`, `SWARM_DEGRADED` |
 | **Commit Provenance** | 1 | `SOURCE_COMMITTED`。`aidlc attest anchor` または任意のセッション開始時走査が記録する補足情報。`resolve` は参照しない |
@@ -167,7 +168,7 @@ stateDiagram-v2
 - **エージェントがファイルツールで書く・編集するファイル**のうち、インテントのレコードディレクトリかスペースの `codekb/` にあるもの（`audit/` シャード自身を除く）は write-audit-log フックが残す。シェルコマンドで書いたファイルは残らない
 - **承認ゲートの判断**（承認、差し戻し、このまま進める）は毎回
 - **質問への回答**は毎回
-- **サブエージェント完了**は log-subagent フックが残す
+- **サブエージェント完了**は log-subagent フックが残し、送り出したヘルパーはそれぞれ送り出したときに残す
 - **エラーと復旧**は毎回
 
 ### 監査ログの読み方
@@ -194,6 +195,10 @@ stateDiagram-v2
 イベントの時系列は `aidlc engine audit history` で JSON として、1 つのステージだけを見るなら `--stage <slug>` を付けて確認します。各イベントは時刻、種類、名前付きのフィールドを持ちます。結果は古い順です。`unordered: true` は、書き手をまたいで順序が分からない同時刻のエントリを示します。自由形式のメモは、見出しと本文を持つ `NOTE` エントリとして表示されます。`--event NOTE` はメモを選び、`--stage` はメモを除外します。
 
 以前の質問と回答の組は `aidlc engine log answers --stage <slug>`（Unit なら `--unit <unit>` を追加）で確認します。1 つの返答は、それが答えたメニューについて記録されたすべての質問と組になります。未解決の質問と、まれな曖昧な回答（前に質問がない、または書き手が同じ 1 秒で並んだもの）は別に報告されます。どちらのコマンドもファイルを変更せず、ロックも取りません。
+
+### 入力したキーとパスワード
+
+状態ファイル、`project-description.json`、監査シャードは作業とともにコミットされるため、AI-DLC はそれらを書く前に、キー、トークン、パスワードの形をしたものをマスクします。対象は、ベンダーのトークン（GitHub、GitLab、Slack、Stripe、OpenAI、Anthropic、Google、npm、Hugging Face、AWS のアクセスキー）、秘密鍵のブロック、JWT や `Bearer` トークン、アドレス中のパスワード（`postgres://app:[masked]@db`）、そしてシークレットの名前の後に設定された値（`password=`、`DB_PASSWORD=`、`GITHUB_TOKEN:`）のうち、英字と、数字または記号を含むものです（パスワードの名前の後では、`-`、`.`、`_` でつないだ単語も対象になります）。`$DB_PASSWORD` のような参照や、`your-api-key-here` のようなプレースホルダーはそのまま残ります。それ以外の言葉は入力したとおりに残ります。例: `**Person Reply**: Approve, the deploy key is [masked]`。メッセージ全体が残るのは `aidlc/.aidlc-sessions/` だけで、AI-DLC の `.gitignore` ブロックがこれをコミットから外します。メッセージにそうしたものが含まれていた場合、AI-DLC はチャットで一度そのことを伝えます。チャット自体はそれを受け取っているので、本物のキーであれば、発行元でキーを変更してください。マスクは形だけで判断するため、別の書き方をしたシークレット（`my password is hunter2`）は入力したとおりに残ります。doctor のバンドルは、同じ形とそれ以上をマスクします。
 
 ### 監査イベントの流れ
 
@@ -227,7 +232,7 @@ sequenceDiagram
 
 ### ソースに紐づくレビューレシート
 
-Code Generation はアプリケーションソースをインテントの記録の外に書くので、完了時のユニットごとのレビューレシートは Markdown 成果物だけでは足りません。対象ユニットの厳格な `source-manifest.json` が、作成・変更・削除したソースパスを列挙し、`Unit Source Fingerprint` がその主張とマニフェスト本体を束ねます。完了時、エンジンは新しいユニットから順に検証します（後からレビューした主張が、意図した共有ファイルの取り込みを所有できる）。そのうえで、新鮮な主張の和集合をステージ開始時のソースベースラインと比較します。Guard Policy が strict の場合、カバーされていない変更か、古いユニットがあると、完了経路は 4 つとも止まり、そのユニットに対する期限付きの stale-receipt 復旧が 1 回だけ出ます。Git が無視し、どのユニットも主張できないファイル（追跡されておらず `.aidlc-source-paths.json` にも登録されていないもの。ビルド出力やテスト実行の記録など）は、カバーされていない変更ではありません。そのファイルの `exclude` 一覧が走査から外すパスも同様で、その行がステージ開始後に書かれた場合でも変わりません（プロジェクトが無視していないツールのキャッシュや、このプロジェクトのコードではない入れ子のリポジトリなど）。登録ファイル自体は AI-DLC 自身のものなので、どのユニットも主張しません。strict の拒否は、通り抜ける 3 つの方法を示します。変更を行ったユニットがそのパスを列挙してもう一度レビューを受ける、誰も意図しなかった変更を元に戻す、ソースではないパスをそこで除外する、のいずれかです。relaxed または off の場合、カバーされていない変更は残されます。完了時に `CHANGE_ACCEPTED` として一度記録され、ファイルが 1 行で示されます（"These files changed outside any unit's work in Code Generation: ... Kept them."）。このマシンにステージ開始時のベースラインがない場合は、1 行の表示とともに確認を省きます。
+Code Generation はアプリケーションソースをインテントの記録の外に書くので、完了時のユニットごとのレビューレシートは Markdown 成果物だけでは足りません。対象ユニットの厳格な `source-manifest.json` が、作成・変更・削除したソースパスを列挙し、`Unit Source Fingerprint` がその主張とマニフェスト本体を束ねます。完了時、エンジンは新しいユニットから順に検証します（後からレビューした主張が、意図した共有ファイルの取り込みを所有できる）。そのうえで、新鮮な主張の和集合をステージ開始時のソースベースラインと比較します。Guard Policy が strict の場合、カバーされていない変更か、古いユニットがあると、完了経路は 4 つとも止まり、そのユニットに対する期限付きの stale-receipt 復旧が 1 回だけ出ます。Git が無視し、どのユニットも主張できないファイル（追跡されておらず `.aidlc-source-paths.json` にも登録されていないもの。ビルド出力やテスト実行の記録など）は、カバーされていない変更ではありません。そのファイルの `exclude` 一覧が走査から外すパスも同様で、その行がステージ開始後に書かれた場合でも変わりません（プロジェクトが無視していないツールのキャッシュや、このプロジェクトのコードではない入れ子のリポジトリなど）。登録ファイル自体は AI-DLC 自身のものなので、どのユニットも主張しません。strict の拒否は、通り抜ける 3 つの方法を示します。変更を行ったユニットがそのパスを列挙してもう一度レビューを受ける、誰も意図しなかった変更を元に戻す、ソースではないパスをそこで除外する、のいずれかです。relaxed または off の場合、カバーされていない変更は残されます。完了時に `CHANGE_ACCEPTED` として一度記録され、ファイルが 1 行で示されます（"These files changed outside any unit's work in Code Generation: ... Kept them."）。このマシンにステージ開始時のベースラインがない場合（新しいクローン）は、どの Guard Policy でも 1 行の表示とともに確認を省きます。ベースラインがあって一致しない場合は、strict では引き続き完了を止めます。
 
 ワークスペース全体の `Source Fingerprint` は、通常、レビュー後の変更の外側の境界です。文書化されている「revert」復旧を実際に効かせる狭い調停が 1 つあります。主張のないベースライン変更（追加・変更・削除）を完全に戻したあと、完了を続けられるのは次が揃ったときだけです。ステージのベースラインが存在して妥当であること、対象ユニットすべてに新鮮な現行バインディングがあること、ベースラインから現在までの差分に未主張のパスがないこと。レビュー後の通常の編集、古いかレガシーなユニット証跡、残っている未主張パスは、これまでどおり拒否します。アップグレード前のフィールド無しレシートやベースラインは、文書どおりマイグレーション時は fail-open を残します。現行の証跡が欠けているか壊れているときは fail-closed です。`AIDLC_SKIP_SOURCE_FRESHNESS=1` は決定論的な緊急オフスイッチで、bypass 印の付いたレシートを消費するときも、もう一度立てる必要があります。
 

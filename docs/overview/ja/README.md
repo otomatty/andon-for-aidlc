@@ -63,7 +63,7 @@ Codex CLI では `$aidlc` を使います。プロバイダーの設定、信頼
 | [オンボーディングの手引き](guide/onboarding.md) | 初めてのチーム向け。考え方の要点と、5 回の実行で進む案内付きの道筋 |
 | [ワークフロープロファイル](guide/workflow-profiles.md) | Classic、Express、用途別のワークフローを選ぶ |
 | [ファシリテーターガイド](guide/facilitator-guide.md) | ワークショップの運営やチームの支援: 準備チェック、復旧プレイブック、ハーネスの比較 |
-| [インストールとライフサイクル](guide/18-install-and-lifecycle.md) | 更新、バージョン固定、オフライン導入、ミラーの利用、アンインストール |
+| [インストールとライフサイクル](guide/18-install-and-lifecycle.md) | 更新、バージョン固定、オフライン導入、ミラーの利用、アンインストール、またはプロジェクトからの AI-DLC の削除 |
 | [ハーネスエンジニアガイド](harness-engineering/00-overview.md) | ステージ、エージェント、スコープ、ルール、センサー、ナレッジを調整する |
 | [開発とリリース](https://github.com/awslabs/aidlc-workflows/blob/6a378b53c0a4fe0641ed7d8de8dfff94264d5b6a/DEVELOPERS.md) | PR の AI レビュー、preview での検証、stable 公開までを進める |
 | [開発者リファレンス](reference/00-overview.md) | エンジン、フック、パッケージ化、テストスイートを変更する |

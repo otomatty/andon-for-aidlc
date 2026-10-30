@@ -18,12 +18,12 @@
 
 Codex CLI では `/aidlc` の代わりに `$aidlc` を使います。相対パスはプロジェクトのルートから解決されます。内容を `<document>` と `</document>` の間に入れて依頼に貼り付けることも、PDF や Word のファイル名を示すこともできます。それぞれの読み方と、名前が複数のファイルに一致したときに何が起きるかは、[既存ドキュメントから始める](../02-your-first-workflow.md#既存ドキュメントから始める) を見てください。
 
-ワークフローは文書を指示ではなくデータとして扱います。それをもとに計画しますが、承認はすべて引き続きあなたが行います。Intent Capture はそれでも質問をします。文書がすでに答えている質問はすぐに確認でき、文書に書かれた未解決の問いは早い段階で取り上げられます。短いビジョン文書で、未解決の問いが倉庫ごとの在庫数についての 1 つだけだった Claude Code の実行では、Intent Capture がそのための質問を独自に追加しました（短縮し、罫線文字はプレーンテキストで表示しています）:
+ワークフローは文書を指示ではなくデータとして扱います。それをもとに計画しますが、承認はすべて引き続きあなたが行います。Intent Capture はそれでも質問をします。文書がすでに答えている質問はすぐに確認でき、文書に書かれた未解決の問いは早い段階で取り上げられます。短いビジョン文書で、未解決の問いが倉庫ごとの在庫数についての 1 つだけだった Claude Code の実行では、Intent Capture がそのための質問を独自に追加しました（短縮し、罫線文字はプレーンテキストで表示し、ラベルが入る位置を示すために質問文の前に `[Product owner]` を加えています）:
 
 ```text
  Warehouses
- Q9. Do the internal tools need stock counts per warehouse, or one total per SKU? The vision doc
- leaves this open, and it changes what a "count" means for every SKU.
+ Q9. [Product owner] Do the internal tools need stock counts per warehouse, or one total per SKU?
+ The vision doc leaves this open, and it changes what a "count" means for every SKU.
  > 1. One total per SKU
    2. Per warehouse per SKU
    3. One total now; per-warehouse later

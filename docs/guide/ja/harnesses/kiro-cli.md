@@ -113,12 +113,24 @@ status、doctor、help、version、ワークスペース移動のコマンドは
 
 Kiro 自身が出すプロンプト（たとえば、新しい kiro-cli がサブエージェントの戻り後に送る `[SYSTEM] Sub-agent synthesis:` メッセージ）は、あなたのターンとして数えません。`HOST_TURN` として記録され、どの質問への回答にもなりません。あなた自身のメッセージは、文言にかかわらず数えます。どちらがどちらかは Kiro のチャット記録が示し、不明なものはあなたのものとして扱います。最初のワークフローステージのあとは、`/aidlc --doctor` がこれを "Hooks have never executed" と報告します。それより前は、AI-DLC のフックがこのプロジェクトでまだ動いていないと doctor が警告し、同じ手順を示します。v3 エンジンで再起動しても直りません。別のエージェントを選んでいるときは、`/agent` と入力して `aidlc` を選び、同じチャットで続けてください。3.0 エンジンの場合（Kiro が返答の下に `agent "aidlc" needs upgrading for this agent engine` と表示する）は、終了して、このフォルダで代わりに `kiro-cli chat --agent-engine v2 --agent aidlc` を始めてください（ACP クライアントは `kiro-cli acp --agent-engine v2` を起動します）。Kiro CLI を v3 エンジンで動かすには、代わりに [Kiro IDE](kiro-ide.md) の配布を使ってください。既存のプロジェクトでは、`aidlc config --harness kiro-ide` が `.kiro/` をその場で切り替え、`aidlc/` は残します。[Kiro CLI のフックが動かない](../15-troubleshooting.md#kiro-cli-hooks-not-running) を見てください。
 
+### チャットがいっぱいになってきたら
+
+Kiro はチャットがどれだけいっぱいかをあなたに表示しますが、作業中の AI-DLC にはその数値を渡しません。そこで AI-DLC は、各ターンの終わりに Kiro がそのチャットについて保存する数値を読みます（`~/.kiro/sessions/cli/<chat id>.json`、読み取りのみ）。それが 80% 以上になると、次の承認の質問または Unit チェックポイントに、チャットがどれだけいっぱいかを伝える一行が付き、一時停止して新しいチャットで続けることを提案します。決めるのはあなたの答えです。ひとりでに一時停止することはなく、その一行は一つのチャットで一度だけ出ます。
+
+この一行が出ないのは、ステージの途中（どのみち尋ねられる質問と一緒にしか出ません）、Kiro がそのチャットの最初のターンを保存する前、このマシンに記録がないチャット、そして Kiro の更新で Kiro の数値の保存方法が変わった場合です。Kiro 自身の数値が上がっていくのが見えたら、同じことを手で行えます。
+
+1. ステージの境界で止めます。承認し、同じ返答の中でいったんここで止めたいと伝えるか、`/aidlc park` と入力します。`/aidlc --status` は `Paused at <stage> (you stopped it); pick it back up with /aidlc --resume` と表示するようになります。
+2. `/chat new` と入力して新しいチャットにします。Kiro は古いチャットを残し、`/chat resume` で戻せます。今いるチャットをリセットする `/clear` ではなく、こちらを使ってください。
+3. `/aidlc --resume` と入力します。`/aidlc --status` はもう Paused と表示しません。
+
+古いチャットで話し合ったものの、ファイルに書かなかったことは引き継がれません。だからステージの終わりが最適なタイミングです（[ワークフロー途中でのモデル変更](../11-session-management.md#ワークフロー途中でのモデル変更) を参照）。
+
 ## Kiro で違うところ
 
 | 領域 | Claude Code | Kiro CLI |
 |------|-------------|----------|
 | ゲートと質問 | `AskUserQuestion` ウィジェット | 番号付きの散文選択肢（番号で返す）。正本は `[Answer]:` タグ付きの questions ファイル |
-| ステータスライン | 今のステージ + モデル + コンテキスト % | ない — `/aidlc --status` と、各ゲートの進捗行を使う |
+| ステータスライン | 今のステージ + モデル + コンテキスト % | ない。`/aidlc --status` と、各ゲートの進捗行を使う。いっぱいになってきたチャットについては [チャットがいっぱいになってきたら](#チャットがいっぱいになってきたら) を参照 |
 | ディスパッチステージ（2.1 パイプライン、2.2 サブエージェント、2.4 モブ、3.5 サブエージェント） | `Task` ツール | Kiro の `subagent` ツール → エージェント設定（ペルソナ 14 体すべてが設定を出荷） |
 | Construction スウォーム | 並行 `Task` フロア、任意の ultracode Workflow | サブエージェントの fan-out だけ。`AIDLC_USE_SWARM=1` は no-op と告知する |
 | セッション監査イベント | `SESSION_STARTED/RESUMED/ENDED`、`SESSION_COMPACTED` | `SESSION_STARTED` だけ（Kiro にセッション終了／コンパクション前フックはない） |
@@ -133,7 +145,7 @@ Kiro 自身が出すプロンプト（たとえば、新しい kiro-cli がサ�
 
 ## フレームワーク開発者向け
 
-`dist/kiro` は `core/` + `harness/kiro/` から `bun scripts/package.ts kiro` で **生成** されます（コアのコピーで `{{HARNESS_DIR}}` トークンを `.kiro` に置換し、`rules/` → `steering/` へ名前を付け替えます）。出力は無視され、ローカルです。`bun scripts/package.ts --check` は独立した一時ルートで二度ビルドし、結果をバイト比較して CI の決定論ガードとします。手で書く Kiro の面は `harness/kiro/` にあります。オーケストレータスキル（`skills/aidlc/`）、エージェント JSON（`agents/`）、フックアダプタ（`hooks/aidlc-kiro-adapter.ts`）、`settings/cli.json`、`settings/mcp.json`、`onboarding.fills.ts` — 直すのはそれら（または `core/`）であり、生成された `dist/kiro` ではありません。[Porting to a New Harness](../../harness-engineering/09-porting-to-a-new-harness.md) を見てください。
+`dist/kiro` は `core/` + `harness/kiro/` から `bun scripts/package.ts kiro` で **生成** されます（コアのコピーで `{{HARNESS_DIR}}` トークンを `.kiro` に置換し、`rules/` → `steering/` へ名前を付け替えます）。出力は無視され、ローカルです。`bun scripts/package.ts --check` は独立した一時ルートで二度ビルドし、結果をバイト比較して CI の決定論ガードとします。手で書く Kiro の面は `harness/kiro/` にあります。オーケストレータスキル（`skills/aidlc/`）、エージェント JSON（`agents/`）、フックアダプタ（`hooks/aidlc-kiro-adapter.ts`）、`settings/cli.json`、`settings/mcp.json`、`onboarding.fills.ts` — 直すのはそれら（または `core/`）であり、生成された `dist/kiro` ではありません。[Porting to a New Harness](../../harness-engineering/09-porting-to-a-new-harness.md) を見てください。ビルドは、それらのエージェント JSON のすべてのフックコマンドに `; exit $LASTEXITCODE` を付け足します（マニフェストの `hookCommandSuffix`）。Kiro CLI は Windows では PowerShell で、それ以外では bash でフックを起動し、この形はどちらでもフックの終了コード 2 を Kiro に返すので、Windows でも拒否がツール呼び出しを止めます。
 
 Claude の双子と並んで、実機の TUI 通しテストがあります。`tests/e2e/t-tui-kiro-intent-capture.serial.test.ts` は出荷の木に対して `kiro-cli chat` をキー入力で駆動します（番号付き散文ゲートは推奨の "1" で答え、ディスク状態で終了します）。オプトインは `AIDLC_KIRO_TUI_LIVE=1` です。tmux、`kiro-cli`、ログイン済みの Kiro セッションがないときは、理由付きでスキップします。
 

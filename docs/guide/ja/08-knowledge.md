@@ -52,7 +52,7 @@ flowchart TD
 .claude/knowledge/
 +-- aidlc-shared/                       # 全エージェントが読む方法論と、形式の参照資料
 |   +-- ai-dlc-principles.md        # 方法論の中核
-|   +-- audit-format.md             # 120種の監査イベント分類
+|   +-- audit-format.md             # 126種の監査イベント分類
 |   +-- brownfield.md               # ブラウンフィールドの防護とリバースエンジニアリング
 |   +-- knowledge-readme-template.md # 第2層へコピーできる任意の README 雛形
 |   +-- memory-template.md          # ステージごとの日誌の雛形

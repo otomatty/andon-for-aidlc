@@ -136,6 +136,18 @@ Kiro IDE は、新しいチャットをいつも自身の **Default** エージ�
 
 ファイルの変更をその場で一つずつ読みたいとき（たとえば最初のワークフローや、どの変更も重要なコード）は Supervised を使ってください。クリックを大きく減らしたいときは Autopilot を使います。それでも AI-DLC のチェックポイントにはすべてチャットで答え、変更は後から見直せます。
 
+### チャットがいっぱいになってきたら
+
+Kiro はチャットがどれだけいっぱいかをあなたに表示しますが、作業中の AI-DLC にはその数値を渡しません。Kiro IDE と Kiro CLI の v3 エンジンは、チャットが 80% に達すると自分でチャットを要約し、それ以降エージェントはその要約をもとに作業します。AI-DLC は Kiro 自身のチャットの記録（`~/.kiro/sessions/`、読み取りのみ）を読み、Kiro がチャットを要約したあとの最初の承認の質問または Unit チェックポイントで、そのことを一行で伝え、一時停止して新しいチャットで続けることを提案します。Kiro の自動コンパクションを off にしている場合は、チャットが 80% いっぱいになった時点で同じ提案が出ます。決めるのはあなたの答えです。ひとりでに一時停止することはなく、その一行は一つのチャットで一度だけ出ます。
+
+この一行が出ないのは、ステージの途中（どのみち尋ねられる質問と一緒にしか出ません）、このマシンに記録がないチャット、そして Kiro の更新で Kiro のチャットの記録方法が変わった場合です。Kiro IDE で一つのウィンドウに AI-DLC のチャットを二つ開いているときは、最後に始まったチャットについて伝えることがあります。いつでも同じことを手で行えます。
+
+1. ステージの境界で止めます。承認し、同じ返答の中でいったんここで止めたいと伝えるか、`/aidlc park` と入力します。`/aidlc --status` は `Paused at <stage> (you stopped it); pick it back up with /aidlc --resume` と表示するようになります。
+2. 新しいチャットを始めます。Kiro IDE では、新しいチャットを開いてエージェントピッカーで **aidlc** を選びます（新しいチャットは Kiro の Default エージェントで始まります。[Kiro IDE のチャットで AI-DLC を始める](#kiro-ide-のチャットで-ai-dlc-を始める) を参照）。Kiro CLI では `/chat new` と入力します。
+3. `/aidlc --resume` と入力します。`/aidlc --status` はもう Paused と表示しません。
+
+古いチャットで話し合ったものの、ファイルに書かなかったことは引き継がれません。だからステージの終わりが最適なタイミングです（[ワークフロー途中でのモデル変更](../11-session-management.md#ワークフロー途中でのモデル変更) を参照）。
+
 ## Kiro でのフックの動き
 
 Kiro IDE と Kiro CLI v3 は、v2 フック JSON ファイル（`{"version":"v1","hooks":[{name,trigger,matcher,action}]}`、PascalCase のトリガー）を `.kiro/hooks/` の下で登録します（エージェント JSON の中に `hooks` ブロックを持つ `kiro` CLI 配布とは別の仕組みです）。ネイティブのフックコマンドは `aidlc engine adapter kiro-ide` 経由です。ソース／開発コピーは、投影した `aidlc-kiro-adapter.ts` シム経由です。どちらも IDE イベントを、共有コアフックが期待する形へ正規化します。Kiro のどのツールが書き込み、シェル、委譲、読み取りなのかは、アダプタの隣にある一つの表 `aidlc-kiro-tool-names.ts` で決めます。アダプタはそれを読みます。フック登録は手書きの JSON で、そのマッチャーは同じシェル、委譲、監査対象の書き込みの名前を並べます。
@@ -150,15 +162,15 @@ Kiro IDE 1.x と Kiro CLI v3 はフック文脈を **stdin の JSON** で渡し�
 | `aidlc-record-human-turn` | `UserPromptSubmit` | メッセージごとにカード一枚。まず直前の書き込みやコマンドが残した作業を済ませ（下の「書き込みのあと」と「コマンドのあと」の 2 行）、次にプロンプトごとに人のターンのイベントを記録し（人の存在ゲート）、さらにプロンプト本文があるとき、コマンドを入力したチャットのために、status、doctor、help、ナビゲーションなどの端末ユーティリティをモデルより先に実行する。最後に見たチャット以外のチャット、またはまだ始まっていないチャットからのプロンプトは、`aidlc-session-start` と同じように、まずそのチャットのセッションを始めるので、そのチャットは自分の `AIDLC Runtime Session:` 行か再開の文脈を受け取る。Kiro が自分で作るプロンプト（Workflows のステップのブリーフ、ワークフローが終わったという通知）はあなたのターンとして数えない。`HOST_TURN` として記録し、セッションを始めず、質問にも答えない |
 | `aidlc-continue-workflow` | `Stop` | 転送ループの監査（advisory のみ。IDE の Stop トリガーはブロックできない — 強制はコンダクター自身の Stop プロトコルに頼る） |
 | `aidlc-guard-tool-call` | `PreToolUse`（読み取りを除くすべてのツール） | カード一枚。まず直前の書き込みやコマンドが残した作業を済ませ（下の「書き込みのあと」と「コマンドのあと」の行）、次に下の 4 つの検査を、同じ呼び出しに対してこの順で実行する。各検査は横に書いたツールに対してだけ動く。一つが拒否しても全検査が動き、どれか一つでも拒否すれば呼び出しは拒否され、理由はそれぞれ一度ずつ示す。読み取り（`read_file`、`list_directory`、検索）はカードなしで動く。承認に答えることも、ワークスペースを変えることもできないため。補助エージェントが答えを返す呼び出し（`subagent_response`）もカードなしで動く。検査されるのは、その答えに基づいて動く呼び出しの方 |
-| `plan-approval-guard` | `aidlc-guard-tool-call` の中（読み取りを除くすべてのツール） | 引数があるときは、対象を正確に分類して Code Generation Plan Approval を強制する。シェルツールは IDE の 3 つの名前すべてで認識する。`execute_bash`、`execute_pwsh`（Windows）、`shell`。それぞれ共有ガードへ `Bash` として転送し、レガシー復旧も同じ経路。アクティブなワークフローがないときは、どのシェル呼び出しも拒否しない。`execute_pwsh` は PowerShell として扱うので、計画が承認待ちの間も、読み取り専用のコマンドレット（`Get-Content`、`Select-Object`、`ConvertFrom-Json` など）、`2>$null`、`aidlc.cmd` やインストールしたエンジンのフルパスは動く。`Out-File`、`Set-Content`、`Add-Content`、`Tee-Object`、ファイルへの `>` は動かない。引数のないレガシーペイロードでは、このフックに関する限り、計測した `fs_write`/`str_replace` の計画質問書き込みだけを許す。`review-freeze` と `state-transition-guard` がそうした書き込みを拒否するので、実際には実行されない。PostToolUse は黙る。0.12 がその出力を捨てるから。呼び出した Code Generation の `next`／最後の `continue` ディレクティブが、保護された選択能力を 1 つ持つ。復旧は、まず人の正確な `Recover Plan Approval` 応答が要る。別の生きている窓は開始できない。所有者 PID が落ちたあと、または IPC だけのエンドポイントが消えたあとは、代わりの窓が復旧できる。引き継ぎは、チャレンジを回す前に古い応答証拠を消す。書き込み前に途切れた窓は、PostToolUse が走らなくても復旧ラッチのまま。確定の `toolSuccess:false` か、認識できる失敗の散文なら、変更がないのでラッチを外す。不明な結果はラッチしたまま。アダプタが持つ復旧は、人への質問は残し、再発行が成功したあとに違反／窓の状態だけを消す。`UserPromptSubmit` は正確な復旧／承認ラベルを出せるが、開示も譲渡もしない。未知の変更者はフェイルクローズ。共有ファイルと監査に平文の秘密は残らない。 |
+| `plan-approval-guard` | `aidlc-guard-tool-call` の中（読み取りを除くすべてのツール） | 引数があるときは、対象を正確に分類して Code Generation Plan Approval を強制する。シェルツールは IDE の 3 つの名前すべてで認識する。`execute_bash`、`execute_pwsh`（Windows）、`shell`。それぞれ共有ガードへ `Bash` として転送し、レガシー復旧も同じ経路。アクティブなワークフローがないときは、どのシェル呼び出しも拒否しない。`execute_pwsh` は PowerShell として扱うので、計画が承認待ちの間も、読み取り専用のコマンドレット（`Get-Content`、`Select-Object`、`ConvertFrom-Json` など）、`2>$null`、`aidlc.cmd` やインストールしたエンジンのフルパスは動く。`Out-File`、`Set-Content`、`Add-Content`、`Tee-Object`、ファイルへの `>` は動かない。引数のないレガシーペイロードでは、このフックに関する限り、計測した `fs_write`/`str_replace` の計画質問書き込みだけを許す。`review-freeze` と `state-transition-guard` がそうした書き込みを拒否するので、実際には実行されない。PostToolUse は黙る。0.12 がその出力を捨てるから。呼び出した Code Generation の `next`／最後の `continue` ディレクティブが、保護された選択能力を 1 つ持つ。復旧は、まず平易な復旧の質問へのその人の「はい」が要り、それはエージェントが記録する。別の生きている窓は開始できない。所有者 PID が落ちたあと、または IPC だけのエンドポイントが消えたあとは、代わりの窓が復旧できる。引き継ぎは、チャレンジを回す前に古い応答証拠を消す。書き込み前に途切れた窓は、PostToolUse が走らなくても復旧ラッチのまま。確定の `toolSuccess:false` か、認識できる失敗の散文なら、変更がないのでラッチを外す。不明な結果はラッチしたまま。アダプタが持つ復旧は、人への質問は残し、再発行が成功したあとに違反／窓の状態だけを消す。`UserPromptSubmit` は正確な復旧／承認ラベルを出せるが、開示も譲渡もしない。未知の変更者はフェイルクローズ。共有ファイルと監査に平文の秘密は残らない。 |
 | `review-freeze` | `aidlc-guard-tool-call` の中（書き込みとシェル） | 新しい終端レビューの受領記録がステージのレビュー済み出力を覆っている間、ゲートの前に、その出力への書き込みやシェルによる変更を拒否する。書き込みツールは対象パス付きの Write/Edit として、シェルツールは Bash として、チャットのセッションと一緒に共有フックへ届く。委譲されたエージェント自身の書き込みも同じように判断する。`execute_pwsh` のコマンドは、ここでも `state-transition-guard` でも PowerShell として読む（バックスラッシュのパス、`Set-Location`）。入力を読めない呼び出し（Kiro IDE 1.1.70 や Kiro CLI 2.24.1 より古いビルドは引数なしで送ることがある）は、ワークフローの内外を問わず、`AIDLC_DISABLE_REVIEW_FREEZE_HOOK=1` でも、フックが動く前に拒否され、対応ビルドを示す行が出る。 |
 | `state-transition-guard` | `aidlc-guard-tool-call` の中（書き込みとシェル） | AIDLC のフック、セッション制御、ランタイム記録、監査証跡へのツール呼び出しによる書き込みを拒否する。`aidlc-state.ts` のライフサイクル動詞の直接実行は state ツール自身が拒否し、`aidlc-orchestrate.ts report` を案内する。Kiro IDE は呼び出しに委譲エージェントの名前を付けないので、デリゲートの呼び出しにはコンダクターの規則が適用される。入力を読めない呼び出しは、`review-freeze` と同じように拒否する。 |
 | `terminal-command-guard` | `aidlc-guard-tool-call` の中（`execute_bash\|execute_pwsh\|shell`） | プロンプトが空の IDE 版向けフォールバック。分類したユーティリティを一度実行し、重複する Windows シェル呼び出しを拒否する。あるチャットのターンで端末コマンドが実行されたあとは、同じターンのそのチャットのほかのシェル呼び出しも、何を実行するものであれ拒否する（ペイロードが名指すチャットについて）。そのため `/aidlc --status` のターンが次のステージを渡すことはない。Windows では、cmd.exe が分割してしまう値を持つ `aidlc` コマンドも拒否する（下の Windows の引用符の行を参照）。どのシェルでも、返答がファイルへ向かう AI-DLC エンジンコマンド（`>`、`>>`、または `Out-File`、`Set-Content`、`Add-Content`、`Tee-Object`、`tee` へのパイプ）を拒否するので、エージェントはそれを単独で実行し、Kiro が丸ごと返す結果から返答を読む。エージェントが返答を結果から外してパイプしたり取り込んだりする手順コマンド（`orchestrate next` や `continue`）（任意のプログラムへのパイプ、`$(...)`、`$x = ...`、捨てられたストリーム）は拒否しない。次のカードが、そのチャットがその手順の規則を渡されたことを忘れるので、エージェントの次の手順がそれを再び運ぶ |
 | 書き込みのあと（`fs_write\|str_replace\|fs_append`） | カードなし: 次のカードが行う | 成果物の作成／更新を記録し、当たるセンサーを発火する。`aidlc-guard-tool-call` は、通した書き込みが対象とするファイルを書き留める。どのみち動く次のカード（次のガード、あなたの次のメッセージ、またはターンの終わり）が、ファイルが変わっていれば、ほかの何よりも先に、その書き込みのチャットとともにそれを記録する。ファイルを元のままにした書き込みは何も記録しない |
-| `aidlc-log-subagent` | `PostToolUse` (`^(?!subagent_response$)(subagent_.+\|invoke_sub_agent\|orchestrate_subagent)$`) | デリゲートの識別情報付きで `SUBAGENT_COMPLETED` を記録する。`orchestrate_subagent` パイプラインではステージごとに 1 行。マッチャーは広く、どのデリゲート名もアダプタに届く。補助の `subagent_response` シェルは除外し、アダプタはほかのすべての入口でもそれを落とす |
+| `aidlc-log-subagent` | `PostToolUse` (`^(?!subagent_response$)(subagent_.+\|invoke_sub_agent\|orchestrate_subagent)$`) | デリゲートの識別情報付きで `SUBAGENT_COMPLETED` を記録する。`orchestrate_subagent` パイプラインではステージごとに 1 行。マッチャーは広く、どのデリゲート名もアダプタに届く。補助の `subagent_response` シェルは除外し、アダプタはほかのすべての入口でもそれを落とす。各デリゲートが送られたという記録（`SUBAGENT_DISPATCHED`）は、ガードのカードが呼び出しを通した時点で書く |
 | コマンドのあと（`execute_bash\|execute_pwsh\|shell`） | カードなし: 次のカードが行う | 下の 2 つのフックを、この順に、コマンドごとに一度、どのみち動く次のカードがその中のほかの何よりも先に実行する。コマンドが新しい作業を作ったときは、再構築がその名前を受け取るので、それを実行したチャットがその作業に加わる |
 | `rebuild-stage-graph` | コマンドのあと | ランタイムグラフを再コンパイルする（監査末尾でゲート） |
-| `sync-workflow-state` | コマンドのあと | 監査の最新 `STAGE_STARTED` から `Current Stage` を進行方向にのみ同期する（IDE はパースする task ペイロードを出さない） |
+| `sync-workflow-state` | コマンドのあと | 監査の最新 `STAGE_STARTED` から `Current Stage` を進行方向にのみ同期する（IDE はパースする task ペイロードを出さない）。その開始のあとに Unit を開き直したときは、`Current Stage` を開き直しが置いた場所のままにする |
 
 `aidlc-session-end` には **登録がありません**。Kiro の `Stop` トリガーは、どちらの面でも会話の閉じではなく、アシスタントターンの終わりごとに発火するので、登録すると同じセッションのプロンプト間に偽の `SESSION_ENDED` が付きます。Kiro が本物のセッション終了イベントを出すまで、`SESSION_ENDED` は記録されません。
 
@@ -177,11 +189,11 @@ Kiro IDE 1.x と Kiro CLI v3 はフック文脈を **stdin の JSON** で渡し�
 |------|-------------|----------|
 | フック登録 | `settings.json` の `hooks` ブロック | `.kiro/hooks/aidlc-*.json` の v2 フックファイル（Kiro IDE 1.x、Kiro CLI v3 エンジン） |
 | ゲートと質問 | `AskUserQuestion` ウィジェット | 番号付きの散文選択肢（番号で返す）。正本は `[Answer]:` タグ付きの questions ファイル |
-| ステータスライン | 今のステージ + モデル + コンテキスト % | ない — `/aidlc --status` と、各ゲートの進捗行を使う |
+| ステータスライン | 今のステージ + モデル + コンテキスト % | ない。`/aidlc --status` と、各ゲートの進捗行を使う。いっぱいになってきたチャットについては [チャットがいっぱいになってきたら](#チャットがいっぱいになってきたら) を参照 |
 | ディスパッチステージ（2.1 パイプライン、2.2 サブエージェント、2.4 モブ、3.5 サブエージェント） | `Task` ツール | `invoke_sub_agent`（Kiro IDE）または `orchestrate_subagent`（Kiro CLI）→ Markdown ペルソナ 14 体すべて。それぞれ自身の frontmatter の `tools:` と拒否規則、およびコンダクターのコマンド許可のもとで動く |
 | Construction スウォーム | 並行 `Task` フロア、任意の ultracode Workflow | サブエージェントの fan-out だけ。`AIDLC_USE_SWARM=1` は no-op と告知する |
 | セッション監査イベント | `SESSION_STARTED/RESUMED/ENDED`、`SESSION_COMPACTED` | 新しいセッションが最初のプロンプトを受け取ったときの `SESSION_STARTED`、Kiro IDE ではプロンプトが以前のチャットへ戻ったときの `SESSION_RESUMED`（本物のセッション終了トリガーがないので `SESSION_ENDED` はない。コンパクション前イベントもない） |
-| MCP サーバー | 5 つ出荷（`.mcp.json`: `context7` + AWS 系 4 つ） | 同梱なし。AI-DLC 自身のチャットと 14 体の委譲ペルソナは、ワークスペースとユーザーの `.kiro/settings/mcp.json` にあるすべてのサーバーを使え、各呼び出しはまずあなたに尋ねる（Kiro CLI ではペルソナの 2 手目から）。 |
+| MCP サーバー | 5 つ出荷（`.mcp.json`: `context7` + AWS 系 4 つ） | 同梱なし。AI-DLC 自身のチャット、14 体の委譲ペルソナ、プラグインが加えるエージェントは、ワークスペースとユーザーの `.kiro/settings/mcp.json` にあるすべてのサーバーを使え、各呼び出しはまずあなたに尋ねる（Kiro CLI ではペルソナの 2 手目から）。 |
 | Windows で記録されるテキスト中の引用符 | 入力したとおりに記録 | Kiro IDE はエージェントのコマンドを Windows PowerShell 5.1 で実行する。これは空の引数を落とし、値の中の二重引用符を `\"` と書かない限り取り除く。エージェントは引用符をその形で書くので、回答やフィードバックは引用符付きで記録される。`&`、`<`、`>`、`^`、パイプ記号も含む値は、代わりに内側を単一引用符にして書く。`aidlc` コマンドは cmd.exe を通して動き、cmd.exe はそれらの文字に反応してしまうから。フックは、そうした文字が引用符の外で cmd.exe に届くコマンドを拒否する。それでも質問や回答が二つに分かれて届いたときは、AI-DLC はそれを記録せず、渡し方を伝えるので、監査証跡にその一部だけが残ることはない |
 | ワークフロー途中でガード、要約確認、計画承認を無効にする | 自分の言葉で頼めばエージェントが設定コマンドを実行する。またはチャットで切り替えを入力する（例: `/aidlc config set summary-confirmation off`） | 同じ。ただし、フックに空のメッセージを渡す Kiro IDE ビルド（1.0.242 など）は設定コマンドも拒否する。その場合、要約確認と計画承認については、拒否が示すターミナルコマンドを実行すると、今動いている作業も含めすべての作業で今すぐ無効になる（ネイティブ導入では `aidlc config flags --bypass AIDLC_DISABLE_SUMMARY_CONFIRMATION --local --yes` または `--bypass AIDLC_DISABLE_PLAN_APPROVAL_GUARD`。`--clear-bypass` で再び有効になる）。他のガードについては、Kiro IDE を更新して切り替えを入力する |
 
@@ -219,7 +231,15 @@ Kiro IDE の **Workflows** 機能（Settings > **Kiro Agent > Workflows: Enabled
 aidlc config trust --kiro-workflows off --yes   # or: on
 ```
 
-Kiro 自身の **Disable Workflows** と **Enable Workflows** コマンドも同じことをします。`/aidlc --doctor` は、Workflows が on の間と、Kiro の設定ファイルに AI-DLC が読み進められないエラーがある間（Kiro はそこから Workflows を on と読むことがあります。次のチャットが一度伝えます。直すべきはそのファイルのエラーです）、警告を出します。Kiro CLI は Workflows が on でもサブエージェントツールを保つので（その "Workflows: sub-agent tool" 設定を off にしない限り）、何もする必要はありません。
+Kiro 自身の **Disable Workflows** と **Enable Workflows** コマンドも同じことをします。`/aidlc --doctor` は、Workflows が on の間と、Kiro の設定ファイルに AI-DLC が読み進められないエラーがある間（Kiro はそこから Workflows を on と読むことがあります。次のチャットが一度伝えます。直すべきはそのファイルのエラーです）、警告を出します。
+
+Kiro CLI には独自の Workflows 切り替えがあります（`/settings` > Features > **Workflows**。Kiro CLI の設定 `~/.kiro/settings/cli.json` の `chat.enableWorkflows`）。これが on の間、Kiro CLI は `aidlc` エージェントから両方のサブエージェントツールを取り上げるので、Kiro CLI のチャットでは AI-DLC のレビューと補助が動きません。その "Workflows: sub-agent tool" 設定でも戻りません（Kiro CLI 2.31.1 と 2.32.0 で計測）。Kiro CLI のチャットはこの切り替えをあなた自身の Kiro CLI 設定からしか読まないので、プロジェクトの `.kiro/settings/cli.json` の値では off になりません。AI-DLC はこれについても同じように、別個の答えとして尋ねます。`aidlc config` の間か、最初の Kiro CLI チャットで一度だけです。`aidlc config --yes` は推奨の答えを取り、off にします。AI-DLC は Kiro CLI 自身の `kiro-cli settings` コマンドでこれを変えます。そのあと Kiro CLI を終了し、`kiro-cli` を再び起動してください。後から変えるには、エージェントに頼むか、次を実行します。
+
+```bash
+aidlc config trust --kiro-cli-workflows off --yes   # or: on
+```
+
+`/aidlc --doctor` は、これが on の間、警告を出します。
 
 ### Windows で Kiro のターミナルが Command Prompt のとき
 
