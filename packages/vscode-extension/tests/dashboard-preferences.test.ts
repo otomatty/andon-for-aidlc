@@ -38,7 +38,7 @@ vi.mock("../src/write-global-vsix.ts", () => ({ registerApplyLatestCommand: vi.f
 
 import { openDashboardPanel } from "../src/dashboard-panel.ts";
 
-const KEY = "aidlc-guide.nowExpanded";
+const KEY = "andon.nowExpanded";
 const globalValues = new Map<string, unknown>();
 
 function workspace(initial?: unknown) {
@@ -78,7 +78,7 @@ describe("docs conversation host persistence", () => {
       draft: "続き",
     };
     await open(context)({ type: "docs-conversation", state });
-    expect(context.globalState.update).toHaveBeenCalledWith("aidlcGuide.docsConversation", state);
+    expect(context.globalState.update).toHaveBeenCalledWith("andon.docsConversation", state);
 
     await open(context)({ type: "ready" });
     expect(mocks.post).toHaveBeenCalledWith({ type: "docs-conversation", state });
@@ -164,7 +164,7 @@ describe("dashboard disclosure workspace preference", () => {
 });
 
 describe("onboarding handshake", () => {
-  const ONBOARDING = "aidlc-guide.onboarding.v1";
+  const ONBOARDING = "andon.onboarding.v1";
   const stored = {
     version: "0.35.0",
     welcome: "pending",

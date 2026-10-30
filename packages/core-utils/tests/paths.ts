@@ -1,4 +1,4 @@
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import type { ReadResult } from "@andon/shared-types";
 
 /** Narrow to the `ok` variant, failing loudly with the actual result if not. */
 export function expectOk<T>(result: ReadResult<T>): { value: T; warnings?: string[] } {

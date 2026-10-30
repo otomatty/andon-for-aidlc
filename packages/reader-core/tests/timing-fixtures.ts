@@ -1,4 +1,4 @@
-import type { StageInfo, StageTiming, WorkflowModel } from "@aidlc-guide/shared-types";
+import type { StageInfo, StageTiming, WorkflowModel } from "@andon/shared-types";
 
 /**
  * Shared builders for the timing tests. These encode the shapes the timing

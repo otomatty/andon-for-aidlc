@@ -74,8 +74,8 @@ describe("dependency direction", () => {
       dependencies: Record<string, string>;
     };
     expect(Object.keys(manifest.dependencies).sort()).toEqual([
-      "@aidlc-guide/core-utils",
-      "@aidlc-guide/shared-types",
+      "@andon/core-utils",
+      "@andon/shared-types",
       "chokidar",
     ]);
   });

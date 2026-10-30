@@ -19,7 +19,7 @@ describe("lookupLatestRelease", () => {
       expect(init?.headers?.Accept).toBe("application/vnd.github+json");
       return Response.json({
         tag_name: "v0.2.0",
-        assets: [{ name: "aidlc-guide-0.2.0.vsix" }],
+        assets: [{ name: "andon-for-aidlc-0.2.0.vsix" }],
       });
     });
     await expect(lookupLatestRelease(fetchImpl)).resolves.toEqual({
@@ -27,7 +27,7 @@ describe("lookupLatestRelease", () => {
       release: {
         version: "0.2.0",
         tag: "v0.2.0",
-        assetName: "aidlc-guide-0.2.0.vsix",
+        assetName: "andon-for-aidlc-0.2.0.vsix",
         notes: [],
       },
     });
@@ -55,13 +55,13 @@ describe("newerRelease / confirmNewerRelease", () => {
     vi.stubGlobal("fetch", async () =>
       Response.json({
         tag_name: "v0.2.0",
-        assets: [{ name: "aidlc-guide-0.2.0.vsix" }],
+        assets: [{ name: "andon-for-aidlc-0.2.0.vsix" }],
       }),
     );
     await expect(newerRelease("0.1.0")).resolves.toEqual({
       version: "0.2.0",
       tag: "v0.2.0",
-      assetName: "aidlc-guide-0.2.0.vsix",
+      assetName: "andon-for-aidlc-0.2.0.vsix",
       notes: [],
     });
     await expect(newerRelease("0.2.0")).resolves.toBeUndefined();

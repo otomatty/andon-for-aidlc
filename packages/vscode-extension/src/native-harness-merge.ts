@@ -11,7 +11,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { canonicalPathSync } from "@aidlc-guide/core-utils";
+import { canonicalPathSync } from "@andon/core-utils";
 import {
   findNodeAtLocation,
   getNodeValue,
@@ -36,7 +36,7 @@ export const HARNESS_DIRECTORIES: Record<HarnessId, string> = {
   kiro: ".kiro",
   "kiro-ide": ".kiro",
 };
-export const GUIDE_INSTALL_FILE = "aidlc-guide-install.json";
+export const GUIDE_INSTALL_FILE = "andon-install.json";
 
 type Contribution = {
   policy:
@@ -1350,7 +1350,7 @@ export async function applyHarnessCandidate(
   };
   const replace = (rel: string, bytes: Buffer, mode: number, createOnly = false) => {
     const file = safePath(plan.root, rel);
-    const temporary = `${file}.aidlc-guide-${randomUUID()}.tmp`;
+    const temporary = `${file}.andon-for-aidlc-${randomUUID()}.tmp`;
     try {
       writeFileSync(temporary, bytes, { flag: "wx", mode });
       // A hard link publishes complete bytes without overwriting a concurrent creation.

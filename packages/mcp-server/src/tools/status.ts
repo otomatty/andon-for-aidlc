@@ -1,5 +1,5 @@
-import type { Reader } from "@aidlc-guide/reader-core";
-import type { StageStatus, WorkflowModel } from "@aidlc-guide/shared-types";
+import type { Reader } from "@andon/reader-core";
+import type { StageStatus, WorkflowModel } from "@andon/shared-types";
 import { renderResult, type ToolReply } from "../render.ts";
 
 export const STATUS_DESCRIPTION =

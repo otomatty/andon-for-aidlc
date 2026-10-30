@@ -1,4 +1,4 @@
-import type { WsMessage } from "@aidlc-guide/shared-types";
+import type { WsMessage } from "@andon/shared-types";
 import { type Dispatch, useEffect, useRef } from "react";
 import type { Action } from "@/store/reducer.ts";
 import { refetchAfterIntentSelect, refetchAfterSpaceSelect, refetchAll } from "./api.ts";

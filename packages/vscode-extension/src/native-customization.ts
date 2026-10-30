@@ -1,13 +1,13 @@
 import { createHash, randomUUID } from "node:crypto";
 import { lstat } from "node:fs/promises";
 import path from "node:path";
-import { canonicalPath } from "@aidlc-guide/core-utils";
+import { canonicalPath } from "@andon/core-utils";
 import {
   type CustomizationEngine,
   CustomizationError,
   createCustomizationEngine,
-} from "@aidlc-guide/api-core";
-import type { CustomizationFileChange } from "@aidlc-guide/shared-types";
+} from "@andon/api-core";
+import type { CustomizationFileChange } from "@andon/shared-types";
 
 type NativeChange = { rel: string; before: Buffer | null; after: Buffer | null; mode: number };
 export type NativeCustomizationPlan = {

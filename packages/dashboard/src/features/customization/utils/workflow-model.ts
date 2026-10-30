@@ -1,4 +1,4 @@
-import type { CustomizationDiagnostic, CustomizationItem } from "@aidlc-guide/shared-types";
+import type { CustomizationDiagnostic, CustomizationItem } from "@andon/shared-types";
 import { STAGE_NUMBERS } from "@/data/stage-numbers";
 import { createItem, listField, setSourceField, sourceField, textField } from "./source-fields";
 

@@ -1,4 +1,4 @@
-import { PREFLIGHT_TEXT_MAX, type PreflightPayload } from "@aidlc-guide/shared-types";
+import { PREFLIGHT_TEXT_MAX, type PreflightPayload } from "@andon/shared-types";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

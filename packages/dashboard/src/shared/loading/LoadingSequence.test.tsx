@@ -1,4 +1,4 @@
-import type { EffectivenessPayload, ReadResult } from "@aidlc-guide/shared-types";
+import type { EffectivenessPayload, ReadResult } from "@andon/shared-types";
 import { act, fireEvent, render, screen } from "@tests/render.tsx";
 import { lazy, StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";

@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { CustomizationEngine } from "@aidlc-guide/api-core";
+import type { CustomizationEngine } from "@andon/api-core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   applyNativeCustomization,

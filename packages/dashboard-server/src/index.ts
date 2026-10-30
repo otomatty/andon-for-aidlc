@@ -16,7 +16,7 @@ export {
   renameWithRetry,
   routeAnswer,
   routeRead,
-} from "@aidlc-guide/api-core";
+} from "@andon/api-core";
 export {
   DEFAULT_DIST_DIR,
   DEFAULT_PORT,

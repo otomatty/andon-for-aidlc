@@ -1,5 +1,5 @@
 {
-  "name": "@aidlc-guide/api-core",
+  "name": "@andon/api-core",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,9 +9,9 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@aidlc-guide/docs-bridge": "workspace:*",
-    "@aidlc-guide/official-docs": "workspace:*",
-    "@aidlc-guide/reader-core": "workspace:*",
-    "@aidlc-guide/shared-types": "workspace:*"
+    "@andon/docs-bridge": "workspace:*",
+    "@andon/official-docs": "workspace:*",
+    "@andon/reader-core": "workspace:*",
+    "@andon/shared-types": "workspace:*"
   }
 }

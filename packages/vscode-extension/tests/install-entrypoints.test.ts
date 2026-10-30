@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
+import { WORKFLOWS_TARGET_VERSION } from "@andon/shared-types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ExtensionContext } from "vscode";
 import type { HarnessId } from "../src/harness-detect.ts";
@@ -95,7 +95,7 @@ vi.mock("../src/open-official-doc.ts", () => ({
 vi.mock("../src/workflows-update-panel.ts", () => ({
   maybePromptWorkflowsUpdate: vi.fn(),
   openWorkflowsUpdatePanel: vi.fn(),
-  UPDATE_WORKFLOWS_COMMAND: "aidlc-guide.updateWorkflows",
+  UPDATE_WORKFLOWS_COMMAND: "andon.updateWorkflows",
 }));
 vi.mock("../src/write-global-vsix.ts", () => ({ registerApplyLatestCommand: vi.fn() }));
 
@@ -262,16 +262,16 @@ describe.each(["dashboard", "command palette", "onboarding"])(
           await panels[0]?.receive({ type: "open-workflows-install" });
         } else {
           mocks.commands.get(
-            entry === "onboarding" ? "aidlc-guide.setup" : "aidlc-guide.installWorkflows",
+            entry === "onboarding" ? "andon.setup" : "andon.installWorkflows",
           )?.();
         }
         // Every entry point opens the one setup tab of the folder.
         await vi.waitFor(() =>
           expect(
-            panels.find((panel) => panel.viewType === "aidlcGuide.setup")?.webview.html,
+            panels.find((panel) => panel.viewType === "andon.setup")?.webview.html,
           ).toContain("AI-DLC"),
         );
-        const panel = panels.find((panel) => panel.viewType === "aidlcGuide.setup");
+        const panel = panels.find((panel) => panel.viewType === "andon.setup");
         if (!panel) throw new Error("installer panel missing");
         await panel.receive({ type: "install", harnesses: selected as HarnessId[] });
         expect(mocks.configure).not.toHaveBeenCalled();

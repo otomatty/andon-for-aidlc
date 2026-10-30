@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { WatchEvent } from "@aidlc-guide/shared-types";
+import type { WatchEvent } from "@andon/shared-types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { watch } from "../src/watch/watcher.ts";
 

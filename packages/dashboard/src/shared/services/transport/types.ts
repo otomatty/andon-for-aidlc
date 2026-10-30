@@ -1,4 +1,4 @@
-import type { WsMessage } from "@aidlc-guide/shared-types";
+import type { WsMessage } from "@andon/shared-types";
 import { reportVersionGate } from "@/services/version-gate.ts";
 
 export type GetJsonResult = { reached: true; body: unknown } | { reached: false };

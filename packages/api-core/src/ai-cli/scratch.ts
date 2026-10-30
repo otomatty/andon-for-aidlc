@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import type { DocsQaTool } from "@aidlc-guide/shared-types";
+import type { DocsQaTool } from "@andon/shared-types";
 
 /** Only generated temporary directories are writable; no workspace path is accepted. */
 export async function createScratch(

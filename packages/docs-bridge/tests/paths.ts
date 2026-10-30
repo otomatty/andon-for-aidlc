@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import type { ReadResult } from "@andon/shared-types";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 

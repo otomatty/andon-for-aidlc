@@ -1,5 +1,5 @@
 import { Badge } from "@mantine/core";
-import type { StageStatus } from "@aidlc-guide/shared-types";
+import type { StageStatus } from "@andon/shared-types";
 import type { ReactNode } from "react";
 
 /** BR-UI-2 / US-18: colour + symbol + text label, all three in the DOM. */

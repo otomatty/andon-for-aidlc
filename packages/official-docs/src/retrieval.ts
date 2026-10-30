@@ -1,7 +1,7 @@
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { UPSTREAM_REPO_URL } from "@aidlc-guide/shared-types";
+import { UPSTREAM_REPO_URL } from "@andon/shared-types";
 import { readDocsIndex } from "./index-file.ts";
 import { readGuarded } from "./retrieval-build.ts";
 import { contentHash, estimateTokens, markdownBlocks } from "./retrieval-markdown.ts";

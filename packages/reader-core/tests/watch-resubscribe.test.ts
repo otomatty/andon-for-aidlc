@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { WatchEvent } from "@aidlc-guide/shared-types";
+import type { WatchEvent } from "@andon/shared-types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**

@@ -1,9 +1,9 @@
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import type { BridgeConfig, ProjectLink, ReadResult } from "@aidlc-guide/shared-types";
+import type { BridgeConfig, ProjectLink, ReadResult } from "@andon/shared-types";
 
 /** Default config filename, looked up in the workspace root (D1 step 1). */
-export const CONFIG_FILENAME = "aidlc-guide.config.json";
+export const CONFIG_FILENAME = "andon.config.json";
 
 const DEFAULT_CONFIG: BridgeConfig = {
   docsRepoPath: null,
@@ -33,9 +33,9 @@ function readProjectLinks(raw: unknown, warnings: string[]): ProjectLink[] {
 }
 
 /**
- * D1 — load `aidlc-guide.config.json`.
+ * D1 — load `andon.config.json`.
  *
- * `configPath` defaults to `<cwd>/aidlc-guide.config.json`. A relative
+ * `configPath` defaults to `<cwd>/andon.config.json`. A relative
  * `docsRepoPath` resolves against the **config file's own directory**, not the
  * process cwd, so a config committed next to the workspace keeps working
  * whatever directory the server is started from (BR-DB-6 — `node:path` only, no

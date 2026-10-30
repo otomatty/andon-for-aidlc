@@ -1,9 +1,9 @@
 {
-  "name": "aidlc-guide",
+  "name": "andon-for-aidlc",
   "displayName": "Andon for AI-DLC",
   "description": "Visualize aidlc-workflows state and artifacts inside VS Code / Cursor.",
   "version": "0.1.0",
-  "publisher": "aidlc",
+  "publisher": "otomatty",
   "private": true,
   "license": "UNLICENSED",
   "repository": {
@@ -21,54 +21,54 @@
     "onStartupFinished",
     "workspaceContains:aidlc/",
     "workspaceContains:.claude/skills/aidlc",
-    "workspaceContains:.claude/skills/aidlc-guide-docs",
-    "workspaceContains:.cursor/skills/aidlc-guide-docs"
+    "workspaceContains:.claude/skills/andon-docs",
+    "workspaceContains:.cursor/skills/andon-docs"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "aidlc-guide.open",
+        "command": "andon.open",
         "title": "Open",
         "category": "Andon"
       },
       {
-        "command": "aidlc-guide.setup",
+        "command": "andon.setup",
         "title": "Setup",
         "category": "Andon"
       },
       {
-        "command": "aidlc-guide.showWelcome",
+        "command": "andon.showWelcome",
         "title": "Show Welcome",
         "category": "Andon"
       },
       {
-        "command": "aidlc-guide.showWhatsNew",
+        "command": "andon.showWhatsNew",
         "title": "Show What's New",
         "category": "Andon"
       },
       {
-        "command": "aidlc-guide.openPlugins",
+        "command": "andon.openPlugins",
         "title": "Open Plugins",
         "category": "Andon"
       },
       {
-        "command": "aidlc-guide.registerMcp",
+        "command": "andon.registerMcp",
         "title": "Register MCP",
         "category": "Andon"
       },
       {
-        "command": "aidlc-guide.checkUpdate",
+        "command": "andon.checkUpdate",
         "title": "Check for Updates",
         "category": "Andon"
       },
       {
-        "command": "aidlc-guide.installWorkflows",
+        "command": "andon.installWorkflows",
         "title": "Install Workflows",
         "category": "Andon"
       },
       {
-        "command": "aidlc-guide.updateWorkflows",
+        "command": "andon.updateWorkflows",
         "title": "Update Workflows",
         "category": "Andon"
       }
@@ -86,11 +86,11 @@
     "esbuild": "^0.28.2"
   },
   "dependencies": {
-    "@aidlc-guide/api-core": "workspace:*",
-    "@aidlc-guide/core-utils": "workspace:*",
-    "@aidlc-guide/official-docs": "workspace:*",
-    "@aidlc-guide/reader-core": "workspace:*",
-    "@aidlc-guide/shared-types": "workspace:*",
+    "@andon/api-core": "workspace:*",
+    "@andon/core-utils": "workspace:*",
+    "@andon/official-docs": "workspace:*",
+    "@andon/reader-core": "workspace:*",
+    "@andon/shared-types": "workspace:*",
     "jsonc-parser": "^3.3.1"
   }
 }

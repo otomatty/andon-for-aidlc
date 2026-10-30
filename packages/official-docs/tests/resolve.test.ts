@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { expectError, expectOk, workspaceRoot } from "./helpers.ts";
 
 const stubs = vi.hoisted(() => {
-  type GuardPath = typeof import("@aidlc-guide/core-utils").guardPath;
+  type GuardPath = typeof import("@andon/core-utils").guardPath;
   let realGuardPath: GuardPath | undefined;
   const guardPathMock = vi.fn<GuardPath>();
   return {
@@ -24,8 +24,8 @@ const stubs = vi.hoisted(() => {
   };
 });
 
-vi.mock("@aidlc-guide/core-utils", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@aidlc-guide/core-utils")>();
+vi.mock("@andon/core-utils", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@andon/core-utils")>();
   stubs.setReal(actual.guardPath);
   return { ...actual, guardPath: stubs.guardPathMock };
 });

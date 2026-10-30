@@ -1,12 +1,12 @@
 import path from "node:path";
-import { inspectVersionGate } from "@aidlc-guide/reader-core";
+import { inspectVersionGate } from "@andon/reader-core";
 import {
   BUNDLED_PLUGINS,
   type OnboardingView,
   VERSION_GATE_ACTIONS,
   type VersionGateAction,
   WORKFLOWS_TARGET_VERSION,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import {
   commands,
   type ExtensionContext,
@@ -47,12 +47,12 @@ export { registerApplyLatestCommand };
 
 registerApplyLatestCommand();
 
-const PANEL_VIEW_TYPE = "aidlcGuide.dashboard";
+const PANEL_VIEW_TYPE = "andon.dashboard";
 
 /** Actions a webview may ask for; anything else it posts is ignored. */
 const VERSION_GATE_ACTION_NAMES: ReadonlySet<string> = new Set(Object.values(VERSION_GATE_ACTIONS));
 
-const NOW_DISCLOSURE_KEY = "aidlc-guide.nowExpanded";
+const NOW_DISCLOSURE_KEY = "andon.nowExpanded";
 
 /** Options for one dashboard panel. */
 export interface DashboardPanelOptions {
@@ -206,12 +206,12 @@ function wireWebview(
     }
 
     if (msg.type === "open-workflows-setup") {
-      void commands.executeCommand("aidlc-guide.setup", workspaceRoot);
+      void commands.executeCommand("andon.setup", workspaceRoot);
       return;
     }
 
     if (msg.type === "open-workflows-install") {
-      void commands.executeCommand("aidlc-guide.installWorkflows", workspaceRoot);
+      void commands.executeCommand("andon.installWorkflows", workspaceRoot);
       return;
     }
 
@@ -221,7 +221,7 @@ function wireWebview(
       return;
     }
     if (msg.type === "open-workflows-update") {
-      void commands.executeCommand("aidlc-guide.updateWorkflows", workspaceRoot);
+      void commands.executeCommand("andon.updateWorkflows", workspaceRoot);
       return;
     }
 

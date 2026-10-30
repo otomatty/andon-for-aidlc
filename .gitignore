@@ -17,7 +17,7 @@ coverage/
 # belongs in git — media/icon.png is a hand-made asset and stays committed.
 packages/vscode-extension/media/dashboard/
 packages/vscode-extension/media/official-docs/
-packages/vscode-extension/media/aidlc-guide-docs/
+packages/vscode-extension/media/andon-docs/
 *.vsix
 # Editor directories and files
 .vscode/*

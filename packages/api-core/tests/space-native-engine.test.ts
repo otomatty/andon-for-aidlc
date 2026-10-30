@@ -5,7 +5,7 @@ import path from "node:path";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createSpaceEngine } from "../src/spaces/engine.ts";
 import { createGuideService } from "../src/service.ts";
-import { WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
+import { WORKFLOWS_TARGET_VERSION } from "@andon/shared-types";
 
 vi.mock("node:child_process", () => ({ execFile: vi.fn() }));
 let base: string;
@@ -62,7 +62,7 @@ it("switches a stamped native workspace through the API without Bun or project s
   expect(execution.env?.AIDLC_PROJECT_DIR).toBe(workspace);
   expect(execution.env?.AIDLC_HARNESS_DIR).toBe(".aidlc");
   expect(execution.env?.AIDLC_HARNESS_NAME).toBe("copilot");
-  expect(execution.env?.AIDLC_SESSION_OVERRIDE).toMatch(/^aidlc-guide-/);
+  expect(execution.env?.AIDLC_SESSION_OVERRIDE).toMatch(/^andon-/);
 });
 
 it("honors the registered project pin instead of the machine's active version", async () => {

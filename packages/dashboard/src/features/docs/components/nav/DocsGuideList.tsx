@@ -1,4 +1,4 @@
-import type { MarkdownItem } from "@aidlc-guide/shared-types";
+import type { MarkdownItem } from "@andon/shared-types";
 import type { ReactNode } from "react";
 import { type ViewState, viewValue } from "@/store/state.ts";
 import { AreaError } from "@/shared/atoms.tsx";

@@ -1,4 +1,4 @@
-import { unseenNews, WHATS_NEW } from "@aidlc-guide/shared-types";
+import { unseenNews, WHATS_NEW } from "@andon/shared-types";
 import {
   BookOpenIcon,
   ChartNoAxesCombinedIcon,

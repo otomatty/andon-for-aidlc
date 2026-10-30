@@ -1,4 +1,4 @@
-import { WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
+import { WORKFLOWS_TARGET_VERSION } from "@andon/shared-types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({

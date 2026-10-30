@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
-import { readQuestionEvidence, retrieveQuestionContext } from "@aidlc-guide/official-docs";
+import { readQuestionEvidence, retrieveQuestionContext } from "@andon/official-docs";
 import type {
   DocsQaCitation,
   DocsQaEvidence,
@@ -8,7 +8,7 @@ import type {
   DocsQaRequest,
   DocsQaResult,
   DocsQaToolStatus,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import {
   type CliCapability,
   cliArguments,

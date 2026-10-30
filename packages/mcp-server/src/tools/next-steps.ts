@@ -1,5 +1,5 @@
-import type { Reader } from "@aidlc-guide/reader-core";
-import type { NextStep } from "@aidlc-guide/shared-types";
+import type { Reader } from "@andon/reader-core";
+import type { NextStep } from "@andon/shared-types";
 import { renderResult, type ToolReply } from "../render.ts";
 
 export const NEXT_STEPS_DESCRIPTION =

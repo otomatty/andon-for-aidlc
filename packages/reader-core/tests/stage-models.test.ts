@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import type { StageModelsPayload } from "@aidlc-guide/shared-types";
+import type { StageModelsPayload } from "@andon/shared-types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readStageModels } from "../src/models/read.ts";
 

@@ -10,7 +10,7 @@ import {
   type PreflightScan,
   type PreflightScopeSummary,
   type PreflightStage,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 
 /**
  * /api/preflight の静的部分 — `.claude/` の固定 3 種（stage-graph.json /

@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
-import { bundledDocsRoot } from "@aidlc-guide/official-docs";
-import { createReader, resolveRecordDir } from "@aidlc-guide/reader-core";
+import { bundledDocsRoot } from "@andon/official-docs";
+import { createReader, resolveRecordDir } from "@andon/reader-core";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -40,7 +40,7 @@ function main(): Promise<void> {
   const check = workspaceGate(workspaceRoot);
 
   const server = new McpServer(
-    { name: "aidlc-guide", version: "0.1.0" },
+    { name: "andon", version: "0.1.0" },
     { instructions: DOCS_INSTRUCTIONS },
   );
   registerDocsTools(server, bundledDocsRoot(import.meta.url), check);

@@ -1,4 +1,4 @@
-import type { DocsQaTool } from "@aidlc-guide/shared-types";
+import type { DocsQaTool } from "@andon/shared-types";
 import type { HarnessId } from "./harness-detect.ts";
 import type { ProblemKind } from "./workflows-conflicts.ts";
 

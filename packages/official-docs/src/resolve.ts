@@ -1,5 +1,5 @@
-import { guardPath, readBounded, withResult } from "@aidlc-guide/core-utils";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import { guardPath, readBounded, withResult } from "@andon/core-utils";
+import type { ReadResult } from "@andon/shared-types";
 import { readManifest } from "./manifest.ts";
 import { extractTitle, headingExists } from "./markdown.ts";
 import { isLocale, localeContentRoot, parseDocPath } from "./roots.ts";

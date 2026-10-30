@@ -1,4 +1,4 @@
-import { WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
+import { WORKFLOWS_TARGET_VERSION } from "@andon/shared-types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ExtensionContext } from "vscode";
 import type { ApplyReleaseResult } from "../src/release-apply.ts";
@@ -31,8 +31,8 @@ vi.mock("vscode", () => ({
   },
   workspace: mocks.workspace,
 }));
-vi.mock("@aidlc-guide/reader-core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@aidlc-guide/reader-core")>()),
+vi.mock("@andon/reader-core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@andon/reader-core")>()),
   inspectVersionGate: mocks.gate,
 }));
 vi.mock("../src/release-lookup.ts", () => ({
@@ -48,7 +48,7 @@ async function runUpdate(): Promise<void> {
     subscriptions: [],
   } as unknown as ExtensionContext);
   const handler = mocks.registerCommand.mock.calls.find(
-    ([command]) => command === "aidlc-guide.checkUpdate",
+    ([command]) => command === "andon.checkUpdate",
   )?.[1] as () => Promise<void>;
   await handler();
 }
@@ -63,7 +63,7 @@ beforeEach(() => {
   mocks.confirmNewerRelease.mockResolvedValue({
     version: "0.2.0",
     tag: "v0.2.0",
-    assetName: "aidlc-guide-0.2.0.vsix",
+    assetName: "andon-for-aidlc-0.2.0.vsix",
     notes: [],
   });
   mocks.applyReleaseFromUrl.mockResolvedValue({ ok: true });
@@ -257,7 +257,7 @@ describe("更新の確認：Andon より新しいプロジェクト", () => {
       expect.stringContaining(`最新の Andon 0.1.0 は、まだ aidlc-workflows ${ahead} に対応していません`),
       "更新の案内を開く",
     );
-    expect(mocks.executeCommand).toHaveBeenCalledWith("aidlc-guide.open");
+    expect(mocks.executeCommand).toHaveBeenCalledWith("andon.open");
   });
 
   it("names a preview project as a preview", async () => {

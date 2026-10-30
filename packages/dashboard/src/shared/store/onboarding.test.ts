@@ -1,8 +1,4 @@
-import {
-  type OnboardingRecord,
-  type OnboardingSnapshot,
-  WHATS_NEW,
-} from "@aidlc-guide/shared-types";
+import { type OnboardingRecord, type OnboardingSnapshot, WHATS_NEW } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { routeSelection, showsNowStrip } from "@/app/routes.ts";
 import { type Action, reducer } from "@/store/reducer.ts";

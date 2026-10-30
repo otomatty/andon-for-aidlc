@@ -1,5 +1,5 @@
 import { LoadingSuspense } from "@/shared/loading/LoadingSequence.tsx";
-import type { MatrixCell } from "@aidlc-guide/shared-types";
+import type { MatrixCell } from "@andon/shared-types";
 import { lazy, type ReactNode, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { prefetchArtifact } from "@/services/api.ts";

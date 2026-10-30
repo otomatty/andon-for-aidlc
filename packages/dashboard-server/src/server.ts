@@ -6,10 +6,10 @@ import {
   createGuideService,
   handlePost,
   handleRead,
-} from "@aidlc-guide/api-core";
-import type { Bridge } from "@aidlc-guide/docs-bridge";
-import type { Reader } from "@aidlc-guide/reader-core";
-import type { ServeOptions } from "@aidlc-guide/shared-types";
+} from "@andon/api-core";
+import type { Bridge } from "@andon/docs-bridge";
+import type { Reader } from "@andon/reader-core";
+import type { ServeOptions } from "@andon/shared-types";
 import { createStatic } from "./static.ts";
 
 /** Bun.serve setup and the startup sequence (business-logic-model.md 起動シーケンス). */

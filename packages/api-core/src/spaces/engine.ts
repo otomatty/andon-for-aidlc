@@ -9,8 +9,8 @@ import {
   isSwitchableSpaceName,
   readNativeInstall,
   readNativeProjections,
-} from "@aidlc-guide/reader-core";
-import type { SpaceCatalog } from "@aidlc-guide/shared-types";
+} from "@andon/reader-core";
+import type { SpaceCatalog } from "@andon/shared-types";
 
 export interface SpaceEngine {
   harnesses(): Promise<SpaceCatalog["harnesses"]>;
@@ -119,7 +119,7 @@ export function createSpaceEngine(root: string): SpaceEngine {
         );
       const workspace = await canonicalPath(root);
       // A GUI action belongs to Guide, never to an inherited terminal/chat session.
-      const session = `aidlc-guide-${createHash("sha256").update(workspace).digest("hex").slice(0, 24)}`;
+      const session = `andon-for-aidlc-${createHash("sha256").update(workspace).digest("hex").slice(0, 24)}`;
       const env: NodeJS.ProcessEnv = {
         ...process.env,
         AIDLC_PROJECT_DIR: workspace,

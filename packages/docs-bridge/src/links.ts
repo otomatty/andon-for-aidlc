@@ -1,4 +1,4 @@
-import type { BridgeConfig, ProjectLink, ReadResult } from "@aidlc-guide/shared-types";
+import type { BridgeConfig, ProjectLink, ReadResult } from "@andon/shared-types";
 
 /**
  * D4 — the project-specific links from the config (FR-5.3).

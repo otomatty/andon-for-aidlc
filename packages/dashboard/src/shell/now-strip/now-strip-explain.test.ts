@@ -1,4 +1,4 @@
-import type { NextGateEstimate } from "@aidlc-guide/shared-types";
+import type { NextGateEstimate } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import {
   ceremonyText,

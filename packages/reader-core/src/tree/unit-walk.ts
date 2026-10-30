@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readBounded } from "@aidlc-guide/core-utils";
+import { readBounded } from "@andon/core-utils";
 import type {
   AuditEvent,
   ReadResult,
@@ -8,7 +8,7 @@ import type {
   UnitWalk,
   UnitWalkUnit,
   WorkflowModel,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { compareByTime, timeOf } from "../audit/events.ts";
 import { stageJumpReaches } from "../audit/stage-jump.ts";
 import { PER_UNIT_STAGES, SKELETON_CHECKPOINT, UNIT_CHECKPOINT } from "../timing/next-gate.ts";

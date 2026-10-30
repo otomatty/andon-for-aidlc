@@ -2,7 +2,7 @@ import type {
   CustomizationDiagnostic,
   CustomizationItem,
   CustomizationKind,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { type ReactNode, useId, useRef, useState } from "react";
 import { isMap } from "yaml";
 import { FormSelect } from "@/shared/form-select";

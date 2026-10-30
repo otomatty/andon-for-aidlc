@@ -70,11 +70,11 @@ describe("parseLatestRelease", () => {
         tag_name: "v0.2.0",
         draft: false,
         prerelease: false,
-        assets: [{ name: "aidlc-guide-0.2.0.vsix" }],
+        assets: [{ name: "andon-for-aidlc-0.2.0.vsix" }],
       }),
     ).toEqual({
       ok: true,
-      value: { version: "0.2.0", tag: "v0.2.0", assetName: "aidlc-guide-0.2.0.vsix", notes: [] },
+      value: { version: "0.2.0", tag: "v0.2.0", assetName: "andon-for-aidlc-0.2.0.vsix", notes: [] },
     });
   });
 
@@ -82,14 +82,14 @@ describe("parseLatestRelease", () => {
     const parsed = parseLatestRelease({
       tag_name: "v0.2.0",
       body: "## What's Changed\n* feat: 新しい画面 by @dev in https://github.com/o/r/pull/1\n",
-      assets: [{ name: "aidlc-guide-0.2.0.vsix" }],
+      assets: [{ name: "andon-for-aidlc-0.2.0.vsix" }],
     });
     expect(parsed).toEqual({
       ok: true,
       value: {
         version: "0.2.0",
         tag: "v0.2.0",
-        assetName: "aidlc-guide-0.2.0.vsix",
+        assetName: "andon-for-aidlc-0.2.0.vsix",
         notes: ["新しい画面"],
       },
     });
@@ -192,7 +192,7 @@ describe("decideUpdate / vsix helpers", () => {
 
   it("builds the first-party download URL from the tag", () => {
     expect(vsixDownloadUrl(latest)).toBe(
-      "https://github.com/otomatty/andon-for-aidlc/releases/download/v0.2.0/aidlc-guide-0.2.0.vsix",
+      "https://github.com/otomatty/andon-for-aidlc/releases/download/v0.2.0/andon-for-aidlc-0.2.0.vsix",
     );
   });
 

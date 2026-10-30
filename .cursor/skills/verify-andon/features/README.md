@@ -4,7 +4,7 @@ This directory is the maintained source for verifying user-facing Dashboard beha
 
 ## Baseline preconditions
 
-- Launch with `bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts launch` from the repo root.
+- Launch with `bun .cursor/skills/verify-andon/scripts/harness.ts launch` from the repo root.
 - Run `doctor` and require `ok: true`, a loopback `origin`, and SPA HTML (not API-only).
 - Open `{origin}` at 1280×800. Confirm `[data-testid="app-shell"]`.
 - Never drive a dashboard this harness did not start. The server binds `127.0.0.1` only.

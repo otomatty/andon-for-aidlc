@@ -1,4 +1,4 @@
-import { type CustomizationItem, slugifyHeading } from "@aidlc-guide/shared-types";
+import { type CustomizationItem, slugifyHeading } from "@andon/shared-types";
 import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@/components/ui/tabs";

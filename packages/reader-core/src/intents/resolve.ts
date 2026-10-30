@@ -1,7 +1,7 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { guardPath, readBounded } from "@aidlc-guide/core-utils";
-import type { IntentList, ReadResult } from "@aidlc-guide/shared-types";
+import { guardPath, readBounded } from "@andon/core-utils";
+import type { IntentList, ReadResult } from "@andon/shared-types";
 import { indexIntentRecords, sortIntentNames } from "./order.ts";
 import { isSpaceName, readActiveSpace } from "./spaces.ts";
 

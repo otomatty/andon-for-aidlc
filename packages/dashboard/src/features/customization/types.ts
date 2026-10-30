@@ -1,4 +1,4 @@
-import type { CustomizationCatalog, CustomizationItem } from "@aidlc-guide/shared-types";
+import type { CustomizationCatalog, CustomizationItem } from "@andon/shared-types";
 import type { Category } from "./utils/source-fields";
 
 export type { Category };

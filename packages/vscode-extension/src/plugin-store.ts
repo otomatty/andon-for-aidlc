@@ -1,6 +1,6 @@
 import { cp, mkdir, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
-import type { BundledPlugin } from "@aidlc-guide/shared-types";
+import type { BundledPlugin } from "@andon/shared-types";
 import { pluginPackageSourceHash, pluginStoreRelative } from "./native-plugin-inputs.ts";
 
 /**

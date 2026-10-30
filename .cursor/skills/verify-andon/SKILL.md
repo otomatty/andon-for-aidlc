@@ -1,5 +1,5 @@
 ---
-name: verify-aidlc-guide
+name: verify-andon
 description: Drive the Andon dashboard the way a user does (local dashboard-server SPA in a browser). Use when proving a UI change, reproducing a dashboard bug, or checking Now strip, docs, settings, or effectiveness against the real app — not unit tests.
 ---
 
@@ -17,7 +17,7 @@ Other surfaces, not this skill's default drive path:
 From the repo root:
 
 ```bash
-bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts launch
+bun .cursor/skills/verify-andon/scripts/harness.ts launch
 ```
 
 That command is idempotent. It starts `packages/dashboard-server/src/cli.ts --port 0` with `cwd` = repo root (so it reads this checkout's `aidlc/`). It builds `packages/dashboard` when `dist/index.html` or a referenced `/assets/*` file is missing. After Dashboard UI source changes, run `bun run build:dashboard` yourself before `launch`, or you will drive a stale SPA. Waits for:
@@ -26,7 +26,7 @@ That command is idempotent. It starts `packages/dashboard-server/src/cli.ts --po
 Andon dashboard: http://127.0.0.1:<port>
 ```
 
-and writes `.cursor/skills/verify-aidlc-guide/.run.json` atomically (temp file, then replace). The child stays referenced until that write succeeds; a persist failure, a missed ready line, or a missing start key kills the spawn handle and waits for that pid (SIGKILL if SIGTERM is ignored) so `stop` is not left without a record. `launch` reuses that pid only when the origin is still this SPA **and** a fingerprint of `packages/dashboard-server`, `api-core`, `reader-core`, `docs-bridge`, `official-docs`, `core-utils`, and `shared-types` sources — plus each of those `package.json` files, `docs-bridge/data` (`agent-map.json`, `artifact-map.json`, `bridge-map.json`), and the workspace `bun.lock` — still matches (path + size + mtime of every file, so deletions and dependency resolution changes both force a respawn; Bun does not reload them). A truncated or malformed `.run.json` is not treated as absent: `launch` / `doctor` / `origin` / `stop` fail and leave the file so a still-running pid is not orphaned. The server binds `127.0.0.1` only. Never start on the default `4700` unless this harness printed that port. Print `origin` from the JSON; do not guess.
+and writes `.cursor/skills/verify-andon/.run.json` atomically (temp file, then replace). The child stays referenced until that write succeeds; a persist failure, a missed ready line, or a missing start key kills the spawn handle and waits for that pid (SIGKILL if SIGTERM is ignored) so `stop` is not left without a record. `launch` reuses that pid only when the origin is still this SPA **and** a fingerprint of `packages/dashboard-server`, `api-core`, `reader-core`, `docs-bridge`, `official-docs`, `core-utils`, and `shared-types` sources — plus each of those `package.json` files, `docs-bridge/data` (`agent-map.json`, `artifact-map.json`, `bridge-map.json`), and the workspace `bun.lock` — still matches (path + size + mtime of every file, so deletions and dependency resolution changes both force a respawn; Bun does not reload them). A truncated or malformed `.run.json` is not treated as absent: `launch` / `doctor` / `origin` / `stop` fail and leave the file so a still-running pid is not orphaned. The server binds `127.0.0.1` only. Never start on the default `4700` unless this harness printed that port. Print `origin` from the JSON; do not guess.
 
 Ready means the ready line printed **and** `doctor` is green. A listening port with API-only mode (`packages/dashboard/dist/` missing) is not a UI instance.
 
@@ -37,7 +37,7 @@ Teardown is `stop` (Cleanup). Do not leave a launched pid running after the proo
 Run this first whenever the page looks wrong, the origin is unknown, or a previous run may still be up:
 
 ```bash
-bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts doctor
+bun .cursor/skills/verify-andon/scripts/harness.ts doctor
 ```
 
 Pass only when all of these hold:
@@ -49,7 +49,7 @@ Pass only when all of these hold:
 `origin` prints the recorded URL:
 
 ```bash
-bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts origin
+bun .cursor/skills/verify-andon/scripts/harness.ts origin
 ```
 
 Refuse to drive any URL that is not this origin. A dashboard already open on `:4700` from a human is not this run.
@@ -87,7 +87,7 @@ Two servers can bind different ports. They **share** the workspace tree if `cwd`
 
 ## Evidence
 
-Write under the run's `evidenceDir` from `launch` / `doctor` JSON (`.cursor/skills/verify-aidlc-guide/evidence/<id>/`). Cleanup must not delete that directory. Cursor's `browser_take_screenshot` writes under the OS temp screenshots folder; copy the file into `evidenceDir` yourself.
+Write under the run's `evidenceDir` from `launch` / `doctor` JSON (`.cursor/skills/verify-andon/evidence/<id>/`). Cleanup must not delete that directory. Cursor's `browser_take_screenshot` writes under the OS temp screenshots folder; copy the file into `evidenceDir` yourself.
 
 Proof standards:
 
@@ -99,7 +99,7 @@ Proof standards:
 ## Cleanup
 
 ```bash
-bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts stop
+bun .cursor/skills/verify-andon/scripts/harness.ts stop
 ```
 
 Kills **only** the pid in `.run.json` **and** only when the OS start identity stored at spawn still matches that pid. Origin HTTP is for reuse / `doctor` / `origin`, not for authorizing a kill — a hung or API-only origin must still be stoppable. `launch` refuses to persist a run whose start identity could not be read (it kills that child via the spawn handle instead). If the key is missing or does not match, `stop` / `launch` keep `.run.json` and fail instead of sending a signal. After a signal, wait until that same `processStartKey` is gone (or the pid is dead) before deleting the run file; if it is still the same process after 8s, keep the file and fail. Leaves `evidenceDir` in place. If there is no run file, exit 0. Never `taskkill` / `pkill` by image name (`bun`, `aidlc-dashboard`).
@@ -111,8 +111,8 @@ After a failed attempt, `stop` before the next `launch` so ports and pids are no
 All four verbs print JSON.
 
 ```bash
-bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts launch
-bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts doctor
-bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts origin
-bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts stop
+bun .cursor/skills/verify-andon/scripts/harness.ts launch
+bun .cursor/skills/verify-andon/scripts/harness.ts doctor
+bun .cursor/skills/verify-andon/scripts/harness.ts origin
+bun .cursor/skills/verify-andon/scripts/harness.ts stop
 ```

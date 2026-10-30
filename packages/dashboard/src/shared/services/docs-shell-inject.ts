@@ -1,4 +1,4 @@
-import type { DocsShellDeepLink, OfficialDocsLocale } from "@aidlc-guide/shared-types";
+import type { DocsShellDeepLink, OfficialDocsLocale } from "@andon/shared-types";
 
 type DocsShellDeepLinkHandler = (deepLink: DocsShellDeepLink) => void;
 type OfficialDocsLocaleHandler = (locale: OfficialDocsLocale) => void;

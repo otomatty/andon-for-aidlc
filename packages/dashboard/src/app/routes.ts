@@ -1,4 +1,4 @@
-import type { DocsShellDeepLink } from "@aidlc-guide/shared-types";
+import type { DocsShellDeepLink } from "@andon/shared-types";
 
 /**
  * In-webview route. One value at a time — there is no URL, so this union is

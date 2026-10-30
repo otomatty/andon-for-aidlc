@@ -1,4 +1,4 @@
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import type { ReadResult } from "@andon/shared-types";
 import { describe, expect, it, vi } from "vitest";
 import type { ToolReply } from "../src/render.ts";
 import { nextSteps } from "../src/tools/next-steps.ts";

@@ -1,4 +1,4 @@
-import type { DocsQaTool } from "@aidlc-guide/shared-types";
+import type { DocsQaTool } from "@andon/shared-types";
 import { ArrowUpIcon, BookOpenIcon, RefreshCwIcon, SquareIcon, XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

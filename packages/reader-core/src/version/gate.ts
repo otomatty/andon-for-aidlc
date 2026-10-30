@@ -1,12 +1,12 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { MAX_READ_BYTES } from "@aidlc-guide/core-utils";
+import { MAX_READ_BYTES } from "@andon/core-utils";
 import {
   CURRENT_STATE_VERSION,
   type VersionGate,
   type VersionGateRollback,
   versionGateRollbackCommands,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { readStateVersion, STATE_FILENAME } from "../parse/state.ts";
 import {
   detectHarnesses,

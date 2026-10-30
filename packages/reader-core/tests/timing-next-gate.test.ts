@@ -7,7 +7,7 @@ import type {
   StageInfo,
   StageStatus,
   StageTiming,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import {
   estimateNextGate,

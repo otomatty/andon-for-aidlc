@@ -25,8 +25,8 @@ vi.mock("vscode", () => ({
   },
 }));
 vi.mock("../src/official-docs-root.ts", () => ({ resolveOfficialDocsRoot: () => "docs" }));
-vi.mock("@aidlc-guide/reader-core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@aidlc-guide/reader-core")>()),
+vi.mock("@andon/reader-core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@andon/reader-core")>()),
   inspectVersionGate: mocks.gate,
 }));
 vi.mock("../src/workflows-management.ts", async (importOriginal) => {
@@ -154,7 +154,7 @@ describe("workspace update prompts", () => {
     mocks.gate.mockReturnValue(blocked("project-newer"));
     mocks.warn.mockResolvedValue("Andon を更新");
     await maybePromptWorkflowsUpdate(context(), "a");
-    expect(mocks.execute).toHaveBeenCalledWith("aidlc-guide.checkUpdate");
+    expect(mocks.execute).toHaveBeenCalledWith("andon.checkUpdate");
     expect(mocks.create).not.toHaveBeenCalled();
   });
 

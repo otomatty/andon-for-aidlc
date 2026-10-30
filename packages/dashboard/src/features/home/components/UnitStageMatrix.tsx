@@ -1,4 +1,4 @@
-import type { Matrix, MatrixCell } from "@aidlc-guide/shared-types";
+import type { Matrix, MatrixCell } from "@andon/shared-types";
 import { memo, type ReactNode, useMemo } from "react";
 import { formatStageLabel } from "@/data/stage-numbers.ts";
 import { type ViewState, viewValue } from "@/store/state.ts";

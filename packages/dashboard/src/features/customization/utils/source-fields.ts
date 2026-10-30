@@ -1,4 +1,4 @@
-import type { CustomizationItem, CustomizationKind } from "@aidlc-guide/shared-types";
+import type { CustomizationItem, CustomizationKind } from "@andon/shared-types";
 import { applyEdits, modify } from "jsonc-parser";
 import { isMap, parseDocument, stringify } from "yaml";
 

@@ -1,4 +1,4 @@
-import type { DocsQaJob } from "@aidlc-guide/shared-types";
+import type { DocsQaJob } from "@andon/shared-types";
 import { act, renderHook } from "@tests/render.tsx";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";

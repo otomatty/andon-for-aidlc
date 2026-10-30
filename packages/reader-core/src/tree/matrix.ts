@@ -1,13 +1,13 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { readTail } from "@aidlc-guide/core-utils";
+import { readTail } from "@andon/core-utils";
 import {
   CONSTRUCTION_DIRNAME,
   type Matrix,
   type MatrixCell,
   type ReadResult,
   type Verdict,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import {
   hasReviewRecordDirectory,
   type ReviewVerdicts,

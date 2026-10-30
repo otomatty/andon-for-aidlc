@@ -1,4 +1,4 @@
-import type { DocsQaCitation, DocsQaEvidence, DocsQaJob } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaEvidence, DocsQaJob } from "@andon/shared-types";
 import { describe, expect, it, vi } from "vitest";
 import { type DocsQaService } from "../src/docs-qa/index.ts";
 import { handlePost, routePost } from "../src/handlers/post.ts";
@@ -247,7 +247,7 @@ describe("document question HTTP and WebView routes", () => {
     const { readContext, qa } = fixture();
     const direct = await routeRead(
       readContext,
-      new URL(`http://aidlc-guide.local/api/docs-qa/job?id=${job.id}`),
+      new URL(`http://andon.local/api/docs-qa/job?id=${job.id}`),
     );
     const http = await handleRead(
       readContext,
@@ -259,7 +259,7 @@ describe("document question HTTP and WebView routes", () => {
     expect(qa.get).toHaveBeenCalledWith(job.id);
   });
 
-  it.each(["rebound.example", "aidlc-guide.local", "192.168.1.20"])(
+  it.each(["rebound.example", "andon.local", "192.168.1.20"])(
     "rejects non-loopback HTTP reads on %s",
     async (host) => {
       const { readContext, qa } = fixture();

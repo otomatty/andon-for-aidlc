@@ -6,7 +6,7 @@ import {
   supportedVersionsLabel,
   type WorkflowModel,
   type WorkflowPayload,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import type { ViewState } from "./state.ts";
 
 /**
@@ -34,7 +34,7 @@ const REASON_TEXT: Readonly<Record<UiReason, string>> = {
   "file-too-large": "ファイルが大きすぎます",
   "not-found": "見つかりません",
   "undefined-term": "用語集に定義がありません",
-  "config-invalid": "aidlc-guide.config.json を読み込めません（JSON 構文を確認してください）",
+  "config-invalid": "andon.config.json を読み込めません（JSON 構文を確認してください）",
   "unknown-route": "サーバが知らない API パスです（クライアントとサーバのバージョンずれの可能性）",
   "missing-path": "パスが指定されていません",
   "server-unreachable": "サーバに接続できません（dashboard を起動してください）",

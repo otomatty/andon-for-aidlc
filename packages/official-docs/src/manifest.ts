@@ -1,5 +1,5 @@
-import { guardPath, readBounded, withResult } from "@aidlc-guide/core-utils";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import { guardPath, readBounded, withResult } from "@andon/core-utils";
+import type { ReadResult } from "@andon/shared-types";
 import { docsRoot } from "./roots.ts";
 import type { Manifest } from "./types.ts";
 

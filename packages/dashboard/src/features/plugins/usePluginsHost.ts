@@ -4,7 +4,7 @@ import type {
   PluginsHostMessage,
   PluginsPanelMessage,
   PluginsState,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { useCallback, useEffect, useState } from "react";
 import { inVsCodeWebview, vsCodeApi } from "@/services/vscode-api.ts";
 

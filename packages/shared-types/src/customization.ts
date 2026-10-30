@@ -98,7 +98,7 @@ export type CustomizationValidation = {
 
 export type CustomizationGuidePackage = {
   schemaVersion: 1;
-  format: "aidlc-guide";
+  format: "andon";
   packageId: string;
   name: string;
   version: string;

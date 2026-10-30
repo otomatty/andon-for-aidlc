@@ -1,4 +1,4 @@
-import type { AuditEvent, StageTiming, TimingPolicy } from "@aidlc-guide/shared-types";
+import type { AuditEvent, StageTiming, TimingPolicy } from "@andon/shared-types";
 import { deriveMeasurementIntervals } from "../audit/intervals.ts";
 import { stageJumpReaches } from "../audit/stage-jump.ts";
 import { classifyRuns, prepareRuns } from "./classify.ts";

@@ -1,4 +1,4 @@
-import { normalizeAnchor, slugifyHeading } from "@aidlc-guide/shared-types";
+import { normalizeAnchor, slugifyHeading } from "@andon/shared-types";
 import { type RefObject, useEffect } from "react";
 import type { AnchorApplied } from "../../types.ts";
 import { focusHeading } from "../../utils/focus-heading.ts";

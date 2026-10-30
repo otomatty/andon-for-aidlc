@@ -68,12 +68,10 @@ async function openSetupView(
     if (addTools) existing.addTools();
     return;
   }
-  const panel = window.createWebviewPanel(
-    "aidlcGuide.setup",
-    "Andon セットアップ",
-    ViewColumn.One,
-    { enableScripts: true, retainContextWhenHidden: true },
-  );
+  const panel = window.createWebviewPanel("andon.setup", "Andon セットアップ", ViewColumn.One, {
+    enableScripts: true,
+    retainContextWhenHidden: true,
+  });
   let disposed = false;
   let validFolder = true;
   const cancellation = new AbortController();
@@ -215,7 +213,7 @@ async function openSetupView(
     }
     if (busy) return;
     if (msg.type === "open-workflows-update") {
-      await commands.executeCommand("aidlc-guide.updateWorkflows", root);
+      await commands.executeCommand("andon.updateWorkflows", root);
       return;
     }
     if (msg.type === "trust") {

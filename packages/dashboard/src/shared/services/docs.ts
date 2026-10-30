@@ -1,8 +1,4 @@
-import type {
-  OfficialDocsLocale,
-  OpenOfficialDocMessage,
-  StageDocRef,
-} from "@aidlc-guide/shared-types";
+import type { OfficialDocsLocale, OpenOfficialDocMessage, StageDocRef } from "@andon/shared-types";
 import { useEffect, useMemo, useRef } from "react";
 import { routeSelection } from "@/app/routes.ts";
 import { useAppState, useDispatch } from "@/store/context.tsx";

@@ -1,4 +1,4 @@
-import type { OnboardingRecord } from "@aidlc-guide/shared-types";
+import type { OnboardingRecord } from "@andon/shared-types";
 import { render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";

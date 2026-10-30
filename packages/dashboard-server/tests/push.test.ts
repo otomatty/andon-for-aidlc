@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
-import { createHub, type PushClient } from "@aidlc-guide/api-core";
-import { buildMatrix, createReader, nextStepOf } from "@aidlc-guide/reader-core";
-import type { AuditEvent, WorkflowModel, WsMessage } from "@aidlc-guide/shared-types";
+import { createHub, type PushClient } from "@andon/api-core";
+import { buildMatrix, createReader, nextStepOf } from "@andon/reader-core";
+import type { AuditEvent, WorkflowModel, WsMessage } from "@andon/shared-types";
 import { describe, expect, it, vi } from "vitest";
 import { reviewAudit, reviewFixture } from "../../reader-core/tests/review-fixtures.ts";
 import { ok, STATE_MD, seedWorkspace, stubReader } from "./support.ts";

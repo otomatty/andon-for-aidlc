@@ -1,4 +1,4 @@
-import type { DocsQaResult } from "@aidlc-guide/shared-types";
+import type { DocsQaResult } from "@andon/shared-types";
 import type { GuideService } from "../service.ts";
 import type { RouteResult } from "./read.ts";
 

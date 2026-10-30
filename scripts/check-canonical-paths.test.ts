@@ -29,7 +29,7 @@ describe("findRealpathUses", () => {
     const source = [
       "// re-checked against `realpath` so a link cannot escape",
       " * compare realpaths of both sides",
-      'import { canonicalPath, canonicalPathSync } from "@aidlc-guide/core-utils";',
+      'import { canonicalPath, canonicalPathSync } from "@andon/core-utils";',
       'import { realpath } from "./my-own-realpath.ts";',
       "const root = await canonicalPath(workspace);",
     ].join("\n");

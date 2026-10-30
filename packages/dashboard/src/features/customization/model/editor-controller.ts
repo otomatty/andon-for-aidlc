@@ -2,7 +2,7 @@ import type {
   CustomizationChange,
   CustomizationEditRequest,
   CustomizationItem,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import type { CustomizationApi } from "@/services/customization";
 import { itemChanges } from "@/features/customization/components/Diagnostics";
 import type { EditorView } from "@/features/customization/types.ts";

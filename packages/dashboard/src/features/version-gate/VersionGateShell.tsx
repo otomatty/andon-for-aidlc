@@ -4,7 +4,7 @@ import {
   type VersionGateAction,
   versionGateActionLabel,
   versionGateRollbackGuide,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { type ReactNode, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {

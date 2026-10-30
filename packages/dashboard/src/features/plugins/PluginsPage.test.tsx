@@ -1,9 +1,5 @@
-import type {
-  BundledPluginCatalog,
-  PluginsHostMessage,
-  PluginsState,
-} from "@aidlc-guide/shared-types";
-import { BUNDLED_PLUGINS } from "@aidlc-guide/shared-types";
+import type { BundledPluginCatalog, PluginsHostMessage, PluginsState } from "@andon/shared-types";
+import { BUNDLED_PLUGINS } from "@andon/shared-types";
 import { act, render, screen, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";

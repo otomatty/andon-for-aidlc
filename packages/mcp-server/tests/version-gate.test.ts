@@ -1,4 +1,4 @@
-import type { VersionGate } from "@aidlc-guide/shared-types";
+import type { VersionGate } from "@andon/shared-types";
 import { describe, expect, it, vi } from "vitest";
 import { gated, versionGateReply } from "../src/version-gate.ts";
 

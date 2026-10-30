@@ -5,8 +5,8 @@ import { expect, it, vi } from "vitest";
 import { createGuideService } from "../src/service.ts";
 
 const pause = vi.hoisted(() => ({ armed: false, entered: () => {}, release: Promise.resolve() }));
-vi.mock("@aidlc-guide/reader-core", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@aidlc-guide/reader-core")>();
+vi.mock("@andon/reader-core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@andon/reader-core")>();
   return {
     ...actual,
     resolveIntents: async (...args: Parameters<typeof actual.resolveIntents>) => {

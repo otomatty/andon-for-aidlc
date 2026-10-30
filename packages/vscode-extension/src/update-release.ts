@@ -3,7 +3,7 @@
 export const RELEASES_LATEST_URL =
   "https://api.github.com/repos/otomatty/andon-for-aidlc/releases/latest";
 
-export const UPDATE_USER_AGENT = "aidlc-guide";
+export const UPDATE_USER_AGENT = "andon-for-aidlc";
 
 export const RELEASE_FETCH_TIMEOUT_MS = 15_000;
 export const VSIX_FETCH_TIMEOUT_MS = 60_000;
@@ -39,7 +39,7 @@ export type LatestRelease = {
  * Guide inside supports. The update dialog warns before installing a Guide that
  * would block the current project until it is updated (version-gate-design.md).
  */
-export const RELEASE_METADATA_ASSET = "aidlc-guide-release.json";
+export const RELEASE_METADATA_ASSET = "andon-for-aidlc-release.json";
 
 export type ReleaseMetadata = { version: string; workflowsTarget: string };
 
@@ -115,7 +115,7 @@ export function compareSemver(left: Semver, right: Semver): number {
 }
 
 export function vsixAssetName(version: string): string {
-  return `aidlc-guide-${version}.vsix`;
+  return `andon-for-aidlc-${version}.vsix`;
 }
 
 export function vsixDownloadUrl(release: LatestRelease): string {

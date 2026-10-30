@@ -1,4 +1,4 @@
-import type { ActiveUnit, UnitWalk } from "@aidlc-guide/shared-types";
+import type { ActiveUnit, UnitWalk } from "@andon/shared-types";
 import { render, screen } from "@tests/render.tsx";
 import { describe, expect, it } from "vitest";
 import { NowStrip } from "@/shell/now-strip/NowStrip.tsx";

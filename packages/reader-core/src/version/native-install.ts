@@ -1,7 +1,7 @@
 import { accessSync, constants, existsSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
-import { canonicalPathSync } from "@aidlc-guide/core-utils";
+import { canonicalPathSync } from "@andon/core-utils";
 import { isReleaseId } from "./release-id.ts";
 
 /**

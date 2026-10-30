@@ -3,7 +3,7 @@ import type {
   StageModelSettings,
   StageModelsPayload,
   TimingsPayload,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { act, render, screen, waitFor, within } from "@tests/render.tsx";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StageModelLabel } from "@/features/home/components/StageModelLabel.tsx";

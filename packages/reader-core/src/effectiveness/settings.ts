@@ -1,7 +1,7 @@
 import { stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { guardPath, readBounded } from "@aidlc-guide/core-utils";
+import { guardPath, readBounded } from "@andon/core-utils";
 import { detectHarnesses, harnessVersionRel } from "../version/harness.ts";
 import { validUsageSettings } from "./settings-schema.ts";
 import { objectOf } from "./usage.ts";

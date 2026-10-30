@@ -11,10 +11,10 @@ import {
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { canonicalPathSync } from "@aidlc-guide/core-utils";
-import { cliArguments, createScratch, probeTool, publicError, runCli } from "@aidlc-guide/api-core";
-import { compareReleaseIds, parseReleaseId } from "@aidlc-guide/reader-core";
-import { type DocsQaTool, WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
+import { canonicalPathSync } from "@andon/core-utils";
+import { cliArguments, createScratch, probeTool, publicError, runCli } from "@andon/api-core";
+import { compareReleaseIds, parseReleaseId } from "@andon/reader-core";
+import { type DocsQaTool, WORKFLOWS_TARGET_VERSION } from "@andon/shared-types";
 import { detectHarnesses, HARNESS_LABELS, type HarnessId } from "./harness-detect.ts";
 import { configureNativeHarness } from "./native-harness-install.ts";
 import { HARNESS_DIRECTORIES } from "./native-harness-merge.ts";
@@ -937,7 +937,7 @@ const fetchable = (version: string) => {
 
 function analyzeOwnership(problem: UpdateProblem, ctx: PlanContext): Analysis {
   const rel = problem.path;
-  if (rel.startsWith("aidlc/") || /\/(?:aidlc-manifest|aidlc-guide-install)\.json$/.test(rel))
+  if (rel.startsWith("aidlc/") || /\/(?:aidlc-manifest|andon-install)\.json$/.test(rel))
     return manual(
       "チームの記録や AI-DLC の管理記録は、Andon では書き換えません。ファイルを開いて内容を確認し、元に戻してから再チェックしてください。",
     );

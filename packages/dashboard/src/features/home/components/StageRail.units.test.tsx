@@ -5,7 +5,7 @@ import type {
   UnitStepStatus,
   UnitWalk,
   WorkflowModel,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { render, screen, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";

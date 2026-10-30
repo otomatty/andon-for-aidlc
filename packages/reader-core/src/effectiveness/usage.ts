@@ -1,4 +1,4 @@
-import type { EffectivenessUsage } from "@aidlc-guide/shared-types";
+import type { EffectivenessUsage } from "@andon/shared-types";
 import { type MeasurementEvent, sortMeasurementEvents } from "./events.ts";
 import { groupUsageByOrigin, UNKNOWN_USAGE_PROVENANCE } from "./usage-provenance.ts";
 

@@ -8,8 +8,8 @@ import {
   resolvePage,
   type StageDocRef,
   type TocTree,
-} from "@aidlc-guide/official-docs";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+} from "@andon/official-docs";
+import type { ReadResult } from "@andon/shared-types";
 
 /**
  * `/api/official-docs/*` — distinct from `/api/guides` (FR-U2.6).

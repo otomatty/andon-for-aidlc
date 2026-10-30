@@ -1,4 +1,4 @@
-import type { IntentEffectiveness } from "@aidlc-guide/shared-types";
+import type { IntentEffectiveness } from "@andon/shared-types";
 import { SlidersHorizontalIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { FormSelect } from "@/shared/form-select";

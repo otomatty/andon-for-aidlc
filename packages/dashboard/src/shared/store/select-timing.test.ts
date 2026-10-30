@@ -1,4 +1,4 @@
-import type { NextGateEstimate, TimingsPayload, UnitWalk } from "@aidlc-guide/shared-types";
+import type { NextGateEstimate, TimingsPayload, UnitWalk } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { selectCurrentTiming, selectTimingNotes, selectUnitWalk } from "@/store/select-timing.ts";
 import { type AppState, initialState } from "@/store/state.ts";

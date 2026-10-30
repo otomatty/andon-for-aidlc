@@ -11,9 +11,9 @@ describe("removed sharing and side-question surfaces stay gone", () => {
       contributes: { commands: { command: string }[] };
     };
     const commands = pkg.contributes.commands.map((command) => command.command);
-    expect(commands).not.toContain("aidlc-guide.askBtw");
-    expect(commands).not.toContain("aidlc-guide.askOneShot");
-    expect(commands).not.toContain("aidlc-guide.shareLan");
+    expect(commands).not.toContain("andon.askBtw");
+    expect(commands).not.toContain("andon.askOneShot");
+    expect(commands).not.toContain("andon.shareLan");
     const cli = await readFile("packages/dashboard-server/src/cli.ts", "utf8");
     expect(cli).not.toContain('"--host"');
     const server = await readFile("packages/dashboard-server/src/server.ts", "utf8");

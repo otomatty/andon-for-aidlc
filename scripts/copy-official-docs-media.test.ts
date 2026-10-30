@@ -31,7 +31,7 @@ it("packages the extension guides and their own version for source navigation in
   }
   await put("docs/guides/README.md", "# 拡張機能\n\nダッシュボードの使い方。\n");
   await put("packages/vscode-extension/package.json", JSON.stringify({ version: "1.2.3" }));
-  await put("packages/mcp-server/skills/aidlc-guide-docs/SKILL.md", "# Docs\n");
+  await put("packages/mcp-server/skills/andon-docs/SKILL.md", "# Docs\n");
   await put("docs/official-docs.index.json", `${JSON.stringify(await buildDocsIndex(root))}\n`);
   await copyOfficialDocsMedia(root);
   const bundle = path.join(root, "packages/vscode-extension/media/official-docs");

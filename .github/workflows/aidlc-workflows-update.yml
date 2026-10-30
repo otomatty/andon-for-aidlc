@@ -192,8 +192,8 @@ jobs:
                 | .cursor/scopes/aidlc-prd-implementation.md \
                 | .cursor/aidlc-install.json \
                 | .cursor/hooks/aidlc-cursor-adapter.test.ts \
-                | .cursor/skills/verify-aidlc-guide \
-                | .cursor/skills/verify-aidlc-guide/*) exit 1 ;;
+                | .cursor/skills/verify-andon \
+                | .cursor/skills/verify-andon/*) exit 1 ;;
               */settings.local.json) exit 1 ;;
               .claude/*|.cursor/*|docs/*/en/*|docs/*/ja/*|docs/official-docs.*.json|docs/reviews/*|README.md|AGENTS.md|packages/docs-bridge/data/*.json|packages/shared-types/src/workflows-management.ts|packages/vscode-extension/data/doctor-compatibility.json|packages/vscode-extension/tests/fixtures/doctor/captured/*) ;;
               *) echo "Refused candidate path: $file"; exit 1 ;;

@@ -1,4 +1,4 @@
-import type { WsMessage } from "@aidlc-guide/shared-types";
+import type { WsMessage } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { type Action, reducer } from "@/store/reducer.ts";
 import { initialState, viewValue } from "@/store/state.ts";

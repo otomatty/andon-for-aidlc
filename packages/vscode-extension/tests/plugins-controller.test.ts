@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { BundledPlugin, PluginsHostMessage, PluginsState } from "@aidlc-guide/shared-types";
+import type { BundledPlugin, PluginsHostMessage, PluginsState } from "@andon/shared-types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { pluginPackageSourceHash } from "../src/native-plugin-inputs.ts";
 import type { NativeInstall, ProcessResult, SetupRunner } from "../src/native-setup.ts";

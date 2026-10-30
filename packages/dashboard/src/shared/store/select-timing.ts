@@ -4,8 +4,8 @@ import type {
   StageView,
   TimingsPayload,
   UnitWalk,
-} from "@aidlc-guide/shared-types";
-import { currentStageView, timingsMatchStage } from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
+import { currentStageView, timingsMatchStage } from "@andon/shared-types";
 import { type AppState, viewValue } from "./state.ts";
 
 /**

@@ -1,4 +1,4 @@
-import type { CustomizationItem } from "@aidlc-guide/shared-types";
+import type { CustomizationItem } from "@andon/shared-types";
 import { Suspense, useState } from "react";
 import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@/components/ui/tabs";
 import { MarkdownEditor } from "./lazy-markdown-editor";

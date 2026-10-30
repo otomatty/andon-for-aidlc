@@ -3,7 +3,7 @@ import type {
   EffectivenessReviews,
   EffectivenessSensors,
   IntentEffectiveness,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { deriveLegacyApprovalIntervals } from "../audit/intervals.ts";
 import { stageJumpReaches } from "../audit/stage-jump.ts";
 import { hasAmbiguousLifecycleOrder, type MeasurementEvent } from "./events.ts";

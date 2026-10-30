@@ -1,7 +1,7 @@
 import { cp, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { MatrixCell } from "@aidlc-guide/shared-types";
+import type { MatrixCell } from "@andon/shared-types";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readState } from "../src/parse/state.ts";
 import { buildMatrix, buildMatrixForUnit } from "../src/tree/matrix.ts";

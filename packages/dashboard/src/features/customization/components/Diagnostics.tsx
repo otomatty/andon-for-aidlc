@@ -1,4 +1,4 @@
-import type { CustomizationDiagnostic, CustomizationItem } from "@aidlc-guide/shared-types";
+import type { CustomizationDiagnostic, CustomizationItem } from "@andon/shared-types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 export function Diagnostics({

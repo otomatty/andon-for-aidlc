@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { AuditEvent, StageTiming } from "@aidlc-guide/shared-types";
+import type { AuditEvent, StageTiming } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { deriveStageTimings } from "../src/timing/derive.ts";
 import { getStageTimings } from "../src/timing/read.ts";

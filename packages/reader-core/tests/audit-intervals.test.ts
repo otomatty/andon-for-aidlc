@@ -1,4 +1,4 @@
-import type { AuditEvent } from "@aidlc-guide/shared-types";
+import type { AuditEvent } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { compareByTime } from "../src/audit/events.ts";
 import { deriveLegacyApprovalIntervals, deriveMeasurementIntervals } from "../src/audit/intervals.ts";

@@ -1,4 +1,4 @@
-import type { AuditEvent } from "@aidlc-guide/shared-types";
+import type { AuditEvent } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { attributeRuns, IDLE_THRESHOLD_MS, partitionTimeline } from "../src/timing/attribution.ts";
 import type { RunBoundary } from "../src/timing/pairing.ts";

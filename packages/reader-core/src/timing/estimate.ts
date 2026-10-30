@@ -6,7 +6,7 @@ import {
   type StageEstimate,
   type StageTiming,
   type StageView,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { PER_UNIT_STAGES } from "./next-gate.ts";
 import { walkMatch } from "./walk.ts";
 

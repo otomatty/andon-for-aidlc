@@ -1,4 +1,4 @@
-import { formatTimingDuration, type StageView, type TimingPolicy } from "@aidlc-guide/shared-types";
+import { formatTimingDuration, type StageView, type TimingPolicy } from "@andon/shared-types";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

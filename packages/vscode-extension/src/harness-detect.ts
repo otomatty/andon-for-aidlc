@@ -5,4 +5,4 @@ export {
   HARNESS_LABELS,
   type HarnessDetectResult,
   type HarnessId,
-} from "@aidlc-guide/reader-core";
+} from "@andon/reader-core";

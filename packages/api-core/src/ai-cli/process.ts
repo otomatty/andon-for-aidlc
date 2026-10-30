@@ -2,7 +2,7 @@ import { execFile, spawn } from "node:child_process";
 import type { EventEmitter } from "node:events";
 import { tmpdir } from "node:os";
 import { promisify } from "node:util";
-import type { DocsQaTool, DocsQaToolStatus } from "@aidlc-guide/shared-types";
+import type { DocsQaTool, DocsQaToolStatus } from "@andon/shared-types";
 import {
   COPILOT_ARGUMENTS,
   COPILOT_REQUIRED_FLAGS,

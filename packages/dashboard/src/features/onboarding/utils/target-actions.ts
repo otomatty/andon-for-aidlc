@@ -1,4 +1,4 @@
-import type { OnboardingTarget } from "@aidlc-guide/shared-types";
+import type { OnboardingTarget } from "@andon/shared-types";
 import type { Action } from "@/store/reducer.ts";
 
 /**

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { guardPath } from "@aidlc-guide/core-utils";
+import { guardPath } from "@andon/core-utils";
 
 /**
  * The part of "open this reference" that does not need an editor: whether a

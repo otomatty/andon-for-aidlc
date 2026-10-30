@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { canonicalPathSync, guardPath } from "@aidlc-guide/core-utils";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import { canonicalPathSync, guardPath } from "@andon/core-utils";
+import type { ReadResult } from "@andon/shared-types";
 import { setDefaultOnNone } from "./release-lookup.ts";
 import { showPlainNotice } from "./user-notice.ts";
 
@@ -11,7 +11,7 @@ interface McpJson {
   mcpServers?: Record<string, unknown>;
 }
 
-const SERVER_KEY = "aidlc-guide";
+const SERVER_KEY = "andon";
 const registrations = new Map<string, Promise<void>>();
 /** Hash the original Skill body for the trailing ownership marker. */
 const digest = (text: string) => createHash("sha256").update(text).digest("hex");
@@ -19,7 +19,7 @@ const digest = (text: string) => createHash("sha256").update(text).digest("hex")
 /** A checksum proves the installed Skill has not been edited since registration. */
 function ownedSkill(existing: string, source: string): boolean {
   if (existing === source) return true;
-  const marker = /\n<!-- aidlc-guide-managed:([0-9a-f]{64}) -->\n$/.exec(existing);
+  const marker = /\n<!-- andon-managed:([0-9a-f]{64}) -->\n$/.exec(existing);
   return marker !== null && digest(existing.slice(0, marker.index)) === marker[1];
 }
 
@@ -146,9 +146,9 @@ async function registerFiles(
   const installs: { target: string; text: string; before: string | null }[] = [];
   if (skillSourcePath !== undefined) {
     const source = await readFile(skillSourcePath, "utf8");
-    const text = `${source}\n<!-- aidlc-guide-managed:${digest(source)} -->\n`;
+    const text = `${source}\n<!-- andon-managed:${digest(source)} -->\n`;
     for (const harness of [".claude", ".cursor"]) {
-      const rel = `${harness}/skills/aidlc-guide-docs/SKILL.md`;
+      const rel = `${harness}/skills/andon-docs/SKILL.md`;
       const guarded = await guardRegistrationPath(workspaceRoot, rel);
       if (!("ok" in guarded)) return { ok: false, reason: "docs-skill-outside-workspace" };
       const existing = await readFile(guarded.value, "utf8").catch((error) => {
@@ -254,7 +254,8 @@ function generatedEntry(
 function priorBundle(previous: string, current: string): boolean {
   const oldPath = previous.replace(/\\/g, "/");
   const newPath = current.replace(/\\/g, "/");
-  const pattern = /^(.*\/)(aidlc\.aidlc-guide-\d+\.\d+\.\d+(?:-[\w.-]+)?)\/dist\/aidlc-mcp\.mjs$/;
+  const pattern =
+    /^(.*\/)(otomatty\.andon-for-aidlc-\d+\.\d+\.\d+(?:-[\w.-]+)?)\/dist\/aidlc-mcp\.mjs$/;
   const oldMatch = pattern.exec(oldPath);
   const newMatch = pattern.exec(newPath);
   return oldMatch !== null && newMatch !== null && oldMatch[1] === newMatch[1];
@@ -276,8 +277,8 @@ export async function refreshDocsRegistration(
     for (const rel of [
       ".mcp.json",
       ".cursor/mcp.json",
-      ".claude/skills/aidlc-guide-docs/SKILL.md",
-      ".cursor/skills/aidlc-guide-docs/SKILL.md",
+      ".claude/skills/andon-docs/SKILL.md",
+      ".cursor/skills/andon-docs/SKILL.md",
     ]) {
       const guarded = await guardRegistrationPath(workspaceRoot, rel);
       if (!("ok" in guarded)) {
@@ -298,7 +299,7 @@ export async function refreshDocsRegistration(
           complete = false;
           continue;
         }
-        const expected = `${source}\n<!-- aidlc-guide-managed:${digest(source)} -->\n`;
+        const expected = `${source}\n<!-- andon-managed:${digest(source)} -->\n`;
         if (existing !== expected) replacement = expected;
       } else {
         const config = JSON.parse(existing) as McpJson | null;
@@ -346,10 +347,10 @@ export function mcpScriptPath(extensionPath: string): string {
 
 /** Locate the packaged Skill copy or its development source for client registration. */
 export function docsSkillPath(extensionPath: string): string {
-  const bundled = path.join(extensionPath, "media", "aidlc-guide-docs", "SKILL.md");
+  const bundled = path.join(extensionPath, "media", "andon-docs", "SKILL.md");
   return existsSync(bundled)
     ? bundled
-    : path.join(extensionPath, "..", "mcp-server", "skills", "aidlc-guide-docs", "SKILL.md");
+    : path.join(extensionPath, "..", "mcp-server", "skills", "andon-docs", "SKILL.md");
 }
 
 export {

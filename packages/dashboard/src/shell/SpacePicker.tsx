@@ -1,4 +1,4 @@
-import type { SpaceCatalog } from "@aidlc-guide/shared-types";
+import type { SpaceCatalog } from "@andon/shared-types";
 import { ChevronDownIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";

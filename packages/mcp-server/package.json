@@ -1,5 +1,5 @@
 {
-  "name": "@aidlc-guide/mcp-server",
+  "name": "@andon/mcp-server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,9 +15,9 @@
     "mcp": "bun run ./src/index.ts"
   },
   "dependencies": {
-    "@aidlc-guide/official-docs": "workspace:*",
-    "@aidlc-guide/reader-core": "workspace:*",
-    "@aidlc-guide/shared-types": "workspace:*",
+    "@andon/official-docs": "workspace:*",
+    "@andon/reader-core": "workspace:*",
+    "@andon/shared-types": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.32.1",
     "zod": "^4.6.7"
   }

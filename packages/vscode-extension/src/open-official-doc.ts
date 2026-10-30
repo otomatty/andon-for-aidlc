@@ -1,8 +1,8 @@
-import type { DocsShellDeepLinkMessage, OfficialDocsLocale } from "@aidlc-guide/shared-types";
+import type { DocsShellDeepLinkMessage, OfficialDocsLocale } from "@andon/shared-types";
 import type { ExtensionContext, Webview } from "vscode";
 
 /** Persist last Official Docs locale preference (Bolt 3). */
-export const OFFICIAL_DOCS_LOCALE_KEY = "aidlcGuide.officialDocsLocale";
+export const OFFICIAL_DOCS_LOCALE_KEY = "andon.officialDocsLocale";
 
 export type OpenOfficialDocOutcome =
   | { ok: true; inject: DocsShellDeepLinkMessage }

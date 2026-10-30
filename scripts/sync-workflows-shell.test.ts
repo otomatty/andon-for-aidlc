@@ -141,8 +141,8 @@ describe("walkShellFiles", () => {
 
 describe("planShellSync", () => {
   it("preserves Guide's verification skill descendants, including upstream collisions", () => {
-    const owned = "skills/verify-aidlc-guide/features/docs-shell.md";
-    const neighbor = "skills/verify-aidlc-guide-other/SKILL.md";
+    const owned = "skills/verify-andon/features/docs-shell.md";
+    const neighbor = "skills/verify-andon-other/SKILL.md";
     const local = new Map([
       [owned, "local"],
       [neighbor, "old"],

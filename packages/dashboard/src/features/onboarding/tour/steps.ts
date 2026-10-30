@@ -1,4 +1,4 @@
-import type { WorkflowModel } from "@aidlc-guide/shared-types";
+import type { WorkflowModel } from "@andon/shared-types";
 
 /**
  * An element the tour points at, matched by exact attribute value so a stage

@@ -48,10 +48,10 @@ describe("applyFailureMessage detail", () => {
         ok: false,
         reason: "install",
         detail: "command not found",
-        filePath: "/tmp/aidlc-guide-0.2.0.vsix",
+        filePath: "/tmp/andon-for-aidlc-0.2.0.vsix",
       }),
     ).toBe(
-      "更新に失敗しました（インストールに失敗）：command not found ファイルを残してあります: /tmp/aidlc-guide-0.2.0.vsix。「Extensions: Install from VSIX」から手動で入れられます。",
+      "更新に失敗しました（インストールに失敗）：command not found ファイルを残してあります: /tmp/andon-for-aidlc-0.2.0.vsix。「Extensions: Install from VSIX」から手動で入れられます。",
     );
   });
 });

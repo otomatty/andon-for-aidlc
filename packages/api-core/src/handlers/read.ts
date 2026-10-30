@@ -1,5 +1,5 @@
-import type { Bridge } from "@aidlc-guide/docs-bridge";
-import { guardPath, nextStepOf, type Reader, readStageModels } from "@aidlc-guide/reader-core";
+import type { Bridge } from "@andon/docs-bridge";
+import { guardPath, nextStepOf, type Reader, readStageModels } from "@andon/reader-core";
 import type {
   IntentList,
   Matrix,
@@ -7,7 +7,7 @@ import type {
   VersionGate,
   SpaceCatalog,
   WorkflowPayload,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import type { CustomizationService } from "../customization/index.ts";
 import type { DocsQaService } from "../docs-qa/index.ts";
 import { readAgentKnowledge, resolveAgent } from "./agents.ts";

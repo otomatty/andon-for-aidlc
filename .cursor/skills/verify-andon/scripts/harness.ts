@@ -690,7 +690,7 @@ async function stop(): Promise<void> {
 async function main(argv: readonly string[]): Promise<void> {
   const command = argv[0];
   if (command === undefined || !isCommand(command)) {
-    fail("usage: bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts <launch|doctor|origin|stop>");
+    fail("usage: bun .cursor/skills/verify-andon/scripts/harness.ts <launch|doctor|origin|stop>");
   }
   switch (command) {
     case "launch":

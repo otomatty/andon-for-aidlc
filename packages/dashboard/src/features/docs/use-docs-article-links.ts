@@ -1,4 +1,4 @@
-import type { OfficialDocsLocale } from "@aidlc-guide/shared-types";
+import type { OfficialDocsLocale } from "@andon/shared-types";
 import type { RefObject } from "react";
 import { useEffect, useEffectEvent } from "react";
 import { isExternal } from "@/services/docs.ts";

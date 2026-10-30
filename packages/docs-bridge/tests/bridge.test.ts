@@ -8,7 +8,7 @@ import { expectError, expectOk, REPO_ROOT } from "./paths.ts";
 let root: string;
 
 async function bridgeWith(config: unknown) {
-  const file = path.join(root, "aidlc-guide.config.json");
+  const file = path.join(root, "andon.config.json");
   await writeFile(file, JSON.stringify(config));
   return createBridge(file);
 }
@@ -52,15 +52,15 @@ describe("createBridge", () => {
   });
 
   it("surfaces a broken config as config-invalid on every method", async () => {
-    await writeFile(path.join(root, "aidlc-guide.config.json"), "{ broken");
-    const bridge = createBridge(path.join(root, "aidlc-guide.config.json"));
+    await writeFile(path.join(root, "andon.config.json"), "{ broken");
+    const bridge = createBridge(path.join(root, "andon.config.json"));
     expect(expectError(await bridge.getConfig())).toBe("config-invalid");
     expect(expectError(await bridge.resolveStage("ci-pipeline"))).toBe("config-invalid");
     expect(expectError(await bridge.projectLinks())).toBe("config-invalid");
   });
 
   it("loads the config once, so editing it mid-process does not change answers", async () => {
-    const file = path.join(root, "aidlc-guide.config.json");
+    const file = path.join(root, "andon.config.json");
     await writeFile(file, JSON.stringify({ projectLinks: [{ label: "A", target: "a" }] }));
     const bridge = createBridge(file);
     expect(expectOk(await bridge.projectLinks()).value).toHaveLength(1);

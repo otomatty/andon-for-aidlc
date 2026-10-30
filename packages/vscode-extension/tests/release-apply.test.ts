@@ -11,7 +11,7 @@ function vsixBytes(): Uint8Array {
 describe("applyReleaseFromUrl", () => {
   it("writes, installs, and cleans up a valid VSIX", async () => {
     const bytes = vsixBytes();
-    const writeBytes = vi.fn(async () => "/tmp/aidlc-guide-0.2.0.vsix");
+    const writeBytes = vi.fn(async () => "/tmp/andon-for-aidlc-0.2.0.vsix");
     const installFromPath = vi.fn(async () => undefined);
     const cleanupPath = vi.fn(async () => undefined);
     const result = await applyReleaseFromUrl("0.2.0", "https://example.invalid/app.vsix", {
@@ -22,8 +22,8 @@ describe("applyReleaseFromUrl", () => {
     });
     expect(result).toEqual({ ok: true });
     expect(writeBytes).toHaveBeenCalledWith("0.2.0", bytes);
-    expect(installFromPath).toHaveBeenCalledWith("/tmp/aidlc-guide-0.2.0.vsix");
-    expect(cleanupPath).toHaveBeenCalledWith("/tmp/aidlc-guide-0.2.0.vsix");
+    expect(installFromPath).toHaveBeenCalledWith("/tmp/andon-for-aidlc-0.2.0.vsix");
+    expect(cleanupPath).toHaveBeenCalledWith("/tmp/andon-for-aidlc-0.2.0.vsix");
   });
 
   it("rejects a non-VSIX payload and does not install", async () => {
@@ -80,7 +80,7 @@ describe("applyReleaseFromUrl", () => {
     await vi.waitFor(() => {
       expect(writeBytes).toHaveBeenCalledTimes(1);
     });
-    finishWrite?.("/tmp/aidlc-guide-0.2.0.vsix");
+    finishWrite?.("/tmp/andon-for-aidlc-0.2.0.vsix");
     await expect(first).resolves.toEqual({ ok: true });
     await expect(second).resolves.toEqual({ ok: true });
   });

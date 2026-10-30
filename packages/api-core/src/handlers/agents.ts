@@ -1,13 +1,8 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { agentEntry, parsePersonaMarkdown, stagesForAgent } from "@aidlc-guide/docs-bridge";
-import { guardPath } from "@aidlc-guide/reader-core";
-import type {
-  AgentDoc,
-  AgentKnowledgeItem,
-  MarkdownDoc,
-  ReadResult,
-} from "@aidlc-guide/shared-types";
+import { agentEntry, parsePersonaMarkdown, stagesForAgent } from "@andon/docs-bridge";
+import { guardPath } from "@andon/reader-core";
+import type { AgentDoc, AgentKnowledgeItem, MarkdownDoc, ReadResult } from "@andon/shared-types";
 import { MD_FILE, titleFromMarkdown } from "./markdown.ts";
 
 /** Safe agent ids (no path segments). */

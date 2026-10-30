@@ -1,5 +1,5 @@
 {
-  "name": "@aidlc-guide/docs-bridge",
+  "name": "@andon/docs-bridge",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@aidlc-guide/core-utils": "workspace:*",
-    "@aidlc-guide/shared-types": "workspace:*"
+    "@andon/core-utils": "workspace:*",
+    "@andon/shared-types": "workspace:*"
   }
 }

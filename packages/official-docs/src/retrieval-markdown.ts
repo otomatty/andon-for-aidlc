@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { slugifyHeading } from "@aidlc-guide/shared-types";
+import { slugifyHeading } from "@andon/shared-types";
 import type { IndexedSection } from "./retrieval-types.ts";
 
 /** Hash UTF-8 source text for index freshness checks and reviewer translation approvals. */

@@ -8,7 +8,7 @@ import type {
   StageDoc,
   TimingsPayload,
   WorkflowModel,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { HOME_ROUTE, type AppRoute } from "@/app/routes.ts";
 
 /**
@@ -34,7 +34,7 @@ export type ViewState<T> =
 
 export type Theme = "light" | "dark";
 
-export type { WorkflowPayload } from "@aidlc-guide/shared-types";
+export type { WorkflowPayload } from "@andon/shared-types";
 
 export interface AppState {
   workflow: ViewState<WorkflowModel>;

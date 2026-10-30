@@ -12,7 +12,7 @@ import {
 import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { canonicalPathSync } from "@aidlc-guide/core-utils";
+import { canonicalPathSync } from "@andon/core-utils";
 import { parse as parseJsonc } from "jsonc-parser";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -731,7 +731,7 @@ describe("native harness candidate merge", () => {
       let partialFile = "";
       write(root, "AGENTS.md", "User instructions\n");
       fsFaults.write = (file) => {
-        if (file !== target && !file.startsWith(`${target}.aidlc-guide-`)) return;
+        if (file !== target && !file.startsWith(`${target}.andon-`)) return;
         fsFaults.write = undefined;
         partialFile = file;
         writeFileSync(file, "partial bytes");

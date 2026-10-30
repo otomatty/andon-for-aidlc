@@ -2,14 +2,14 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ReadContext } from "@aidlc-guide/api-core";
-import type { Bridge } from "@aidlc-guide/docs-bridge";
-import type { Reader } from "@aidlc-guide/reader-core";
+import type { ReadContext } from "@andon/api-core";
+import type { Bridge } from "@andon/docs-bridge";
+import type { Reader } from "@andon/reader-core";
 import {
   type ReadResult,
   type StageDoc,
   WORKFLOWS_TARGET_VERSION,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 

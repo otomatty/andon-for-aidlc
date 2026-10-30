@@ -1102,8 +1102,8 @@ describe("docs-shell boundary", () => {
     ];
     for (const rel of files) {
       const src = await readFile(path.join(DOCS_ROOT, rel), "utf8");
-      expect(src).not.toMatch(/@aidlc-guide\/official-docs/);
-      expect(src).not.toMatch(/@aidlc-guide\/reader-core/);
+      expect(src).not.toMatch(/@andon\/official-docs/);
+      expect(src).not.toMatch(/@andon\/reader-core/);
       expect(src).not.toMatch(/from ["'].*reader-core/);
     }
   });

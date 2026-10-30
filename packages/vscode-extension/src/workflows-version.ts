@@ -5,7 +5,7 @@ import {
   parseAidlcVersionSource,
   readAllWorkspaceAidlcVersions,
   type WorkspaceAidlcVersion,
-} from "@aidlc-guide/reader-core";
+} from "@andon/reader-core";
 import { compareSemver, parseSemver } from "./update-release.ts";
 
 /** A pin with no remaining tool files can be initialized with the first tool installation. */
@@ -28,7 +28,7 @@ export type { WorkspaceAidlcVersion };
 
 const UPSTREAM_SHA_RE = /^[0-9a-f]{7,40}$/;
 
-export const UPDATE_WORKFLOWS_COMMAND = "aidlc-guide.updateWorkflows";
+export const UPDATE_WORKFLOWS_COMMAND = "andon.updateWorkflows";
 export const OFFICIAL_DOCS_MANIFEST_REL = path.join("docs", "official-docs.manifest.json");
 
 /** Native releases no longer carry dist/ in the source archive used by our copy updater. */

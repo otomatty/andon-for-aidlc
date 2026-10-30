@@ -15,7 +15,7 @@ function release(assets: unknown[]): unknown {
   return { tag_name: "v0.40.0", draft: false, prerelease: false, body: "", assets };
 }
 
-const vsix = { name: "aidlc-guide-0.40.0.vsix", browser_download_url: `${DOWNLOAD}/x.vsix` };
+const vsix = { name: "andon-for-aidlc-0.40.0.vsix", browser_download_url: `${DOWNLOAD}/x.vsix` };
 
 describe("parseLatestRelease metadata", () => {
   it("keeps the metadata asset's download URL", () => {
@@ -114,7 +114,7 @@ describe("fetchReleaseMetadata", () => {
   const withUrl: LatestRelease = {
     version: "0.40.0",
     tag: "v0.40.0",
-    assetName: "aidlc-guide-0.40.0.vsix",
+    assetName: "andon-for-aidlc-0.40.0.vsix",
     notes: [],
     metadataUrl: `${DOWNLOAD}/${RELEASE_METADATA_ASSET}`,
   };

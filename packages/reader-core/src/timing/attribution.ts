@@ -1,4 +1,4 @@
-import type { AuditEvent } from "@aidlc-guide/shared-types";
+import type { AuditEvent } from "@andon/shared-types";
 import { timeOf } from "../audit/events.ts";
 import type { RunBoundary } from "./pairing.ts";
 

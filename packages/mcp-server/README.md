@@ -1,4 +1,4 @@
-# @aidlc-guide/mcp-server
+# @andon/mcp-server
 
 AI-DLC ワークスペースを **読取専用** で公開する MCP stdio サーバ。Claude Code が
 セッション開始時に spawn し、7つのツールを提供する。内蔵文書の検索は intent 未作成でも利用できる。
@@ -38,7 +38,7 @@ VSIX は `dist/aidlc-mcp.mjs`、`dist/aidlc-docs.mjs` と `media/official-docs` 
 ```json
 {
   "mcpServers": {
-    "aidlc-guide": {
+    "andon": {
       "command": "bun",
       "args": ["run", "packages/mcp-server/src/index.ts"]
     }
@@ -46,8 +46,8 @@ VSIX は `dist/aidlc-mcp.mjs`、`dist/aidlc-docs.mjs` と `media/official-docs` 
 }
 ```
 
-既に `mcpServers` がある場合は `"aidlc-guide"` エントリだけを既存オブジェクトに
-足す。登録後に Claude Code を再起動すると `/mcp` に `aidlc-guide` が現れる。
+既に `mcpServers` がある場合は `"andon"` エントリだけを既存オブジェクトに
+足す。登録後に Claude Code を再起動すると `/mcp` に `andon` が現れる。
 
 ### cwd について
 
@@ -58,9 +58,9 @@ Claude Code は MCP サーバをプロジェクトルートを cwd として spa
 ```json
 {
   "mcpServers": {
-    "aidlc-guide": {
+    "andon": {
       "command": "bun",
-      "args": ["run", "/abs/path/to/aidlc-guide/packages/mcp-server/src/index.ts"],
+      "args": ["run", "/abs/path/to/andon-for-aidlc/packages/mcp-server/src/index.ts"],
       "cwd": "/abs/path/to/target-workspace"
     }
   }

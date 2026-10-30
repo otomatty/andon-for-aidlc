@@ -40,7 +40,7 @@ VSIX に AI-DLC のプラグイン（最初は `focus`）を同梱し、ダッ�
 | `onClick` | `dispatch({ type: "plugins", open: true })`                     |
 | ルート    | `{ name: "plugins" }`（`packages/dashboard/src/app/routes.ts`） |
 
-コマンドパレットにも `aidlc-guide.openPlugins`（`Andon: Open Plugins`）を足し、ダッシュボードを開いてこの画面へ移る（段階 2。ダッシュボードを開いたときの画面の指定は、いまは「はじめに」と「更新情報」用の仕組みしかないため、拡張側に手を入れる段階 2 で足す）。
+コマンドパレットにも `andon.openPlugins`（`Andon: Open Plugins`）を足し、ダッシュボードを開いてこの画面へ移る（段階 2。ダッシュボードを開いたときの画面の指定は、いまは「はじめに」と「更新情報」用の仕組みしかないため、拡張側に手を入れる段階 2 で足す）。
 
 ### 一覧
 
@@ -144,7 +144,7 @@ bun .claude/tools/aidlc-plugin-build.ts plugins/focus claude packages/vscode-ext
 | -------------- | ----------------------------------------------------------------------------------------------------------- |
 | 名前・版       | ビルド結果の `.claude-plugin/plugin.json`                                                                   |
 | `sourceHash`   | 組み込んだ後の `plugin-compose-<name>.json`（エンジンが計算した値。`sha256:` 付き）                         |
-| 表示用の文言   | `plugins/<name>/.aidlc-guide/listing.json`（下記）                                                          |
+| 表示用の文言   | `plugins/<name>/.andon/listing.json`（下記）                                                                |
 | ステージの比較 | 組み込んだ後の `stage-graph.json` と `scope-grid.json`。標準ステージへの追記は `contributions/` の `target` |
 | 見本の図       | `listing.json` が指す SVG。focus のセンサーと同じ `checkSvg` で検査してから取り込む                         |
 | ファイル一覧   | 組み込む前後の `.claude/` の差分（追加と変更）                                                              |
@@ -288,10 +288,10 @@ bun .claude/tools/aidlc-plugin-build.ts plugins/focus claude packages/vscode-ext
 | `packages/vscode-extension/src/plugins-controller.ts`      | 操作の実行                                                               |
 | `packages/vscode-extension/src/native-plugin-inputs.ts`    | 探す場所の追加、CLI の環境変数の共通化                                   |
 | `packages/vscode-extension/src/dashboard-panel.ts`         | メッセージの受け渡し                                                     |
-| `packages/vscode-extension/package.json`                   | `aidlc-guide.openPlugins`                                                |
+| `packages/vscode-extension/package.json`                   | `andon.openPlugins`                                                      |
 | `scripts/build-bundled-plugins.ts`                         | 同梱物とカタログの生成。`build:extension` から呼ぶ                       |
 | `package.json`                                             | `check:plugins-catalog` を `check` に足す                                |
-| `plugins/focus/.aidlc-guide/`                              | `listing.json` と見本の図（SVG）                                         |
+| `plugins/focus/.andon/`                                    | `listing.json` と見本の図（SVG）                                         |
 | 紹介画面・更新情報・ツアー                                 | `welcome.ts` の `MORE`、`whats-new.ts`、ツアーのメニュー説明、画面の画像 |
 
 紹介画面（`welcome.ts` の `MORE`）の項目:
@@ -338,7 +338,7 @@ bun .claude/tools/aidlc-plugin-build.ts plugins/focus claude packages/vscode-ext
 | 操作の実行                 | `packages/vscode-extension/src/plugins-controller.ts`                                                                   |
 | メッセージの型             | `packages/shared-types/src/plugins.ts`                                                                                  |
 | 画面                       | `packages/dashboard/src/features/plugins/`（`usePluginsHost.ts`）                                                       |
-| コマンドパレット           | `aidlc-guide.openPlugins`（ダッシュボードを開くときの画面の指定に `plugins` を足した）                                  |
+| コマンドパレット           | `andon.openPlugins`（ダッシュボードを開くときの画面の指定に `plugins` を足した）                                        |
 
 残る注意点:
 

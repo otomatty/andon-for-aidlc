@@ -14,7 +14,7 @@ import {
   unseenNews,
   WHATS_NEW,
   type WsMessage,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import {
   type AppRoute,
   type DocsDeepLink,

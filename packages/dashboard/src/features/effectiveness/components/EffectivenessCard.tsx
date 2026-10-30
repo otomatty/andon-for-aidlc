@@ -1,4 +1,4 @@
-import type { IntentEffectiveness } from "@aidlc-guide/shared-types";
+import type { IntentEffectiveness } from "@andon/shared-types";
 import { type ReactNode, useId } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

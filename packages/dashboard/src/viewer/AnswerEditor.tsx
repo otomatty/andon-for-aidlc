@@ -3,7 +3,7 @@ import {
   type AnswerError,
   type ChatAnswered,
   scanAnswerLines,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { type ReactNode, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

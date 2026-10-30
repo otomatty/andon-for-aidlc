@@ -1,5 +1,5 @@
 /**
- * `@aidlc-guide/official-docs` — locale-scoped load/resolve for bundled
+ * `@andon/official-docs` — locale-scoped load/resolve for bundled
  * aidlc-workflows docs under `docs/<section>/<locale>/`.
  *
  * Public DocPath convention: `guide/getting-started.md`,

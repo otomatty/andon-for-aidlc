@@ -5,7 +5,7 @@ import type {
   PluginInstallState,
   PluginOperation,
   PluginPrerequisite,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 
 /**
  * Where each bundled plugin stands in the open project, and whether the 「プラグイン」 page may

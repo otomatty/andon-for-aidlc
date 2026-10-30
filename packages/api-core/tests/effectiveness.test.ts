@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { EffectivenessPayload, ReadResult } from "@aidlc-guide/shared-types";
+import type { EffectivenessPayload, ReadResult } from "@andon/shared-types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { handleRead, routeRead } from "../src/handlers/read.ts";
 import { createGuideService } from "../src/service.ts";

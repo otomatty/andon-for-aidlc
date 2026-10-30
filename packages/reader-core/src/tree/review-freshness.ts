@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { type BigIntStats, constants } from "node:fs";
 import { lstat, open, opendir } from "node:fs/promises";
 import path from "node:path";
-import { canonicalPath } from "@aidlc-guide/core-utils";
+import { canonicalPath } from "@andon/core-utils";
 
 /**
  * Read-only projection of aidlc-workflows v2.8.2 (355903d), core/tools/aidlc-lib.ts:

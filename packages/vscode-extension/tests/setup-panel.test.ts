@@ -515,7 +515,7 @@ describe("setup startup and actions", () => {
     await receive({ type: "finish" });
     expect(mocks.dashboard).not.toHaveBeenCalled();
     expect(savedPreference).toBeUndefined();
-    expect(mocks.update).toHaveBeenLastCalledWith("aidlc-guide.setup.v2:workspace", undefined);
+    expect(mocks.update).toHaveBeenLastCalledWith("andon.setup.v2:workspace", undefined);
     mocks.workspace.workspaceFolders = [{ uri: { fsPath: "workspace" } }];
     panel.dispose();
     mocks.inspect.mockResolvedValue({ ...empty });
@@ -664,8 +664,8 @@ describe("setup startup and actions", () => {
     expect(panel.webview.html).not.toContain('id="cancel-add"');
     await receive({ type: "open-workflows-update", root: "other" });
     await receive({ type: "add-tools", root: "other" });
-    expect(mocks.command).toHaveBeenCalledWith("aidlc-guide.updateWorkflows", "workspace");
-    expect(mocks.command).not.toHaveBeenCalledWith("aidlc-guide.installWorkflows", "workspace");
+    expect(mocks.command).toHaveBeenCalledWith("andon.updateWorkflows", "workspace");
+    expect(mocks.command).not.toHaveBeenCalledWith("andon.installWorkflows", "workspace");
     expect(mocks.create).toHaveBeenCalledTimes(1);
     expect(panel.webview.html).toContain("<legend>追加するツール</legend>");
     expect(panel.webview.html).toContain('id="cancel-add"');
@@ -821,7 +821,7 @@ describe("setup startup and actions", () => {
     mocks.inspect.mockResolvedValue({ ...empty, configured: true, harnesses: ["cursor"] });
     await openSetupPanel(context, "workspace");
     await receive({ type: "finish", harnesses: ["cursor"] });
-    expect(mocks.update).toHaveBeenCalledWith("aidlc-guide.setup.v2:workspace", {
+    expect(mocks.update).toHaveBeenCalledWith("andon.setup.v2:workspace", {
       completed: true,
       docsSkipped: true,
       harness: "cursor",
@@ -1003,7 +1003,7 @@ describe("installation from settings", () => {
     mocks.inspect.mockResolvedValue({ ...empty, configured: true, harnesses: ["cursor"] });
     await openWorkflowsInstallPanel(context, "workspace");
     expect(mocks.create).toHaveBeenCalledWith(
-      "aidlcGuide.setup",
+      "andon.setup",
       "Andon セットアップ",
       1,
       expect.anything(),

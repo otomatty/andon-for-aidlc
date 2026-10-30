@@ -15,7 +15,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { canonicalPathSync } from "@aidlc-guide/core-utils";
+import { canonicalPathSync } from "@andon/core-utils";
 import { readChangelogPages } from "./changelog.ts";
 import { DOC_SECTIONS, upstreamSectionSource } from "./roots.ts";
 import type { DocPath, DocSection, Manifest } from "./types.ts";

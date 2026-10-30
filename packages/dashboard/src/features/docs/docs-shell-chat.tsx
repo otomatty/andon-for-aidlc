@@ -4,7 +4,7 @@ import type {
   MarkdownItem,
   OfficialDocsLocale,
   OfficialDocsToc,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import type { ReactNode } from "react";
 import { DocsChatView } from "@/features/docs/components/chat/DocsChatView.tsx";
 import { DocsComposer, focusDocsQuestion } from "@/features/docs/components/chat/DocsComposer.tsx";

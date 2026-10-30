@@ -65,7 +65,7 @@ vi.mock("../src/status-bar.ts", () => ({
 vi.mock("../src/workflows-update-panel.ts", () => ({
   maybePromptWorkflowsUpdate: mocks.updatePrompt,
   openWorkflowsUpdatePanel: vi.fn(),
-  UPDATE_WORKFLOWS_COMMAND: "aidlc-guide.updateWorkflows",
+  UPDATE_WORKFLOWS_COMMAND: "andon.updateWorkflows",
 }));
 
 import { activate, deactivate } from "../src/extension.ts";
@@ -119,7 +119,7 @@ describe("first-run activation", () => {
       extensionPath: "extension",
     } as unknown as ExtensionContext;
     await activate(context);
-    const setup = mocks.register.mock.calls.find((call) => call[0] === "aidlc-guide.setup")?.[1];
+    const setup = mocks.register.mock.calls.find((call) => call[0] === "andon.setup")?.[1];
     setup("second");
     expect(openSetupPanel).toHaveBeenCalledExactlyOnceWith(context, "second");
     setup("removed");
@@ -212,7 +212,7 @@ describe("first-run activation", () => {
       const context = { subscriptions: [] } as unknown as ExtensionContext;
       await activate(context);
       expect(mocks.setup).not.toHaveBeenCalled();
-      const open = mocks.register.mock.calls.find((call) => call[0] === "aidlc-guide.open")?.[1];
+      const open = mocks.register.mock.calls.find((call) => call[0] === "andon.open")?.[1];
       await open();
       expect(mocks.setup).toHaveBeenCalledWith(context, "project", expect.any(Function));
       expect(openDashboardPanel).toHaveBeenCalledTimes(incomplete ? 0 : 1);
@@ -224,7 +224,7 @@ describe("first-run activation", () => {
     const context = { subscriptions: [] } as unknown as ExtensionContext;
     await activate(context);
     expect(openSetupPanel).not.toHaveBeenCalled();
-    const setup = mocks.register.mock.calls.find((call) => call[0] === "aidlc-guide.setup")?.[1];
+    const setup = mocks.register.mock.calls.find((call) => call[0] === "andon.setup")?.[1];
     setup();
     expect(openSetupPanel).toHaveBeenCalledWith(context, "project");
   });
@@ -237,7 +237,7 @@ describe("first-run activation", () => {
     const context = { subscriptions: [] } as unknown as ExtensionContext;
     await activate(context);
     const update = mocks.register.mock.calls.find(
-      (call) => call[0] === "aidlc-guide.updateWorkflows",
+      (call) => call[0] === "andon.updateWorkflows",
     )?.[1];
     update("dashboard-project");
     update();
@@ -249,7 +249,7 @@ describe("first-run activation", () => {
   });
   it("registers commands without opening setup when a folder is added", async () => {
     await activate({ subscriptions: [] } as unknown as ExtensionContext);
-    expect(mocks.register).toHaveBeenCalledWith("aidlc-guide.setup", expect.any(Function));
+    expect(mocks.register).toHaveBeenCalledWith("andon.setup", expect.any(Function));
     expect(mocks.setup).not.toHaveBeenCalled();
     mocks.workspace.workspaceFolders = [{ uri: { fsPath: "new-project" } }];
     mocks.folders.mock.calls[0]?.[0]();
@@ -285,7 +285,7 @@ describe("first-run activation", () => {
     mocks.workspace.isTrusted = false;
     await activate({ subscriptions: [] } as unknown as ExtensionContext);
     const update = mocks.register.mock.calls.find(
-      (call) => call[0] === "aidlc-guide.updateWorkflows",
+      (call) => call[0] === "andon.updateWorkflows",
     )?.[1];
     update();
     expect(openWorkflowsUpdatePanel).not.toHaveBeenCalled();
@@ -300,7 +300,7 @@ describe("first-run activation", () => {
     const context = { subscriptions: [] } as unknown as ExtensionContext;
     await activate(context);
     const install = mocks.register.mock.calls.find(
-      (call) => call[0] === "aidlc-guide.installWorkflows",
+      (call) => call[0] === "andon.installWorkflows",
     )?.[1];
     install("dashboard-project");
     expect(openWorkflowsInstallPanel).toHaveBeenCalledWith(context, "dashboard-project");
@@ -313,7 +313,7 @@ describe("first-run activation", () => {
       const { openWorkflowsInstallPanel } = await import("../src/setup-panel.ts");
       await activate({ subscriptions: [] } as unknown as ExtensionContext);
       const install = mocks.register.mock.calls.find(
-        (call) => call[0] === "aidlc-guide.installWorkflows",
+        (call) => call[0] === "andon.installWorkflows",
       )?.[1];
       install(root);
       expect(openWorkflowsInstallPanel).not.toHaveBeenCalled();
@@ -326,7 +326,7 @@ describe("first-run activation", () => {
     mocks.workspace.isTrusted = false;
     await activate({ subscriptions: [] } as unknown as ExtensionContext);
     const install = mocks.register.mock.calls.find(
-      (call) => call[0] === "aidlc-guide.installWorkflows",
+      (call) => call[0] === "andon.installWorkflows",
     )?.[1];
     install();
     expect(openWorkflowsInstallPanel).not.toHaveBeenCalled();
@@ -358,9 +358,9 @@ describe("first-run activation", () => {
 
 describe("onboarding entry points", () => {
   it.each([
-    ["aidlc-guide.showWelcome", "welcome"],
-    ["aidlc-guide.showWhatsNew", "whats-new"],
-    ["aidlc-guide.openPlugins", "plugins"],
+    ["andon.showWelcome", "welcome"],
+    ["andon.showWhatsNew", "whats-new"],
+    ["andon.openPlugins", "plugins"],
   ])("%s opens the dashboard on %s after setup", async (command, view) => {
     const { openDashboardPanel } = await import("../src/dashboard-panel.ts");
     mocks.workspace.workspaceFolders = [{ uri: { fsPath: "project" } }];
@@ -378,7 +378,7 @@ describe("onboarding entry points", () => {
     mocks.setup.mockResolvedValue(true);
     await activate({ subscriptions: [] } as unknown as ExtensionContext);
     const run = mocks.register.mock.calls.find(
-      (call) => call[0] === "aidlc-guide.showWelcome",
+      (call) => call[0] === "andon.showWelcome",
     )?.[1];
     await run();
     expect(openDashboardPanel).not.toHaveBeenCalled();
@@ -396,7 +396,7 @@ describe("onboarding entry points", () => {
     const context = { subscriptions: [] } as unknown as ExtensionContext;
     await activate(context);
     await vi.waitFor(() =>
-      expect(mocks.execute).toHaveBeenCalledWith("aidlc-guide.showWhatsNew"),
+      expect(mocks.execute).toHaveBeenCalledWith("andon.showWhatsNew"),
     );
     expect(mocks.startOnboarding).toHaveBeenCalledExactlyOnceWith(context, "0.35.0");
     expect(mocks.updateNotice).toHaveBeenCalledWith(start, "0.35.0");
@@ -428,7 +428,7 @@ describe("onboarding entry points", () => {
     mocks.startOnboarding.mockRejectedValue(new Error("storage unavailable"));
     await activate({ subscriptions: [] } as unknown as ExtensionContext);
     await vi.waitFor(() => expect(warn).toHaveBeenCalled());
-    expect(mocks.register).toHaveBeenCalledWith("aidlc-guide.open", expect.any(Function));
+    expect(mocks.register).toHaveBeenCalledWith("andon.open", expect.any(Function));
     expect(mocks.error).not.toHaveBeenCalled();
     warn.mockRestore();
   });

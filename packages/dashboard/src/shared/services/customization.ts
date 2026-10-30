@@ -10,7 +10,7 @@ import type {
   CustomizationRequestReceipt,
   CustomizationResult,
   CustomizationSaveRequest,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { getTransport } from "@/services/transport/index.ts";
 
 const ROOT = "/api/customization";

@@ -12,8 +12,8 @@ MCP はワークフロー状態を進めたり、インテントを切り替え�
 ## 準備（MCP）
 
 1. [はじめに](./getting-started.md) の Setup、または **`Andon: Register MCP`**
-2. プロジェクトルートの `.mcp.json` に `aidlc-guide` が入っていることを確認
-3. Claude Code を再起動し、`/mcp` で `aidlc-guide` が見えること
+2. プロジェクトルートの `.mcp.json` に `andon` が入っていることを確認
+3. Claude Code を再起動し、`/mcp` で `andon` が見えること
 4. `bun` が PATH にあること（サーバは `bun run packages/mcp-server/...` で起動する）
 
 最小の登録例:
@@ -21,7 +21,7 @@ MCP はワークフロー状態を進めたり、インテントを切り替え�
 ```json
 {
   "mcpServers": {
-    "aidlc-guide": {
+    "andon": {
       "command": "bun",
       "args": ["run", "packages/mcp-server/src/index.ts"]
     }

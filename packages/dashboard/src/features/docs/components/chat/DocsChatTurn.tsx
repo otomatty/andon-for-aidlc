@@ -1,4 +1,4 @@
-import type { DocsQaCitation, DocsQaJob, DocsQaPhase } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaJob, DocsQaPhase } from "@andon/shared-types";
 import { BookOpenIcon, CheckIcon, CopyIcon, LoaderCircleIcon, PencilIcon } from "lucide-react";
 import { type ReactNode, Suspense, useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";

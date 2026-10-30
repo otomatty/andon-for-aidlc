@@ -2,7 +2,7 @@ import {
   type VersionGate,
   WORKFLOWS_TARGET_VERSION,
   type WorkflowsManagementState,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { JSDOM } from "jsdom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ExtensionContext } from "vscode";
@@ -53,8 +53,8 @@ vi.mock("../src/workflows-management.ts", async (importOriginal) => {
   return { ...actual, inspectWorkflowsManagement: mocks.inspect };
 });
 vi.mock("../src/workflows-update.ts", () => ({ updateInstalledWorkflows: mocks.update }));
-vi.mock("@aidlc-guide/reader-core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@aidlc-guide/reader-core")>()),
+vi.mock("@andon/reader-core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@andon/reader-core")>()),
   inspectVersionGate: mocks.gate,
 }));
 vi.mock("../src/shared-file-changes.ts", async (importOriginal) => ({
@@ -1303,13 +1303,13 @@ describe("update panel", () => {
     expect(webview.html).toContain("Doctor 完了");
     expect(webview.html).toContain("Claude Code：正常");
     await receive({ type: "setup", workspaceRoot: "attacker" });
-    expect(mocks.commands).toHaveBeenCalledWith("aidlc-guide.setup", "project");
+    expect(mocks.commands).toHaveBeenCalledWith("andon.setup", "project");
     await receive({ type: "install" });
-    expect(mocks.commands).toHaveBeenCalledWith("aidlc-guide.installWorkflows", "project");
+    expect(mocks.commands).toHaveBeenCalledWith("andon.installWorkflows", "project");
     await receive({ type: "extension-update" });
-    expect(mocks.commands).toHaveBeenCalledWith("aidlc-guide.checkUpdate");
+    expect(mocks.commands).toHaveBeenCalledWith("andon.checkUpdate");
     await receive({ type: "open-dashboard" });
-    expect(mocks.commands).toHaveBeenCalledWith("aidlc-guide.open");
+    expect(mocks.commands).toHaveBeenCalledWith("andon.open");
     expect(mocks.update).not.toHaveBeenCalled();
     expect(mocks.repair).not.toHaveBeenCalled();
   });

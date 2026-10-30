@@ -16,10 +16,10 @@ const SRC = path.join(ROOT, "src");
 
 /** Anything that would give this package filesystem or server reach. */
 const FORBIDDEN_IMPORTS = [
-  "@aidlc-guide/reader-core",
-  "@aidlc-guide/docs-bridge",
-  "@aidlc-guide/official-docs",
-  "@aidlc-guide/dashboard-server",
+  "@andon/reader-core",
+  "@andon/docs-bridge",
+  "@andon/official-docs",
+  "@andon/dashboard-server",
   "node:fs",
   "node:fs/promises",
   "node:path",
@@ -27,7 +27,7 @@ const FORBIDDEN_IMPORTS = [
   "chokidar",
 ];
 
-const REQUIRED_DEPENDENCIES = ["react", "react-dom", "@aidlc-guide/shared-types"];
+const REQUIRED_DEPENDENCIES = ["react", "react-dom", "@andon/shared-types"];
 
 const IMPORT_RE = /(?:^|\n)\s*(?:import|export)[^;\n]*?from\s+["']([^"']+)["']/g;
 

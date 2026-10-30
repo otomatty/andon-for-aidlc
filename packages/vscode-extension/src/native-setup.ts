@@ -4,8 +4,8 @@ import { accessSync, constants, existsSync, readFileSync, renameSync, statSync }
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { canonicalPathSync } from "@aidlc-guide/core-utils";
-import { WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
+import { canonicalPathSync } from "@andon/core-utils";
+import { WORKFLOWS_TARGET_VERSION } from "@andon/shared-types";
 import { type NativeDoctorReport, parseDoctorOutput } from "./doctor-output.ts";
 import { CODEX_GIT_REQUIRED, isGitRepository } from "./git-prerequisite.ts";
 import type { HarnessId } from "./harness-detect.ts";
@@ -17,7 +17,7 @@ import {
   type NativeInstall,
   type ProjectPinState,
   readNativeInstall,
-} from "@aidlc-guide/reader-core";
+} from "@andon/reader-core";
 
 /** Read-only resolution lives in reader-core so every surface checks the same engine. */
 export { inspectProjectPin, installLocations, readNativeInstall };
@@ -420,7 +420,7 @@ export async function installNative(
     checkCurrent();
   }
   quarantineRetainedVersion(version, log, { force: options.repair === true });
-  const temporary = await mkdtemp(path.join(tmpdir(), "aidlc-guide-install-"));
+  const temporary = await mkdtemp(path.join(tmpdir(), "andon-install-"));
   try {
     const script = path.join(temporary, filename);
     await writeFile(script, bytes);

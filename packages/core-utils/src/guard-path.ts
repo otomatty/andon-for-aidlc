@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import type { ReadResult } from "@andon/shared-types";
 import { canonicalPath } from "./canonical-path.ts";
 
 /**

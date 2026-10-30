@@ -1,4 +1,4 @@
-import type { AuditEvent, TimingPolicy } from "@aidlc-guide/shared-types";
+import type { AuditEvent, TimingPolicy } from "@andon/shared-types";
 
 export const DEFAULT_TIMING_POLICY: TimingPolicy = Object.freeze({
   algorithmVersion: "session-gap-v2",

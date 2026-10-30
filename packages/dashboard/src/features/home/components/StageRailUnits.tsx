@@ -1,9 +1,4 @@
-import type {
-  ActiveUnit,
-  UnitStageProgress,
-  UnitStep,
-  UnitWalkUnit,
-} from "@aidlc-guide/shared-types";
+import type { ActiveUnit, UnitStageProgress, UnitStep, UnitWalkUnit } from "@andon/shared-types";
 import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { CollapsibleTrigger } from "@/components/ui/collapsible";

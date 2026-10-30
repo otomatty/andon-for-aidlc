@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import type { CustomizationItem } from "@aidlc-guide/shared-types";
+import type { CustomizationItem } from "@andon/shared-types";
 import { expect, it } from "vitest";
 import { readCompatibilityCatalog } from "../src/customization/catalog";
 import { applyChanges } from "../src/customization/model";

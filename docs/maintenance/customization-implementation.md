@@ -46,7 +46,7 @@ PR #103のmacOS CIで、ロック起動に使う長いdata URLがBunの`NameTooL
 
 - Andon全体: `VITEST_MAX_WORKERS=4 bun run check` 成功。173ファイル・2,974件成功・6件skip、依存関係の脆弱性なし。
 - その後の画面更新の競合修正: 関連3ファイル・29件成功。適用後に古い下書きや通信エラーが復活しないことを追加検証。配布画面の識別表示を調整した後も、関連7件が成功。型・lint・書式も再確認した。
-- VSIX: `bun run package:extension` で `packages/vscode-extension/aidlc-guide-0.19.0.vsix` を生成。マニフェストのバージョンは変更していない。
+- VSIX: `bun run package:extension` で `packages/vscode-extension/andon-for-aidlc-0.19.0.vsix` を生成。マニフェストのバージョンは変更していない。
 - エンジン: `bun run check` 成功。全7ハーネスの配布物を生成し、独立した二つのビルドの一致、型、lintを確認。関連7ファイル・130件成功・2件skip・失敗0件。
 
 ブラウザーでは1440pxと320px幅で、ページ遷移、入力保持、タブとキーボード操作、外部設定との比較、下書きの再読込を確認した。隔離したClaude・Cursor併用プロジェクトで、差分生成後に手動適用し、日本語のルールが実ファイルへ反映されることと、Andon用設定ファイルを書き出せることを確認した。

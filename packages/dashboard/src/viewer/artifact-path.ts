@@ -4,7 +4,7 @@
  * `artifactPath` itself is the shared wire formula — re-exported so the
  * prefetch and the viewer's initial state agree by construction (P-AV-2).
  */
-export { artifactPath } from "@aidlc-guide/shared-types";
+export { artifactPath } from "@andon/shared-types";
 
 /** The artifact a cell opens with. `null` when the cell holds none. */
 export function firstArtifact(files: readonly string[]): string | null {

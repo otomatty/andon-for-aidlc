@@ -1,5 +1,5 @@
 import path from "node:path";
-import { WORKFLOWS_TARGET_VERSION, type WorkflowsManagementState } from "@aidlc-guide/shared-types";
+import { WORKFLOWS_TARGET_VERSION, type WorkflowsManagementState } from "@andon/shared-types";
 import { findHarnessConflict } from "./harness-conflicts.ts";
 import { detectHarnesses } from "./harness-detect.ts";
 import { readNativeProjections } from "./native-projection.ts";

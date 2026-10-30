@@ -2,7 +2,7 @@ import type {
   CustomizationImportPlan,
   CustomizationImportSelection,
   CustomizationItem,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { useState } from "react";
 import { FormSelect } from "@/shared/form-select";
 import type { ExportSelection } from "@/features/customization/types.ts";

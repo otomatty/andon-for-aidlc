@@ -1,7 +1,7 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { withResult } from "@aidlc-guide/core-utils";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import { withResult } from "@andon/core-utils";
+import type { ReadResult } from "@andon/shared-types";
 
 /** Recursively lists Markdown files as sorted record-relative POSIX paths. */
 export function listMarkdownRel(recordDir: string): Promise<ReadResult<string[]>> {

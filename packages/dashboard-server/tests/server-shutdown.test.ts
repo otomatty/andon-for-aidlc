@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   serve: vi.fn(),
 }));
-vi.mock("@aidlc-guide/api-core", () => ({
+vi.mock("@andon/api-core", () => ({
   acceptsCustomizationOrigin: vi.fn(),
   createGuideService: mocks.create,
   handlePost: vi.fn(),

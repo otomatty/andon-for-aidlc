@@ -1,5 +1,5 @@
 ---
-name: aidlc-guide-docs
+name: andon-docs
 description: AI-DLC / aidlc-workflows の使い方、用語、ステージ、承認ゲート、設定、仕組みについて質問されたとき、内蔵ドキュメントを検索し、原文に基づいて参照元付きで回答する。
 ---
 

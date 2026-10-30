@@ -1,4 +1,4 @@
-import type { DocsQaCitation, DocsQaEvidence, DocsQaJob } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaEvidence, DocsQaJob } from "@andon/shared-types";
 import { ExternalLinkIcon, MessageCircleIcon, XIcon } from "lucide-react";
 import { type ReactNode, Suspense, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";

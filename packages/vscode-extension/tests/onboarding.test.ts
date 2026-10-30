@@ -1,7 +1,7 @@
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { type OnboardingRecord, WHATS_NEW } from "@aidlc-guide/shared-types";
+import { type OnboardingRecord, WHATS_NEW } from "@andon/shared-types";
 import { describe, expect, it, vi } from "vitest";
 import type { ExtensionContext } from "vscode";
 import { DOCS_CONVERSATION_KEY } from "../src/docs-conversation.ts";
@@ -44,7 +44,7 @@ function storage(
 const ALL_IDS = WHATS_NEW.map((entry) => entry.id);
 const NEWEST = WHATS_NEW[0]?.date;
 /** Setup completion as the setup panel stores it, for some folder of this workspace. */
-const SETUP_KEY = "aidlc-guide.setup.v2:/work/project";
+const SETUP_KEY = "andon.setup.v2:/work/project";
 
 describe("detectPriorUse", () => {
   it("finds nothing in empty storage", () => {
@@ -61,11 +61,11 @@ describe("detectPriorUse", () => {
 
   it("counts any value stored in this workspace, whichever folder it names", () => {
     expect(detectPriorUse(storage({}, { [SETUP_KEY]: { completed: true } }).context)).toBe(true);
-    expect(detectPriorUse(storage({}, { "aidlc-guide.nowExpanded": false }).context)).toBe(true);
+    expect(detectPriorUse(storage({}, { "andon.nowExpanded": false }).context)).toBe(true);
   });
 
   it("counts the user storage folder that the in-extension update creates", () => {
-    const folder = mkdtempSync(join(tmpdir(), "aidlc-guide-user-"));
+    const folder = mkdtempSync(join(tmpdir(), "andon-user-"));
     expect(detectPriorUse(storage({}, {}, folder).context)).toBe(true);
     expect(detectPriorUse(storage({}, {}, join(folder, "absent")).context)).toBe(false);
   });

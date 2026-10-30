@@ -1,5 +1,5 @@
-import { compareReleaseIds, parseReleaseId } from "@aidlc-guide/reader-core";
-import type { VersionGate, WorkflowsManagementState } from "@aidlc-guide/shared-types";
+import { compareReleaseIds, parseReleaseId } from "@andon/reader-core";
+import type { VersionGate, WorkflowsManagementState } from "@andon/shared-types";
 import { type CliManagementState, cliRegistersPin } from "./cli-management.ts";
 
 /** Why the project's files are to be brought to the target. */

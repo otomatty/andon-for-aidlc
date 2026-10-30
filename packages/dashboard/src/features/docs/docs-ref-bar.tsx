@@ -3,7 +3,7 @@ import type {
   DocsQaEvidence,
   DocsQaJob,
   OfficialDocsLocale,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { ArrowLeftIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";

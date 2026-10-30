@@ -1,5 +1,5 @@
 {
-  "name": "aidlc-guide",
+  "name": "andon-for-aidlc",
   "private": true,
   "type": "module",
   "packageManager": "bun@1.4.2",

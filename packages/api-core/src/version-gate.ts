@@ -1,5 +1,5 @@
-import { inspectVersionGate } from "@aidlc-guide/reader-core";
-import { type VersionGate, WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
+import { inspectVersionGate } from "@andon/reader-core";
+import { type VersionGate, WORKFLOWS_TARGET_VERSION } from "@andon/shared-types";
 import type { RouteResult } from "./handlers/read.ts";
 
 /**

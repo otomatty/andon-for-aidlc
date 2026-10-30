@@ -1,4 +1,4 @@
-import type { OnboardingSnapshot } from "@aidlc-guide/shared-types";
+import type { OnboardingSnapshot } from "@andon/shared-types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   deliverOnboardingSnapshot,

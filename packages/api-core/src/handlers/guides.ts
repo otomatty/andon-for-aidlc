@@ -1,7 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { guardPath } from "@aidlc-guide/reader-core";
-import type { MarkdownDoc, MarkdownItem, ReadResult } from "@aidlc-guide/shared-types";
+import { guardPath } from "@andon/reader-core";
+import type { MarkdownDoc, MarkdownItem, ReadResult } from "@andon/shared-types";
 import { MD_FILE, titleFromMarkdown } from "./markdown.ts";
 
 /** Preferred order; anything else follows alphabetically. */

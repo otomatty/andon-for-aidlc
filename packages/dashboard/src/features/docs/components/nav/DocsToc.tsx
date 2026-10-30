@@ -3,7 +3,7 @@ import {
   type OfficialDocsSection,
   type OfficialDocsToc,
   type OfficialDocsTocNode,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { ChevronRightIcon, FileTextIcon, FolderIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";

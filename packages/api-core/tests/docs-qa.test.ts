@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { DocsQaCitation, DocsQaJob, DocsQaResult } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaJob, DocsQaResult } from "@andon/shared-types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createDocsQaService, type DocsQaDependencies, type DocsQaService } from "../src/docs-qa";
 import { copilotCommands } from "../src/ai-cli/copilot";

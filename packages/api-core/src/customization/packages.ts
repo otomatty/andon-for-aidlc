@@ -5,8 +5,8 @@ import type {
   CustomizationImportPlan,
   CustomizationImportSelection,
   CustomizationItem,
-} from "@aidlc-guide/shared-types";
-import { MAX_CUSTOMIZATION_PACKAGE_JSON_BYTES } from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
+import { MAX_CUSTOMIZATION_PACKAGE_JSON_BYTES } from "@andon/shared-types";
 export type CustomizationSnapshot = {
   spaceId: string;
   engineVersion: string;
@@ -60,7 +60,7 @@ export function guideExport(
     return fail("bad-request", "配布名またはバージョンが不正です。");
   const value: CustomizationGuidePackage = {
     schemaVersion: 1,
-    format: "aidlc-guide",
+    format: "andon",
     packageId: randomUUID(),
     name,
     version,
@@ -73,7 +73,7 @@ export function guideExport(
     return fail("size-limit", "配布ファイルのサイズ上限を超えています。");
   return {
     id: randomUUID(),
-    filename: `${name.replace(/[^a-zA-Z0-9_-]/g, "_") || "customization"}.aidlc-guide.json`,
+    filename: `${name.replace(/[^a-zA-Z0-9_-]/g, "_") || "customization"}.andon.json`,
     mimeType: "application/json",
     encoding: "utf8",
     content,
@@ -97,7 +97,7 @@ export class CustomizationPackages {
     if (
       !object(data) ||
       data.schemaVersion !== 1 ||
-      data.format !== "aidlc-guide" ||
+      data.format !== "andon" ||
       !identifier(data.packageId) ||
       typeof data.engineVersion !== "string" ||
       !Array.isArray(data.items) ||

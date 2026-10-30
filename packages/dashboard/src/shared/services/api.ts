@@ -18,7 +18,7 @@ import type {
   StageModelsPayload,
   TimingsPayload,
   WorkflowPayload,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import type { Action, MatrixResponse } from "@/store/reducer.ts";
 import { getTransport } from "@/services/transport/index.ts";
 

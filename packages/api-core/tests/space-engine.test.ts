@@ -35,7 +35,7 @@ it("runs the official utility with a Guide session and refreshes the method copy
   expect(await readFile(path.join(root, ".claude/rules/aidlc.md"), "utf8")).toBe(claudeInclude);
   expect(await readFile(path.join(root, ".cursor/rules/aidlc-core.mdc"), "utf8")).toBe(cursorInclude);
   const sessions = await readdir(path.join(root, "aidlc/.aidlc-sessions"));
-  expect(sessions.some((name) => name.startsWith("aidlc-guide-"))).toBe(true);
+  expect(sessions.some((name) => name.startsWith("andon-"))).toBe(true);
   await engine.switch("default", ".claude");
   expect(await readFile(path.join(root, "aidlc/active-memory/org.md"), "utf8")).toContain("# default org rules");
   expect(await readFile(path.join(root, ".claude/rules/aidlc.md"), "utf8")).toBe(claudeInclude);

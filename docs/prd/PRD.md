@@ -169,7 +169,7 @@ aidlc-workflows の経験が浅いエンジニアでも、**現在の状況と�
 
 ## 12. 未決事項
 
-- 正式名称: **決定**（2026-10-29）。Andon for AI-DLC（略称 Andon）。表示名・コマンドカテゴリ・画面の文言を変え、コマンド ID `aidlc-guide.*`、パッケージ名 `@aidlc-guide/*`、`aidlc-guide.config.json`、MCP サーバー名は互換のため据え置く
+- 正式名称: **決定**（2026-10-29）。Andon for AI-DLC（略称 Andon）。2026-10-30 にリポジトリを otomatty/andon-for-aidlc に移し、バージョンを 0.1.0 から数え直した。あわせて拡張 ID `otomatty.andon-for-aidlc`、コマンド ID `andon.*`、パッケージ名 `@andon/*`、`andon.config.json`、MCP サーバー名 `andon` にそろえた（旧版からの自動更新・設定の引き継ぎはしない）
 - 配布形態: **VS Code / Cursor 拡張だけ**を利用者向けのサーフェスとする（2026-07 決定、2026-10-29 改定）。ブラウザ Dashboard（`bun run dashboard`）は利用者向けには提供しない。`packages/dashboard-server` は AI による画面確認とスクリーンショット撮影のための開発用サーバーとして残す（待受は `127.0.0.1` のみ）
 - docs 対応表のメンテナンス方法: **本ツール側**（`packages/docs-bridge/data/`）。2.6.2 同期済み。次の上流破壊的変更時に `sourceVersion` とステージ一覧を更新する
 

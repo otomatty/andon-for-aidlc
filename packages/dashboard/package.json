@@ -1,5 +1,5 @@
 {
-  "name": "@aidlc-guide/dashboard",
+  "name": "@andon/dashboard",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "dev": "vite"
   },
   "dependencies": {
-    "@aidlc-guide/shared-types": "workspace:*",
+    "@andon/shared-types": "workspace:*",
     "@mantine/core": "^9.7.2",
     "@mantine/hooks": "^9.7.2",
     "@tailwindcss/vite": "^4.3.3",

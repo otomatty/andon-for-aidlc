@@ -3,7 +3,7 @@ import {
   type VersionGateStatus,
   WORKFLOWS_TARGET_VERSION,
   type WorkflowsManagementState,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import type { CliManagementState } from "../src/cli-management.ts";
 import {

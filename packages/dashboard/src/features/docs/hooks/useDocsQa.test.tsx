@@ -5,7 +5,7 @@ import type {
   DocsQaPhase,
   DocsQaRequest,
   DocsQaToolStatus,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import {
   act,
   cleanup,

@@ -1,4 +1,4 @@
-import type { DocsQaCitation, DocsQaJob, DocsQaTarget } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaJob, DocsQaTarget } from "@andon/shared-types";
 import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { vsCodeApi } from "@/services/vscode-api.ts";
 

@@ -654,7 +654,7 @@ describe("native harness installation", () => {
 
   it("uses the candidate path for an existing Guide-managed single tool", async () => {
     const root = await fixture();
-    await write(root, ".cursor/tools/data/aidlc-guide-install.json", "{}");
+    await write(root, ".cursor/tools/data/andon-install.json", "{}");
     await configureNativeHarness(install, root, "cursor", vi.fn());
     expect(mocks.configure.mock.calls[0]?.[1]).not.toBe(root);
     expect(mocks.apply).toHaveBeenCalledOnce();

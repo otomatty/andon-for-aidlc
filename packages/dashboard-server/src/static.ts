@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { guardPath } from "@aidlc-guide/reader-core";
+import { guardPath } from "@andon/reader-core";
 
 /**
  * Serves the built SPA with an index.html fallback (P-DS-5).

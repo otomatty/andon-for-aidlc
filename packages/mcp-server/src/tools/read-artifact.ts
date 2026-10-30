@@ -1,5 +1,5 @@
-import { guardPath, type Reader } from "@aidlc-guide/reader-core";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import { guardPath, type Reader } from "@andon/reader-core";
+import type { ReadResult } from "@andon/shared-types";
 import { renderDegraded, renderResult, type ToolReply } from "../render.ts";
 
 export const READ_ARTIFACT_DESCRIPTION =

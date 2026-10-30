@@ -1,6 +1,6 @@
 import { readdir } from "node:fs/promises";
-import { guardPath, readBounded } from "@aidlc-guide/core-utils";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import { guardPath, readBounded } from "@andon/core-utils";
+import type { ReadResult } from "@andon/shared-types";
 
 export const isSpaceName = (value: string): boolean =>
   /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value) && !value.includes("..");

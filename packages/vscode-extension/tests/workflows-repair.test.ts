@@ -620,7 +620,7 @@ describe("checking", () => {
     ".mcp.json",
     "aidlc/spaces/default/memory/project.md",
     ".claude/tools/data/aidlc-manifest.json",
-    ".claude/tools/data/aidlc-guide-install.json",
+    ".claude/tools/data/andon-install.json",
   ])("leaves undeclared files, team memory and ownership records to the person: %s", async (file) => {
     const f = await fixture("claude", [file]);
     const result = await repairWorkflows(f.fix(), f.dependencies);

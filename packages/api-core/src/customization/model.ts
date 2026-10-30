@@ -4,7 +4,7 @@ import type {
   CustomizationDiagnostic,
   CustomizationItem,
   CustomizationKind,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 
 export const digest = (value: string | Uint8Array): string =>
   createHash("sha256").update(value).digest("hex");
@@ -17,7 +17,7 @@ export const localIdentifier = (value: unknown): value is string =>
 export const object = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 export const MAX_ITEM_BYTES = 10 * 1024 * 1024;
-export { MAX_CUSTOMIZATION_PACKAGE_BYTES as MAX_PACKAGE_BYTES } from "@aidlc-guide/shared-types";
+export { MAX_CUSTOMIZATION_PACKAGE_BYTES as MAX_PACKAGE_BYTES } from "@andon/shared-types";
 export const KINDS: readonly CustomizationKind[] = [
   "rule-section",
   "rule-file-metadata",

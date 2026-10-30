@@ -1,4 +1,4 @@
-import type { OfficialDocsManifest, OfficialDocsToc, VersionGate } from "@aidlc-guide/shared-types";
+import type { OfficialDocsManifest, OfficialDocsToc, VersionGate } from "@andon/shared-types";
 import { cleanup, render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";

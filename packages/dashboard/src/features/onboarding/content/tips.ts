@@ -1,4 +1,4 @@
-import type { OnboardingArea } from "@aidlc-guide/shared-types";
+import type { OnboardingArea } from "@andon/shared-types";
 
 /**
  * One short tip per screen, shown on the first visit until closed. Each links

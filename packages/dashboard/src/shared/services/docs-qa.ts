@@ -5,7 +5,7 @@ import type {
   DocsQaRequest,
   DocsQaResult,
   DocsQaToolStatus,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { getTransport } from "@/services/transport/index.ts";
 
 const REASONS: Record<string, string> = {

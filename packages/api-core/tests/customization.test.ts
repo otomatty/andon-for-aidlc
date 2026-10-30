@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import type { CustomizationCatalog, CustomizationItem } from "@aidlc-guide/shared-types";
+import type { CustomizationCatalog, CustomizationItem } from "@andon/shared-types";
 import { afterEach, expect, it, vi } from "vitest";
 import { readCompatibilityCatalog } from "../src/customization/catalog.ts";
 import type {
@@ -392,7 +392,7 @@ it("exports and imports selected edits without saving or applying them", async (
   const plan = (await service.post("import/analyze", {
     ...edit(),
     package: data,
-  })) as import("@aidlc-guide/shared-types").CustomizationImportPlan;
+  })) as import("@andon/shared-types").CustomizationImportPlan;
   const imported = (await service.post("import/adopt", {
     ...edit(),
     planId: plan.id,
@@ -481,7 +481,7 @@ it("keeps imported document references bound to the explicitly selected source",
   const plan = (await service.post("import/analyze", {
     ...input,
     package: JSON.parse(output.content),
-  })) as import("@aidlc-guide/shared-types").CustomizationImportPlan;
+  })) as import("@andon/shared-types").CustomizationImportPlan;
   const imported = (await service.post("import/adopt", {
     ...input,
     planId: plan.id,

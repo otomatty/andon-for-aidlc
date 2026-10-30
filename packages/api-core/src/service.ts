@@ -1,5 +1,5 @@
 import path from "node:path";
-import { type Bridge, CONFIG_FILENAME, createBridge } from "@aidlc-guide/docs-bridge";
+import { type Bridge, CONFIG_FILENAME, createBridge } from "@andon/docs-bridge";
 import {
   createReader,
   intentsDirOf,
@@ -9,7 +9,7 @@ import {
   type Reader,
   resolveIntents,
   watchSelection,
-} from "@aidlc-guide/reader-core";
+} from "@andon/reader-core";
 import type {
   IntentList,
   Matrix,
@@ -18,7 +18,7 @@ import type {
   VersionGate,
   SpaceCatalog,
   SpaceSelection,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { createSpaceEngine, type SpaceEngine } from "./spaces/engine.ts";
 import type { CustomizationEngine } from "./customization/engine-adapter.ts";
 import { type CustomizationService, createCustomizationService } from "./customization/index.ts";

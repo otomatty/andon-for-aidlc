@@ -3,14 +3,8 @@ import {
   nextStepOf,
   type Reader,
   reviewUnitsInAuditShard,
-} from "@aidlc-guide/reader-core";
-import type {
-  Matrix,
-  MatrixCell,
-  ReadResult,
-  WatchEvent,
-  WsMessage,
-} from "@aidlc-guide/shared-types";
+} from "@andon/reader-core";
+import type { Matrix, MatrixCell, ReadResult, WatchEvent, WsMessage } from "@andon/shared-types";
 
 /**
  * WS fan-out and the watch→broadcast mapping (P-DS-3 / BR-DS-6).

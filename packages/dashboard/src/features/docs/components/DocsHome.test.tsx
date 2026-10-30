@@ -1,4 +1,4 @@
-import type { MarkdownItem, OfficialDocsToc, OfficialDocsTocNode } from "@aidlc-guide/shared-types";
+import type { MarkdownItem, OfficialDocsToc, OfficialDocsTocNode } from "@andon/shared-types";
 import { cleanup, fireEvent, render, screen, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { type ReactNode, useState } from "react";

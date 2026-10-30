@@ -1,4 +1,4 @@
-import { formatDuration, type IntentEffectiveness } from "@aidlc-guide/shared-types";
+import { formatDuration, type IntentEffectiveness } from "@andon/shared-types";
 
 /** Existing timing UI rounds sub-minute durations; measured zero needs its own label here. */
 export function formatEffectivenessDuration(value: number): string {

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
+import { WORKFLOWS_TARGET_VERSION } from "@andon/shared-types";
 import { formatDoctorDetailsForLog, type NativeDoctorReport } from "./doctor-output.ts";
 import { detectHarnesses, HARNESS_LABELS, type HarnessId } from "./harness-detect.ts";
 import {

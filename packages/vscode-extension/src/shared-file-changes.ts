@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { lstat, readdir, readFile, readlink } from "node:fs/promises";
 import path from "node:path";
-import { type HarnessId, harnessVersionRel } from "@aidlc-guide/reader-core";
+import { type HarnessId, harnessVersionRel } from "@andon/reader-core";
 
 /**
  * Which files a project update changed, for the "commit these" step of the

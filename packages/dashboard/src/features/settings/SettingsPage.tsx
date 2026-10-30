@@ -1,4 +1,4 @@
-import { WORKFLOWS_TARGET_VERSION, type WorkflowsManagementState } from "@aidlc-guide/shared-types";
+import { WORKFLOWS_TARGET_VERSION, type WorkflowsManagementState } from "@andon/shared-types";
 import { DownloadIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";

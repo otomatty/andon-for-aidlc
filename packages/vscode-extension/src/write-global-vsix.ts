@@ -1,7 +1,7 @@
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { inspectVersionGate, isPreviewRelease } from "@aidlc-guide/reader-core";
-import { WORKFLOWS_TARGET_VERSION } from "@aidlc-guide/shared-types";
+import { inspectVersionGate, isPreviewRelease } from "@andon/reader-core";
+import { WORKFLOWS_TARGET_VERSION } from "@andon/shared-types";
 import {
   commands,
   type ExtensionContext,
@@ -33,9 +33,9 @@ export async function writeGlobalVsix(
   version: string,
   bytes: Uint8Array,
 ): Promise<string> {
-  const root = context.globalStorageUri ?? Uri.file(path.join(tmpdir(), "aidlc-guide-updates"));
+  const root = context.globalStorageUri ?? Uri.file(path.join(tmpdir(), "andon-updates"));
   const dir = Uri.joinPath(root, "updates");
-  const file = Uri.joinPath(dir, `aidlc-guide-${version}.vsix`);
+  const file = Uri.joinPath(dir, `andon-for-aidlc-${version}.vsix`);
   await workspace.fs.createDirectory(dir);
   await workspace.fs.writeFile(file, bytes);
   return file.fsPath;
@@ -67,9 +67,9 @@ let checkJob: Promise<void> | undefined;
 
 function fallbackHost(): ExtensionContext {
   return {
-    globalStorageUri: Uri.file(path.join(tmpdir(), "aidlc-guide-updates")),
+    globalStorageUri: Uri.file(path.join(tmpdir(), "andon-updates")),
     extension: {
-      packageJSON: extensions.getExtension("aidlc.aidlc-guide")?.packageJSON ?? {},
+      packageJSON: extensions.getExtension("otomatty.andon-for-aidlc")?.packageJSON ?? {},
     },
   } as ExtensionContext;
 }
@@ -119,7 +119,7 @@ function runSerializedCheck(context?: ExtensionContext): Promise<void> {
   const host = context ?? boundContext;
   const current = String(
     host?.extension?.packageJSON?.version ??
-      extensions.getExtension("aidlc.aidlc-guide")?.packageJSON.version ??
+      extensions.getExtension("otomatty.andon-for-aidlc")?.packageJSON.version ??
       "",
   );
   const ahead = projectAhead();
@@ -160,7 +160,7 @@ function runSerializedCheck(context?: ExtensionContext): Promise<void> {
             ),
             OPEN_GATE_ACTION,
           );
-          if (choice === OPEN_GATE_ACTION) await commands.executeCommand("aidlc-guide.open");
+          if (choice === OPEN_GATE_ACTION) await commands.executeCommand("andon.open");
         },
     async (reason) => {
       void window.showErrorMessage(lookupFailureMessage(reason));
@@ -193,7 +193,7 @@ export function registerApplyLatestCommand(context?: ExtensionContext): void {
   if (context !== undefined) boundContext = context;
   if (registered) return;
   registered = true;
-  const disposable = commands.registerCommand("aidlc-guide.checkUpdate", () =>
+  const disposable = commands.registerCommand("andon.checkUpdate", () =>
     runSerializedCheck(boundContext),
   );
   context?.subscriptions.push(disposable);

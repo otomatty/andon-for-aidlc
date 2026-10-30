@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import type { ReadResult } from "@andon/shared-types";
 import { afterAll, describe, expect, it } from "vitest";
 
 /*
@@ -11,7 +11,7 @@ import { afterAll, describe, expect, it } from "vitest";
  * Historically this table guarded equivalence between two deliberate copies
  * (reader-core and docs-bridge each carried one to keep chokidar out of
  * docs-bridge's install closure). Both packages now import the one
- * implementation from @aidlc-guide/core-utils, so the table is simply its
+ * implementation from @andon/core-utils, so the table is simply its
  * security suite; `guard-path.test.ts` stays as-is and this suite is additive.
  */
 

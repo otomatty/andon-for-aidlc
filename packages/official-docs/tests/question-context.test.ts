@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { DocsQaRequest } from "@aidlc-guide/shared-types";
+import type { DocsQaRequest } from "@andon/shared-types";
 import { afterEach, describe, expect, it } from "vitest";
 import { readQuestionEvidence, retrieveQuestionContext } from "../src/index.ts";
 import { buildDocsIndex } from "../src/retrieval-build.ts";

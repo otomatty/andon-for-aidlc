@@ -1,5 +1,5 @@
 import path from "node:path";
-import { OFFICIAL_DOCS_SECTIONS } from "@aidlc-guide/shared-types";
+import { OFFICIAL_DOCS_SECTIONS } from "@andon/shared-types";
 import type { DocPath, DocSection, Locale } from "./types.ts";
 
 /** Every bundled section, in reading order. Re-exported from shared-types. */

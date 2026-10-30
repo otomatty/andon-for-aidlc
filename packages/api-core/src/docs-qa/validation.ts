@@ -1,4 +1,4 @@
-import type { DocsQaRequest, DocsQaTarget } from "@aidlc-guide/shared-types";
+import type { DocsQaRequest, DocsQaTarget } from "@andon/shared-types";
 
 export function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

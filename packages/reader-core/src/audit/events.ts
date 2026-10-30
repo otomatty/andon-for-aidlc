@@ -1,7 +1,7 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { mapBounded, readBounded } from "@aidlc-guide/core-utils";
-import type { AuditEvent, ReadResult } from "@aidlc-guide/shared-types";
+import { mapBounded, readBounded } from "@andon/core-utils";
+import type { AuditEvent, ReadResult } from "@andon/shared-types";
 import { parseMeasurementBlocks, TIMING_FIELDS } from "./measurement-events.ts";
 
 /**

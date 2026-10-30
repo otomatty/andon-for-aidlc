@@ -4,7 +4,7 @@ import type {
   DocsQaTool,
   DocsQaToolStatus,
   OfficialDocsLocale,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { docsQaAskHistory } from "@/features/docs/hooks/docs-qa-history.ts";
 import { useDocsConversationBridge } from "@/features/docs/hooks/docs-conversation-bridge.ts";

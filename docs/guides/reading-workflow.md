@@ -53,7 +53,7 @@ Dashboard 上で「今どこか」「次に何を承認するか」「どのユ�
 | インテント   | クリックで一覧ダイアログを開き、Andon に表示する案件を選ぶ  |
 | テーマ       | ライト ↔ ダークをワンクリック                               |
 | Live 表示    | 接続状態 / 最終更新                                         |
-| projectLinks | `aidlc-guide.config.json` の追加リンク                      |
+| projectLinks | `andon.config.json` の追加リンク                            |
 
 ### Space を切り替える
 

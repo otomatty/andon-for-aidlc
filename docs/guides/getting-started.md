@@ -32,12 +32,12 @@ bun install
 bun run package:extension
 ```
 
-期待される結果: `packages/vscode-extension/aidlc-guide-0.1.0.vsix` ができる。
+期待される結果: `packages/vscode-extension/andon-for-aidlc-0.1.0.vsix` ができる。
 
 **VS Code**
 
 ```bash
-code --install-extension packages/vscode-extension/aidlc-guide-0.1.0.vsix
+code --install-extension packages/vscode-extension/andon-for-aidlc-0.1.0.vsix
 ```
 
 **Cursor** — コマンドパレット → _Extensions: Install from VSIX…_ → 上記 `.vsix` を選ぶ。

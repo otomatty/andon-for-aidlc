@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { AuditEvent, StageInfo, UnitWalk } from "@aidlc-guide/shared-types";
+import type { AuditEvent, StageInfo, UnitWalk } from "@andon/shared-types";
 import { afterEach, describe, expect, it } from "vitest";
 import { deriveUnitWalk, parseUnitWalkOrder, readUnitWalk } from "../src/tree/unit-walk.ts";
 import { stage, workflow } from "./timing-fixtures.ts";

@@ -1,4 +1,4 @@
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import type { ReadResult } from "@andon/shared-types";
 
 /**
  * Last line of defence for R-RC-1 ("throw ゼロ"): every public method body runs

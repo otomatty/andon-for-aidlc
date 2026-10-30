@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import type { BridgeConfig } from "@aidlc-guide/shared-types";
+import type { BridgeConfig } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import {
   buildArtifactMap,

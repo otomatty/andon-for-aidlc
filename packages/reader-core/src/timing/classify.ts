@@ -1,4 +1,4 @@
-import type { AuditEvent, TimingBreakdown, TimingQuality } from "@aidlc-guide/shared-types";
+import type { AuditEvent, TimingBreakdown, TimingQuality } from "@andon/shared-types";
 import { timeOf } from "../audit/events.ts";
 import type { IntervalDiagnostic, MeasurementInterval } from "../audit/intervals.ts";
 import type { RunBoundary } from "./pairing.ts";

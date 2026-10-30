@@ -10,7 +10,7 @@ import {
   parseOnboardingRecord,
   unseenNews,
   WHATS_NEW,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import type { ExtensionContext } from "vscode";
 
 /**
@@ -18,7 +18,7 @@ import type { ExtensionContext } from "vscode";
  * the 更新情報 announcement are about this person and this extension, not
  * about one folder, and nothing here is written to a workspace (NFR-1).
  */
-export const ONBOARDING_KEY = "aidlc-guide.onboarding.v1";
+export const ONBOARDING_KEY = "andon.onboarding.v1";
 
 /** Button of the update notification. */
 export const WHATS_NEW_ACTION = "更新情報を見る";

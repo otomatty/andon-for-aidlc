@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import type { ReadResult } from "@andon/shared-types";
 import { expect } from "vitest";
 
 export const workspaceRoot = join(import.meta.dirname, "../../..");

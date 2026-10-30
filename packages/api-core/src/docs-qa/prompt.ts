@@ -1,4 +1,4 @@
-import type { DocsQaCitation, DocsQaRequest } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaRequest } from "@andon/shared-types";
 
 export function questionPrompt(request: DocsQaRequest, citations: DocsQaCitation[]): string {
   return [

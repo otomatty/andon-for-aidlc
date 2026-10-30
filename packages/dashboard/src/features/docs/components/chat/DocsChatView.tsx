@@ -1,4 +1,4 @@
-import type { DocsQaCitation, DocsQaJob, OfficialDocsLocale } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaJob, OfficialDocsLocale } from "@andon/shared-types";
 import { BookOpenIcon, ChevronLeftIcon, PlusIcon } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";

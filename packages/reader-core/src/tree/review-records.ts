@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import { constants } from "node:fs";
 import { lstat, open, readdir } from "node:fs/promises";
 import path from "node:path";
-import { canonicalPath, guardPath, mapBounded, readBounded } from "@aidlc-guide/core-utils";
-import type { Verdict } from "@aidlc-guide/shared-types";
+import { canonicalPath, guardPath, mapBounded, readBounded } from "@andon/core-utils";
+import type { Verdict } from "@andon/shared-types";
 import { stageJumpReaches, stageOrderOf } from "../audit/stage-jump.ts";
 import { createReviewFreshnessReader } from "./review-freshness.ts";
 

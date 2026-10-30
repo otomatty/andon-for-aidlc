@@ -1,5 +1,5 @@
 import path from "node:path";
-import { guardPath, readBounded, withResult } from "@aidlc-guide/core-utils";
+import { guardPath, readBounded, withResult } from "@andon/core-utils";
 import type {
   AuditEvent,
   EffectivenessPayload,
@@ -12,7 +12,7 @@ import type {
   TimingsPayload,
   WatchEvent,
   WorkflowModel,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { readAllAuditEvents, readAuditEvents } from "./audit/events.ts";
 import { getEffectiveness } from "./effectiveness/read.ts";
 import { resolveIntents, resolveRecordDir } from "./intents/resolve.ts";
@@ -33,7 +33,7 @@ import { readUnitWalk } from "./tree/unit-walk.ts";
 import { type WatchOptions, watch } from "./watch/watcher.ts";
 
 /** Re-exported from core-utils so existing consumers keep one import site (S-RC-2 consumer contract). */
-export type { BoundedRead, BoundedReason } from "@aidlc-guide/core-utils";
+export type { BoundedRead, BoundedReason } from "@andon/core-utils";
 export {
   canonicalPath,
   canonicalPathSync,
@@ -42,7 +42,7 @@ export {
   readBounded,
   readTail,
   withResult,
-} from "@aidlc-guide/core-utils";
+} from "@andon/core-utils";
 export { readAllAuditEvents, readAuditEvents } from "./audit/events.ts";
 export { getEffectiveness } from "./effectiveness/read.ts";
 export {

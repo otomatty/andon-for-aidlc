@@ -1,4 +1,4 @@
-import type { OfficialDocsPageNotice } from "@aidlc-guide/shared-types";
+import type { OfficialDocsPageNotice } from "@andon/shared-types";
 import type { ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 

@@ -1,8 +1,8 @@
 import { execFile } from "node:child_process";
 import { lstat } from "node:fs/promises";
 import path from "node:path";
-import { canonicalPath } from "@aidlc-guide/reader-core";
-import type { CustomizationItem } from "@aidlc-guide/shared-types";
+import { canonicalPath } from "@andon/reader-core";
+import type { CustomizationItem } from "@andon/shared-types";
 import { CustomizationError, object } from "./model.ts";
 
 export type EngineAction =

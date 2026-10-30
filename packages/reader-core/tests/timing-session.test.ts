@@ -1,4 +1,4 @@
-import type { AuditEvent, StageTiming, TimingBreakdown } from "@aidlc-guide/shared-types";
+import type { AuditEvent, StageTiming, TimingBreakdown } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { deriveStageTimings } from "../src/timing/derive.ts";
 import { DEFAULT_TIMING_POLICY } from "../src/timing/policy.ts";

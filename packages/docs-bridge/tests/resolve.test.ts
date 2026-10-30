@@ -1,4 +1,4 @@
-import type { BridgeConfig } from "@aidlc-guide/shared-types";
+import type { BridgeConfig } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { bridgeMap, resolveStage } from "../src/resolve.ts";
 import { DOCS_ROOT, expectError, expectOk, REPO_ROOT } from "./paths.ts";

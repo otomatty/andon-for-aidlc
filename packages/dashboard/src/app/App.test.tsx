@@ -1,8 +1,4 @@
-import type {
-  OfficialDocsManifest,
-  OfficialDocsPage,
-  OfficialDocsToc,
-} from "@aidlc-guide/shared-types";
+import type { OfficialDocsManifest, OfficialDocsPage, OfficialDocsToc } from "@andon/shared-types";
 import { cleanup, render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";

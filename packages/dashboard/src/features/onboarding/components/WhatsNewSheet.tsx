@@ -1,4 +1,4 @@
-import { WHATS_NEW, type WhatsNewEntry } from "@aidlc-guide/shared-types";
+import { WHATS_NEW, type WhatsNewEntry } from "@andon/shared-types";
 import { type ReactNode, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";

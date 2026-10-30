@@ -1,5 +1,5 @@
 import path from "node:path";
-import { canonicalPathSync } from "@aidlc-guide/core-utils";
+import { canonicalPathSync } from "@andon/core-utils";
 
 let running: symbol | null = null;
 const listeners = new Set<() => void>();
@@ -18,7 +18,7 @@ export function workflowsRootKey(root: string): string {
 }
 
 export const workflowsRepairKey = (root: string): string =>
-  `aidlc-guide.workflows-repair:${workflowsRootKey(root)}`;
+  `andon.workflows-repair:${workflowsRootKey(root)}`;
 
 export function onWorkflowsChanged(listener: () => void): () => void {
   listeners.add(listener);

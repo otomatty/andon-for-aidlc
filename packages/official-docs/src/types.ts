@@ -1,5 +1,5 @@
 /**
- * Domain types for `@aidlc-guide/official-docs`.
+ * Domain types for `@andon/official-docs`.
  *
  * DocPath convention (public API): POSIX path relative to `docs/`, always
  * prefixed with a section name — e.g. `guide/getting-started.md`,
@@ -12,7 +12,7 @@
  * mirrors `docs/README.md`. See {@link OFFICIAL_DOCS_SECTIONS}.
  */
 
-import type { OfficialDocsSection } from "@aidlc-guide/shared-types";
+import type { OfficialDocsSection } from "@andon/shared-types";
 
 export type Locale = "en" | "ja";
 

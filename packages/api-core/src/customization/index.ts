@@ -8,7 +8,7 @@ import type {
   CustomizationOperation,
   CustomizationRequestReceipt,
   CustomizationValidation,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { readCompatibilityCatalog } from "./catalog.ts";
 import {
   type CustomizationEngine,

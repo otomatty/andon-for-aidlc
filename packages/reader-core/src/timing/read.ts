@@ -1,11 +1,6 @@
 import path from "node:path";
-import { mapBounded } from "@aidlc-guide/core-utils";
-import type {
-  ConstructionWalk,
-  ReadResult,
-  StageTiming,
-  TimingPolicy,
-} from "@aidlc-guide/shared-types";
+import { mapBounded } from "@andon/core-utils";
+import type { ConstructionWalk, ReadResult, StageTiming, TimingPolicy } from "@andon/shared-types";
 import { readAllAuditEvents } from "../audit/events.ts";
 import { intentsDirOf, resolveIntents } from "../intents/resolve.ts";
 import { readState } from "../parse/state.ts";

@@ -1,4 +1,4 @@
-import type { AuditEvent } from "@aidlc-guide/shared-types";
+import type { AuditEvent } from "@andon/shared-types";
 import { timeOf } from "./events.ts";
 import type { MeasurementEvent } from "./measurement-events.ts";
 import { stageJumpReaches } from "./stage-jump.ts";

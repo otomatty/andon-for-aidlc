@@ -2,13 +2,13 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Reader } from "@aidlc-guide/reader-core";
+import type { Reader } from "@andon/reader-core";
 import {
   type NextStep,
   type ReadResult,
   type WorkflowModel,
   WORKFLOWS_TARGET_VERSION,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { expect } from "vitest";
 import { type ToolReply, toContent } from "../src/render.ts";
 

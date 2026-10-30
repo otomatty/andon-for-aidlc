@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { lstat, mkdir, open, readFile, rename, unlink } from "node:fs/promises";
 import path from "node:path";
-import { canonicalPath } from "@aidlc-guide/reader-core";
+import { canonicalPath } from "@andon/reader-core";
 import { acquireLocalLock } from "./local-lock.ts";
 import { CustomizationError } from "./model.ts";
 

@@ -1,5 +1,5 @@
 import { LoadingSuspense } from "@/shared/loading/LoadingSequence.tsx";
-import { stageViewMatches } from "@aidlc-guide/shared-types";
+import { stageViewMatches } from "@andon/shared-types";
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { lazy, type ReactNode, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";

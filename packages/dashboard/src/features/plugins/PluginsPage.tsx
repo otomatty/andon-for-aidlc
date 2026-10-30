@@ -7,7 +7,7 @@ import {
   type PluginAction,
   type PluginPrerequisite,
   type PluginStatus,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { ArrowLeftIcon, ChevronRightIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import {

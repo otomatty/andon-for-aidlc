@@ -28,7 +28,7 @@
       "command": "uvx",
       "args": ["awslabs.aws-serverless-mcp-server@latest"]
     },
-    "aidlc-guide": {
+    "andon": {
       "command": "bun",
       "args": ["run", "c:/Users/saedg/.cursor/extensions/mcp-server/src/index.ts"],
       "cwd": "c:/Users/saedg/apps/aidlc-guide"

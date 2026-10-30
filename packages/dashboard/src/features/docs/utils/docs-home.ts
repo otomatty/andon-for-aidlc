@@ -4,7 +4,7 @@ import {
   type OfficialDocsSection,
   type OfficialDocsToc,
   type OfficialDocsTocNode,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { BOOK_TITLES } from "@/features/docs/components/nav/DocsToc.tsx";
 import {
   guideCategory,

@@ -1,4 +1,4 @@
-import { createDocsLibrary, serializeDocsReply } from "@aidlc-guide/official-docs";
+import { createDocsLibrary, serializeDocsReply } from "@andon/official-docs";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { type GateCheck, gated } from "./version-gate.ts";

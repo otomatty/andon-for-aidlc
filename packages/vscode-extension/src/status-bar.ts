@@ -6,7 +6,7 @@ import {
   type NextGateEstimate,
   nextGateTarget,
   type StageView,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { type ExtensionContext, StatusBarAlignment, type StatusBarItem, window } from "vscode";
 import {
   acquireSession,
@@ -77,7 +77,7 @@ function nextGateDetails(nextGate: NextGateEstimate, current: StageView): string
 
 export function createStatusBar(context: ExtensionContext): StatusBarItem {
   item = window.createStatusBarItem(StatusBarAlignment.Left, 100);
-  item.command = "aidlc-guide.open";
+  item.command = "andon.open";
   item.text = "$(list-tree) Andon";
   item.tooltip = "Andon: Open";
   context.subscriptions.push(item);

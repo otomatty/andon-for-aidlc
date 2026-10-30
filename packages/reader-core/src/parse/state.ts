@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readBounded } from "@aidlc-guide/core-utils";
+import { readBounded } from "@andon/core-utils";
 import {
   CEREMONY_FIELDS,
   CEREMONY_KEYS,
@@ -14,7 +14,7 @@ import {
   type StageInfo,
   type StageStatus,
   type WorkflowModel,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 
 /**
  * L1 — the **only** module that knows the State Version file format

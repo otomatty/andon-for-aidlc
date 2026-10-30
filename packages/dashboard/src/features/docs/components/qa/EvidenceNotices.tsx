@@ -1,4 +1,4 @@
-import type { DocsQaCitation, DocsQaEvidence } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaEvidence } from "@andon/shared-types";
 import type { ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";

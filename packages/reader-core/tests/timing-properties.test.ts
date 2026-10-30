@@ -1,4 +1,4 @@
-import type { AuditEvent, StageInfo, WorkflowModel } from "@aidlc-guide/shared-types";
+import type { AuditEvent, StageInfo, WorkflowModel } from "@andon/shared-types";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { attributeRuns, partitionTimeline } from "../src/timing/attribution.ts";

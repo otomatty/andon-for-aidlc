@@ -5,7 +5,7 @@ import {
   type NextGateEstimate,
   type NextGateKind,
   type StageView,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { compareByTime } from "../audit/events.ts";
 import { stageJumpReaches } from "../audit/stage-jump.ts";
 

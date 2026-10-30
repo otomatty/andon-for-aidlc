@@ -3,9 +3,9 @@ import {
   artifactDocsOf,
   artifactProducerOf,
   stageIoOf,
-} from "@aidlc-guide/docs-bridge";
-import { listMarkdownRel, pickIoPath } from "@aidlc-guide/reader-core";
-import type { ReadResult, StageIoPaths } from "@aidlc-guide/shared-types";
+} from "@andon/docs-bridge";
+import { listMarkdownRel, pickIoPath } from "@andon/reader-core";
+import type { ReadResult, StageIoPaths } from "@andon/shared-types";
 
 export async function buildStageIoPaths(
   recordDir: string,

@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   watcherDispose: vi.fn(),
   item: { text: "", tooltip: "", command: "", show: vi.fn() },
 }));
-vi.mock("@aidlc-guide/api-core", () => ({
+vi.mock("@andon/api-core", () => ({
   createGuideService: mocks.create,
   routePost: vi.fn(),
   routeRead: vi.fn(),

@@ -1,4 +1,4 @@
-import type { EffectivenessPayload, IntentEffectiveness } from "@aidlc-guide/shared-types";
+import type { EffectivenessPayload, IntentEffectiveness } from "@andon/shared-types";
 import { RefreshCwIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

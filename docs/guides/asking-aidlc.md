@@ -26,18 +26,18 @@ Andon の「Register MCP」または Setup の「文書参照を有効にする�
 
 「AI-DLCとは」「承認ゲートでセンサーが失敗したらどうする？」「BoltとUnit of Workの違いは？」と質問すると、参照用 Skill が内蔵文書を検索し、該当する節の原文を読んで回答するよう案内します。回答には文書名、節名、同梱版、参照リンクを表示します。AI-DLC の intent をまだ作成していなくても検索できます。
 
-自動選択はホストのモデルと Skill / MCP の有効化状態に依存します。文書を参照せず回答する場合は `/aidlc-guide-docs` で参照用 Skill を明示的に呼び出せます。ネットワーク検索や外部モデルへの問い合わせは検索サーバー側では行いません。
+自動選択はホストのモデルと Skill / MCP の有効化状態に依存します。文書を参照せず回答する場合は `/andon-docs` で参照用 Skill を明示的に呼び出せます。ネットワーク検索や外部モデルへの問い合わせは検索サーバー側では行いません。
 
 ## 登録するもの
 
-| 場所                                       | 内容                             |
-| ------------------------------------------ | -------------------------------- |
-| `.mcp.json`                                | Claude Code の `aidlc-guide` MCP |
-| `.cursor/mcp.json`                         | Cursor の同じ MCP                |
-| `.claude/skills/aidlc-guide-docs/SKILL.md` | Claude Code の自動参照手順       |
-| `.cursor/skills/aidlc-guide-docs/SKILL.md` | Cursor の同じ手順                |
+| 場所                                 | 内容                       |
+| ------------------------------------ | -------------------------- |
+| `.mcp.json`                          | Claude Code の `andon` MCP |
+| `.cursor/mcp.json`                   | Cursor の同じ MCP          |
+| `.claude/skills/andon-docs/SKILL.md` | Claude Code の自動参照手順 |
+| `.cursor/skills/andon-docs/SKILL.md` | Cursor の同じ手順          |
 
-他の MCP 登録は保持します。参照用 Skill を利用者が編集した場合、再登録で上書きせず、該当パスを表示して登録を中断します。開発 checkout の Skill 原本は `packages/mcp-server/skills/aidlc-guide-docs/SKILL.md` です。インストール済み拡張の同梱コピーは `media/aidlc-guide-docs/SKILL.md` です。
+他の MCP 登録は保持します。参照用 Skill を利用者が編集した場合、再登録で上書きせず、該当パスを表示して登録を中断します。開発 checkout の Skill 原本は `packages/mcp-server/skills/andon-docs/SKILL.md` です。インストール済み拡張の同梱コピーは `media/andon-docs/SKILL.md` です。
 
 ## 検索と出典
 

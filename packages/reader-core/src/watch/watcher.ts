@@ -8,7 +8,7 @@ import {
   type Stats,
 } from "node:fs";
 import path from "node:path";
-import type { ChangeEvent, WatchEvent } from "@aidlc-guide/shared-types";
+import type { ChangeEvent, WatchEvent } from "@andon/shared-types";
 import { watch as chokidarWatch, type FSWatcher } from "chokidar";
 import { AUDIT_DIRNAME } from "../audit/events.ts";
 import { STATE_FILENAME } from "../parse/state.ts";

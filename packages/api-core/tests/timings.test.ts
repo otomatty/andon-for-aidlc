@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { TimingsPayload } from "@aidlc-guide/shared-types";
+import type { TimingsPayload } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { routeRead } from "../src/handlers/read.ts";
 import { createGuideService } from "../src/service.ts";

@@ -88,7 +88,7 @@ describe("dashboard workflows installation", () => {
       type: "open-workflows-setup",
       workspaceRoot: "unrelated-project",
     });
-    expect(mocks.execute).toHaveBeenCalledExactlyOnceWith("aidlc-guide.setup", "dashboard-project");
+    expect(mocks.execute).toHaveBeenCalledExactlyOnceWith("andon.setup", "dashboard-project");
   });
 
   it("opens updates for the host's dashboard root without accepting a webview path", async () => {
@@ -101,7 +101,7 @@ describe("dashboard workflows installation", () => {
       workspaceRoot: "unrelated-project",
     });
     expect(mocks.execute).toHaveBeenCalledExactlyOnceWith(
-      "aidlc-guide.updateWorkflows",
+      "andon.updateWorkflows",
       "dashboard-project",
     );
   });
@@ -113,7 +113,7 @@ describe("dashboard workflows installation", () => {
     const receive = mocks.receive.mock.calls[0]?.[0];
     await receive({ type: "open-workflows-install", workspaceRoot: "unrelated-project" });
     expect(mocks.execute).toHaveBeenCalledExactlyOnceWith(
-      "aidlc-guide.installWorkflows",
+      "andon.installWorkflows",
       "dashboard-project",
     );
   });

@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { createGuideService } from "@aidlc-guide/api-core";
-import type { MatrixCell, WsMessage } from "@aidlc-guide/shared-types";
+import { createGuideService } from "@andon/api-core";
+import type { MatrixCell, WsMessage } from "@andon/shared-types";
 import { expect, it } from "vitest";
 import { reviewFixture } from "../../reader-core/tests/review-fixtures.ts";
 import { REPO_ROOT, seedWorkspace } from "./support.ts";

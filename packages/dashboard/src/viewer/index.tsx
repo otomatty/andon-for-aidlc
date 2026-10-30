@@ -1,4 +1,4 @@
-import type { Verdict } from "@aidlc-guide/shared-types";
+import type { Verdict } from "@andon/shared-types";
 import { PencilIcon, XIcon } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";

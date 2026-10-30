@@ -8,7 +8,7 @@ import {
   type TimingsPayload,
   type UnitWalk,
   type WorkflowModel,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { type KeyboardEvent, memo, type ReactNode, useCallback, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatStageLabel } from "@/data/stage-numbers.ts";

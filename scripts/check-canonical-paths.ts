@@ -4,7 +4,7 @@
 // Node ships two resolvers that disagree on Windows (8.3 short names, subst
 // drives), so a path from one compared with a path from the other names one
 // folder twice. Every path identity goes through canonicalPath/canonicalPathSync
-// in @aidlc-guide/core-utils instead. oxlint's no-restricted-imports cannot carry
+// in @andon/core-utils instead. oxlint's no-restricted-imports cannot carry
 // this: its overrides replace each other and several write-path files turn it off.
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -91,7 +91,7 @@ if (import.meta.main) {
   const uses = scanSources(root);
   if (uses.length === 0) process.exit(0);
   console.error(
-    "canonical paths: resolve with canonicalPath / canonicalPathSync from @aidlc-guide/core-utils.",
+    "canonical paths: resolve with canonicalPath / canonicalPathSync from @andon/core-utils.",
   );
   console.error("");
   for (const use of uses) console.error(`  ${use.file}:${use.line}: ${use.found}`);

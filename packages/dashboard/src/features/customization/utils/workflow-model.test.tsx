@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { CustomizationItem } from "@aidlc-guide/shared-types";
+import type { CustomizationItem } from "@andon/shared-types";
 import { fireEvent, render, screen, within } from "@tests/render.tsx";
 import { describe, expect, it, vi } from "vitest";
 import graph from "../../../../../../.claude/tools/data/stage-graph.json";

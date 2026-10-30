@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Header } from "@/shell/Header.tsx";
 import { SettingsPage } from "@/features/settings/SettingsPage.tsx";
-import { WHATS_NEW } from "@aidlc-guide/shared-types";
+import { WHATS_NEW } from "@andon/shared-types";
 import { StoreProvider, useAppState } from "@/store/context.tsx";
 import { initialState } from "@/store/state.ts";
 import { workflow } from "@tests/fixtures.ts";

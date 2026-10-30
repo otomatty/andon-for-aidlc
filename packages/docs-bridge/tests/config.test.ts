@@ -30,7 +30,7 @@ describe("loadConfig", () => {
     expect(warnings).toEqual([]);
   });
 
-  it("looks for aidlc-guide.config.json in the cwd when the path is omitted", async () => {
+  it("looks for andon.config.json in the cwd when the path is omitted", async () => {
     const cwd = process.cwd();
     try {
       process.chdir(root);

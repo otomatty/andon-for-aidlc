@@ -5,7 +5,7 @@ import {
   handleAnswer,
   renameWithRetry,
   routeAnswer,
-} from "@aidlc-guide/api-core";
+} from "@andon/api-core";
 import { describe, expect, it } from "vitest";
 import { ok, seedWorkspace } from "./support.ts";
 

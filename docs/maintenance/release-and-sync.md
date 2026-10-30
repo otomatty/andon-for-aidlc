@@ -5,7 +5,7 @@
 
 ## リリース（CI/CD）
 
-`main` にマージすると [`.github/workflows/release.yml`](../../.github/workflows/release.yml) が走り、VSIX をビルドして GitHub Releases に添付します。手動作業はありません。VSIX の隣には、その VSIX が対応する aidlc-workflows のバージョンを記録した `aidlc-guide-release.json`（`scripts/release-metadata.ts` が生成）も添付します。拡張の更新確認はこのファイルを読み、対応版が変わる場合は「更新後はプロジェクトの更新が必要」と先に知らせます（[バージョン確認の設計](version-gate-design.md)）。
+`main` にマージすると [`.github/workflows/release.yml`](../../.github/workflows/release.yml) が走り、VSIX をビルドして GitHub Releases に添付します。手動作業はありません。VSIX の隣には、その VSIX が対応する aidlc-workflows のバージョンを記録した `andon-for-aidlc-release.json`（`scripts/release-metadata.ts` が生成）も添付します。拡張の更新確認はこのファイルを読み、対応版が変わる場合は「更新後はプロジェクトの更新が必要」と先に知らせます（[バージョン確認の設計](version-gate-design.md)）。
 
 **`main` へのマージは既定でリリースされます。** [`.github/workflows/bump-extension-version.yml`](../../.github/workflows/bump-extension-version.yml) がマージ後にバージョンを上げ、そのコミットから Release を出します。ラベルは「リリースするかどうか」ではなく**上げ幅**を選ぶものです。
 
@@ -28,7 +28,7 @@ PR 内で `version` を既に上げている場合は、ラベルの有無にか
 ```bash
 # 任意のバージョンを手で指定するとき（自動 bump は据え置きになる）
 jq '.version="0.2.1"' packages/vscode-extension/package.json > tmp && mv tmp packages/vscode-extension/package.json
-# → main へマージ → タグ v0.2.1 + Release + aidlc-guide-0.2.1.vsix が自動生成される
+# → main へマージ → タグ v0.2.1 + Release + andon-for-aidlc-0.2.1.vsix が自動生成される
 ```
 
 リリースラベルの準備と main の保護は、[依存更新と品質チェック](dependency-quality.md) の手順に従ってください。main の保護を有効にする前に専用 GitHub App を設定し、実際のバージョン更新が成功することを確認します。GitHub Actions 全体へのバイパスは付与しません。

@@ -1,4 +1,4 @@
-import type { OnboardingEvent, OnboardingSnapshot } from "@aidlc-guide/shared-types";
+import type { OnboardingEvent, OnboardingSnapshot } from "@andon/shared-types";
 import type { Dispatch } from "react";
 import type { Action } from "@/store/reducer.ts";
 import { vsCodeApi } from "./vscode-api.ts";

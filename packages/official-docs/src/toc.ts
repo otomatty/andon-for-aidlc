@@ -1,7 +1,7 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { guardPath, readBounded, withResult } from "@aidlc-guide/core-utils";
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import { guardPath, readBounded, withResult } from "@andon/core-utils";
+import type { ReadResult } from "@andon/shared-types";
 import { folderLabel } from "./folder-labels.ts";
 import { extractTitle } from "./markdown.ts";
 import { DOC_SECTIONS, isLocale, localeContentRoot } from "./roots.ts";

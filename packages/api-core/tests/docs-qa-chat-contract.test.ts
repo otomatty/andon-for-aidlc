@@ -1,4 +1,4 @@
-import type { DocsQaCitation, DocsQaResult } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaResult } from "@andon/shared-types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createDocsQaService, type DocsQaDependencies, type DocsQaService } from "../src/docs-qa";
 

@@ -1,17 +1,17 @@
 import path from "node:path";
-import { buildMatrixForUnits } from "@aidlc-guide/reader-core";
+import { buildMatrixForUnits } from "@andon/reader-core";
 import type {
   Matrix,
   MatrixCell,
   ReadResult,
   WorkflowModel,
   WsMessage,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createGuideService } from "../src/service.ts";
 
-vi.mock("@aidlc-guide/reader-core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@aidlc-guide/reader-core")>()),
+vi.mock("@andon/reader-core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@andon/reader-core")>()),
   buildMatrixForUnits: vi.fn(),
 }));
 

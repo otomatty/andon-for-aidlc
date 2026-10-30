@@ -3,7 +3,7 @@ import type { EventEmitter } from "node:events";
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { WsMessage } from "@aidlc-guide/shared-types";
+import type { WsMessage } from "@andon/shared-types";
 import { afterEach, describe, expect, it } from "vitest";
 import { DEFAULT_DIST_DIR, DIST_MISSING_HINT } from "../src/server.ts";
 import { CLI, STATE_MD, seedWorkspace } from "./support.ts";

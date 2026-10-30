@@ -1,4 +1,4 @@
-import { PREFLIGHT_TEXT_MAX } from "@aidlc-guide/shared-types";
+import { PREFLIGHT_TEXT_MAX } from "@andon/shared-types";
 
 /**
  * ターミナルへ送る 1 行コマンドの唯一の組み立て点。webview からはコマンドを

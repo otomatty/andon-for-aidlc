@@ -117,7 +117,7 @@ export const HARNESSES: readonly Harness[] = [
       // rather than passing silently.
       "hooks/aidlc-cursor-adapter.test.ts",
       "scopes/aidlc-prd-implementation.md",
-      "skills/verify-aidlc-guide",
+      "skills/verify-andon",
     ]),
     ignored: new Set<string>(),
   },

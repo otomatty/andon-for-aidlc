@@ -1,4 +1,4 @@
-import type { ReadResult, VersionGate } from "@aidlc-guide/shared-types";
+import type { ReadResult, VersionGate } from "@andon/shared-types";
 import {
   lazy,
   type ReactNode,

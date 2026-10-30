@@ -1,14 +1,14 @@
 import { randomBytes } from "node:crypto";
 import { readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { guardPath } from "@aidlc-guide/reader-core";
+import { guardPath } from "@andon/reader-core";
 import {
   ANSWER_PREFIX,
   type AnswerError,
   type AnswerRequest,
   chatAnsweredLine,
   type ReadResult,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { json, type RouteResult } from "./read.ts";
 
 /**

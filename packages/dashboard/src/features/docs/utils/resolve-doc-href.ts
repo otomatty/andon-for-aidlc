@@ -1,4 +1,4 @@
-import { OFFICIAL_DOCS_SECTIONS } from "@aidlc-guide/shared-types";
+import { OFFICIAL_DOCS_SECTIONS } from "@andon/shared-types";
 
 export interface OfficialDocHref {
   path: string;

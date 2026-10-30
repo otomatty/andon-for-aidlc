@@ -4,7 +4,7 @@ import type {
   CustomizationCatalog,
   CustomizationItem,
   CustomizationKind,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { digest, identifier, MAX_ITEM_BYTES } from "./model.ts";
 
 const scalar = (source: string, key: string): string =>

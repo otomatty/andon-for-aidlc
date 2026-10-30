@@ -1,4 +1,4 @@
-import { ONBOARDING_TARGETS } from "@aidlc-guide/shared-types";
+import { ONBOARDING_TARGETS } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { reducer } from "@/store/reducer.ts";
 import { initialState } from "@/store/state.ts";

@@ -1,4 +1,4 @@
-import type { ArtifactDoc } from "@aidlc-guide/shared-types";
+import type { ArtifactDoc } from "@andon/shared-types";
 import { render, screen } from "@tests/render.tsx";
 import { describe, expect, it } from "vitest";
 import { StageCard } from "@/features/stage/components/StageCard.tsx";

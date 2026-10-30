@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { VersionGate } from "@aidlc-guide/shared-types";
+import type { VersionGate } from "@andon/shared-types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { handlePost, routePost } from "../src/handlers/post.ts";
 import { handleRead, routeRead } from "../src/handlers/read.ts";

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import type { WorkflowsManagementState } from "@aidlc-guide/shared-types";
+import type { WorkflowsManagementState } from "@andon/shared-types";
 import { type ExtensionContext, workspace } from "vscode";
 import {
   type CliManagementState,
@@ -45,7 +45,7 @@ export type SetupSnapshot = {
   cli?: CliManagementState;
 };
 
-export const setupStateKey = (root: string): string => `aidlc-guide.setup.v2:${root}`;
+export const setupStateKey = (root: string): string => `andon.setup.v2:${root}`;
 
 /** Setup completion does not require an Intent. Startup only reads files. */
 export async function inspectSetup(

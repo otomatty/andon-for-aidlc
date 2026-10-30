@@ -176,7 +176,7 @@ jobs:
           VERSION: ${{ needs.decide.outputs.version }}
         run: |
           set -euo pipefail
-          path="packages/vscode-extension/aidlc-guide-${VERSION}.vsix"
+          path="packages/vscode-extension/andon-for-aidlc-${VERSION}.vsix"
           test -f "$path"
           ls -l "$path"
 
@@ -186,14 +186,14 @@ jobs:
       - name: Write release metadata
         env:
           VERSION: ${{ needs.decide.outputs.version }}
-        run: bun scripts/release-metadata.ts "$VERSION" packages/vscode-extension/aidlc-guide-release.json
+        run: bun scripts/release-metadata.ts "$VERSION" packages/vscode-extension/andon-for-aidlc-release.json
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: aidlc-guide-${{ needs.decide.outputs.version }}-vsix
+          name: andon-for-aidlc-${{ needs.decide.outputs.version }}-vsix
           path: |
-            packages/vscode-extension/aidlc-guide-${{ needs.decide.outputs.version }}.vsix
-            packages/vscode-extension/aidlc-guide-release.json
+            packages/vscode-extension/andon-for-aidlc-${{ needs.decide.outputs.version }}.vsix
+            packages/vscode-extension/andon-for-aidlc-release.json
           if-no-files-found: error
 
   publish:
@@ -211,7 +211,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: aidlc-guide-${{ needs.decide.outputs.version }}-vsix
+          name: andon-for-aidlc-${{ needs.decide.outputs.version }}-vsix
 
       # No checkout here, so gh is pointed at the repository explicitly.
       - name: Publish GitHub Release
@@ -225,8 +225,8 @@ jobs:
           RELEASE_SHA: ${{ needs.decide.outputs.sha }}
         run: |
           set -euo pipefail
-          vsix="aidlc-guide-${VERSION}.vsix"
-          meta="aidlc-guide-release.json"
+          vsix="andon-for-aidlc-${VERSION}.vsix"
+          meta="andon-for-aidlc-release.json"
           test -f "$vsix"
           test -f "$meta"
 

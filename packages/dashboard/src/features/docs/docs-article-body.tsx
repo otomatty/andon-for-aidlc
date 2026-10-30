@@ -1,4 +1,4 @@
-import type { OfficialDocsLocale } from "@aidlc-guide/shared-types";
+import type { OfficialDocsLocale } from "@andon/shared-types";
 import type { RefObject } from "react";
 import { Suspense, type ReactNode, useRef } from "react";
 import { MarkdownSurface } from "@/viewer/lazy-markdown.ts";
@@ -6,7 +6,7 @@ import { DocsPageOutline } from "@/features/docs/components/DocsPageOutline.tsx"
 import { AnchorApplier } from "@/features/docs/components/qa/AnchorApplier.tsx";
 import { EvidenceApplier } from "@/features/docs/components/qa/EvidenceApplier.tsx";
 import { DocumentSkeleton } from "@/shared/loading/DocumentSkeleton.tsx";
-import type { DocsQaCitation, DocsQaEvidence, DocsQaJob } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaEvidence, DocsQaJob } from "@andon/shared-types";
 
 type Reference = {
   citation: DocsQaCitation;

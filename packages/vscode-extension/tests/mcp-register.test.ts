@@ -25,7 +25,7 @@ async function seed() {
   const skill = path.join(root, "skill.md");
   await writeFile(
     skill,
-    "---\nname: aidlc-guide-docs\ndescription: documentation lookup\n---\nRead and cite.\n",
+    "---\nname: andon-docs\ndescription: documentation lookup\n---\nRead and cite.\n",
   );
   return { root, skill };
 }
@@ -57,8 +57,8 @@ describe("MCP and automatic documentation skill registration", () => {
   const destinations = [
     ".mcp.json",
     ".cursor/mcp.json",
-    ".claude/skills/aidlc-guide-docs/SKILL.md",
-    ".cursor/skills/aidlc-guide-docs/SKILL.md",
+    ".claude/skills/andon-docs/SKILL.md",
+    ".cursor/skills/andon-docs/SKILL.md",
   ];
   it.each(destinations)(
     "restores all prior files when cancelled after writing %s",
@@ -68,7 +68,7 @@ describe("MCP and automatic documentation skill registration", () => {
       const before = destinations.map((rel) => readFileSync(path.join(root, rel), "utf8"));
       await writeFile(
         skill,
-        "---\nname: aidlc-guide-docs\ndescription: updated\n---\nUpdated source.\n",
+        "---\nname: andon-docs\ndescription: updated\n---\nUpdated source.\n",
       );
       let cancelled = false;
       const result = await registerMcp(root, "new-server.mjs", skill, () => {
@@ -124,7 +124,7 @@ describe("MCP and automatic documentation skill registration", () => {
     await registerMcp(root, "server.mjs", skill);
     const source = await readFile(skill, "utf8");
     const targets = [".claude", ".cursor"].map((client) =>
-      path.join(root, client, "skills/aidlc-guide-docs/SKILL.md"),
+      path.join(root, client, "skills/andon-docs/SKILL.md"),
     );
     for (const target of targets) await writeFile(target, source);
     expect(await refreshDocsRegistration(root, "server.mjs", skill, false)).toEqual({
@@ -137,7 +137,7 @@ describe("MCP and automatic documentation skill registration", () => {
       updated: true,
     });
     for (const target of targets)
-      expect(await readFile(target, "utf8")).toMatch(/<!-- aidlc-guide-managed:[0-9a-f]{64} -->/);
+      expect(await readFile(target, "utf8")).toMatch(/<!-- andon-managed:[0-9a-f]{64} -->/);
     expect(await refreshDocsRegistration(root, "server.mjs", skill)).toEqual({
       complete: true,
       updated: false,
@@ -149,10 +149,10 @@ describe("MCP and automatic documentation skill registration", () => {
   });
   it("refreshes old installed paths and owned skills without overwriting custom options", async () => {
     const { root, skill } = await seed();
-    const oldScript = path.join(root, "extensions/aidlc.aidlc-guide-0.6.9/dist/aidlc-mcp.mjs");
-    const newScript = path.join(root, "extensions/aidlc.aidlc-guide-0.7.0/dist/aidlc-mcp.mjs");
+    const oldScript = path.join(root, "extensions/otomatty.andon-for-aidlc-0.6.9/dist/aidlc-mcp.mjs");
+    const newScript = path.join(root, "extensions/otomatty.andon-for-aidlc-0.7.0/dist/aidlc-mcp.mjs");
     await registerMcp(root, oldScript, skill);
-    await writeFile(skill, "---\nname: aidlc-guide-docs\ndescription: newer\n---\nNew content.\n");
+    await writeFile(skill, "---\nname: andon-docs\ndescription: newer\n---\nNew content.\n");
     expect(await refreshDocsRegistration(root, newScript, skill, false)).toEqual({
       complete: false,
       updated: false,
@@ -163,10 +163,10 @@ describe("MCP and automatic documentation skill registration", () => {
     });
     for (const rel of [".mcp.json", ".cursor/mcp.json"]) {
       const config = JSON.parse(await readFile(path.join(root, rel), "utf8"));
-      expect(config.mcpServers["aidlc-guide"].args[1]).toBe(newScript.replace(/\\/g, "/"));
+      expect(config.mcpServers["andon"].args[1]).toBe(newScript.replace(/\\/g, "/"));
     }
     expect(
-      await readFile(path.join(root, ".claude/skills/aidlc-guide-docs/SKILL.md"), "utf8"),
+      await readFile(path.join(root, ".claude/skills/andon-docs/SKILL.md"), "utf8"),
     ).toContain("New content.");
     expect(await refreshDocsRegistration(root, newScript, skill)).toEqual({
       complete: true,
@@ -174,7 +174,7 @@ describe("MCP and automatic documentation skill registration", () => {
     });
     const configPath = path.join(root, ".mcp.json");
     const config = JSON.parse(await readFile(configPath, "utf8"));
-    config.mcpServers["aidlc-guide"].env = { CUSTOM: "yes" };
+    config.mcpServers["andon"].env = { CUSTOM: "yes" };
     const custom = JSON.stringify(config);
     await writeFile(configPath, custom);
     expect(await refreshDocsRegistration(root, oldScript, skill)).toHaveProperty("complete", false);
@@ -189,7 +189,7 @@ describe("MCP and automatic documentation skill registration", () => {
       updated: false,
     });
     await registerMcp(root, "server.mjs", skill);
-    const missing = path.join(root, ".cursor/skills/aidlc-guide-docs/SKILL.md");
+    const missing = path.join(root, ".cursor/skills/andon-docs/SKILL.md");
     await rm(missing);
     expect(await refreshDocsRegistration(root, "server.mjs", skill)).toHaveProperty(
       "complete",
@@ -208,15 +208,15 @@ describe("MCP and automatic documentation skill registration", () => {
     const { root, skill } = await seed();
     await registerMcp(root, "custom.mjs", skill);
     const before = await readFile(path.join(root, ".mcp.json"), "utf8");
-    const target = path.join(root, ".claude/skills/aidlc-guide-docs/SKILL.md");
+    const target = path.join(root, ".claude/skills/andon-docs/SKILL.md");
     await writeFile(target, "Custom instructions.");
     expect(await refreshDocsRegistration(root, "new.mjs", skill)).toHaveProperty("complete", false);
     expect(await readFile(path.join(root, ".mcp.json"), "utf8")).toBe(before);
     expect(await readFile(target, "utf8")).toBe("Custom instructions.");
     const { root: outside } = await seed();
     await rm(path.join(root, ".cursor/mcp.json"));
-    await rm(path.join(root, ".cursor/skills/aidlc-guide-docs/SKILL.md"));
-    await rmdir(path.join(root, ".cursor/skills/aidlc-guide-docs"));
+    await rm(path.join(root, ".cursor/skills/andon-docs/SKILL.md"));
+    await rmdir(path.join(root, ".cursor/skills/andon-docs"));
     await rmdir(path.join(root, ".cursor/skills"));
     await rmdir(path.join(root, ".cursor"));
     await symlink(outside, path.join(root, ".cursor"), "junction");
@@ -259,17 +259,17 @@ describe("MCP and automatic documentation skill registration", () => {
     const cursor = JSON.parse(await readFile(path.join(root, ".cursor/mcp.json"), "utf8"));
     expect(claude.mcpServers.other.command).toBe("other");
     expect(claude.preserved).toBe(true);
-    expect(cursor.mcpServers["aidlc-guide"]).toEqual(claude.mcpServers["aidlc-guide"]);
-    expect(cursor.mcpServers["aidlc-guide"].args[1]).toBe("C:/extension/dist/aidlc-mcp.mjs");
+    expect(cursor.mcpServers["andon"]).toEqual(claude.mcpServers["andon"]);
+    expect(cursor.mcpServers["andon"].args[1]).toBe("C:/extension/dist/aidlc-mcp.mjs");
     expect(await isMcpRegistered(root)).toBe(true);
     await writeFile(
       skill,
-      "---\nname: aidlc-guide-docs\ndescription: revised\n---\nRevised lookup.\n",
+      "---\nname: andon-docs\ndescription: revised\n---\nRevised lookup.\n",
     );
     expect(await registerMcp(root, "new.mjs", skill)).toEqual({ ok: true });
     for (const harness of [".claude", ".cursor"]) {
       const installed = await readFile(
-        path.join(root, harness, "skills/aidlc-guide-docs/SKILL.md"),
+        path.join(root, harness, "skills/andon-docs/SKILL.md"),
         "utf8",
       );
       expect(installed).toContain("Revised lookup.");
@@ -281,7 +281,7 @@ describe("MCP and automatic documentation skill registration", () => {
     const { root, skill } = await seed();
     await registerMcp(root, "old.mjs", skill);
     const before = await readFile(path.join(root, ".mcp.json"), "utf8");
-    const target = path.join(root, ".claude/skills/aidlc-guide-docs/SKILL.md");
+    const target = path.join(root, ".claude/skills/andon-docs/SKILL.md");
     await writeFile(target, `${await readFile(target, "utf8")}User edits.\n`);
     expect(await registerMcp(root, "new.mjs", skill)).toHaveProperty("ok", false);
     expect(await readFile(path.join(root, ".mcp.json"), "utf8")).toBe(before);
@@ -305,14 +305,14 @@ describe("MCP and automatic documentation skill registration", () => {
     const { root } = await seed();
     expect(mcpScriptPath(root)).toBe(path.join(root, "../mcp-server/src/index.ts"));
     expect(docsSkillPath(root)).toBe(
-      path.join(root, "../mcp-server/skills/aidlc-guide-docs/SKILL.md"),
+      path.join(root, "../mcp-server/skills/andon-docs/SKILL.md"),
     );
     await mkdir(path.join(root, "dist"));
-    await mkdir(path.join(root, "media/aidlc-guide-docs"), { recursive: true });
+    await mkdir(path.join(root, "media/andon-docs"), { recursive: true });
     await writeFile(path.join(root, "dist/aidlc-mcp.mjs"), "");
-    await writeFile(path.join(root, "media/aidlc-guide-docs/SKILL.md"), "");
+    await writeFile(path.join(root, "media/andon-docs/SKILL.md"), "");
     expect(mcpScriptPath(root)).toBe(path.join(root, "dist/aidlc-mcp.mjs"));
-    expect(docsSkillPath(root)).toBe(path.join(root, "media/aidlc-guide-docs/SKILL.md"));
+    expect(docsSkillPath(root)).toBe(path.join(root, "media/andon-docs/SKILL.md"));
     expect(await isMcpRegistered(root)).toBe(false);
   });
 });

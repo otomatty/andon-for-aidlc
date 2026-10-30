@@ -5,7 +5,7 @@ import type {
   DocsQaEvidence,
   DocsQaRequest,
   DocsQaTarget,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { extractTitle } from "./markdown.ts";
 import { createDocsLibrary, sectionRanker } from "./retrieval.ts";
 import { readGuarded } from "./retrieval-build.ts";

@@ -3,7 +3,7 @@ import {
   type VersionGate,
   versionGateRollbackGuide,
   type WorkflowsManagementState,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import type { CliManagementState } from "./cli-management.ts";
 import { doctorFixFor } from "./doctor-fixes.ts";
 import type { NativeDoctorReport } from "./doctor-output.ts";

@@ -1,4 +1,4 @@
-import { normalizeAnchor, slugifyHeading } from "@aidlc-guide/shared-types";
+import { normalizeAnchor, slugifyHeading } from "@andon/shared-types";
 
 /**
  * Heading / title helpers. Anchor matching follows GitHub's slug algorithm,

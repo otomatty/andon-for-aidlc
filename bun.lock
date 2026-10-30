@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "aidlc-guide",
+      "name": "andon-for-aidlc",
       "devDependencies": {
         "@shadcn/lint": "^0.2.3",
         "@testing-library/react": "^16.3.3",
@@ -23,27 +23,27 @@
       },
     },
     "packages/api-core": {
-      "name": "@aidlc-guide/api-core",
+      "name": "@andon/api-core",
       "version": "0.1.0",
       "dependencies": {
-        "@aidlc-guide/docs-bridge": "workspace:*",
-        "@aidlc-guide/official-docs": "workspace:*",
-        "@aidlc-guide/reader-core": "workspace:*",
-        "@aidlc-guide/shared-types": "workspace:*",
+        "@andon/docs-bridge": "workspace:*",
+        "@andon/official-docs": "workspace:*",
+        "@andon/reader-core": "workspace:*",
+        "@andon/shared-types": "workspace:*",
       },
     },
     "packages/core-utils": {
-      "name": "@aidlc-guide/core-utils",
+      "name": "@andon/core-utils",
       "version": "0.1.0",
       "dependencies": {
-        "@aidlc-guide/shared-types": "workspace:*",
+        "@andon/shared-types": "workspace:*",
       },
     },
     "packages/dashboard": {
-      "name": "@aidlc-guide/dashboard",
+      "name": "@andon/dashboard",
       "version": "0.1.0",
       "dependencies": {
-        "@aidlc-guide/shared-types": "workspace:*",
+        "@andon/shared-types": "workspace:*",
         "@mantine/core": "^9.7.2",
         "@mantine/hooks": "^9.7.2",
         "@tailwindcss/vite": "^4.3.3",
@@ -68,70 +68,70 @@
       },
     },
     "packages/dashboard-server": {
-      "name": "@aidlc-guide/dashboard-server",
+      "name": "@andon/dashboard-server",
       "version": "0.1.0",
       "bin": {
         "aidlc-dashboard": "./src/cli.ts",
       },
       "dependencies": {
-        "@aidlc-guide/api-core": "workspace:*",
-        "@aidlc-guide/docs-bridge": "workspace:*",
-        "@aidlc-guide/reader-core": "workspace:*",
-        "@aidlc-guide/shared-types": "workspace:*",
+        "@andon/api-core": "workspace:*",
+        "@andon/docs-bridge": "workspace:*",
+        "@andon/reader-core": "workspace:*",
+        "@andon/shared-types": "workspace:*",
       },
     },
     "packages/docs-bridge": {
-      "name": "@aidlc-guide/docs-bridge",
+      "name": "@andon/docs-bridge",
       "version": "0.1.0",
       "dependencies": {
-        "@aidlc-guide/core-utils": "workspace:*",
-        "@aidlc-guide/shared-types": "workspace:*",
+        "@andon/core-utils": "workspace:*",
+        "@andon/shared-types": "workspace:*",
       },
     },
     "packages/mcp-server": {
-      "name": "@aidlc-guide/mcp-server",
+      "name": "@andon/mcp-server",
       "version": "0.1.0",
       "bin": {
         "aidlc-mcp": "./src/index.ts",
       },
       "dependencies": {
-        "@aidlc-guide/official-docs": "workspace:*",
-        "@aidlc-guide/reader-core": "workspace:*",
-        "@aidlc-guide/shared-types": "workspace:*",
+        "@andon/official-docs": "workspace:*",
+        "@andon/reader-core": "workspace:*",
+        "@andon/shared-types": "workspace:*",
         "@modelcontextprotocol/sdk": "^1.32.1",
         "zod": "^4.6.7",
       },
     },
     "packages/official-docs": {
-      "name": "@aidlc-guide/official-docs",
+      "name": "@andon/official-docs",
       "version": "0.1.0",
       "dependencies": {
-        "@aidlc-guide/core-utils": "workspace:*",
-        "@aidlc-guide/shared-types": "workspace:*",
+        "@andon/core-utils": "workspace:*",
+        "@andon/shared-types": "workspace:*",
       },
     },
     "packages/reader-core": {
-      "name": "@aidlc-guide/reader-core",
+      "name": "@andon/reader-core",
       "version": "0.1.0",
       "dependencies": {
-        "@aidlc-guide/core-utils": "workspace:*",
-        "@aidlc-guide/shared-types": "workspace:*",
+        "@andon/core-utils": "workspace:*",
+        "@andon/shared-types": "workspace:*",
         "chokidar": "^5.0.0",
       },
     },
     "packages/shared-types": {
-      "name": "@aidlc-guide/shared-types",
+      "name": "@andon/shared-types",
       "version": "0.1.0",
     },
     "packages/vscode-extension": {
-      "name": "aidlc-guide",
+      "name": "andon-for-aidlc",
       "version": "0.1.0",
       "dependencies": {
-        "@aidlc-guide/api-core": "workspace:*",
-        "@aidlc-guide/core-utils": "workspace:*",
-        "@aidlc-guide/official-docs": "workspace:*",
-        "@aidlc-guide/reader-core": "workspace:*",
-        "@aidlc-guide/shared-types": "workspace:*",
+        "@andon/api-core": "workspace:*",
+        "@andon/core-utils": "workspace:*",
+        "@andon/official-docs": "workspace:*",
+        "@andon/reader-core": "workspace:*",
+        "@andon/shared-types": "workspace:*",
         "jsonc-parser": "^3.3.1",
       },
       "devDependencies": {
@@ -159,23 +159,23 @@
     "undici": "^8.11.2",
   },
   "packages": {
-    "@aidlc-guide/api-core": ["@aidlc-guide/api-core@workspace:packages/api-core"],
+    "@andon/api-core": ["@andon/api-core@workspace:packages/api-core"],
 
-    "@aidlc-guide/core-utils": ["@aidlc-guide/core-utils@workspace:packages/core-utils"],
+    "@andon/core-utils": ["@andon/core-utils@workspace:packages/core-utils"],
 
-    "@aidlc-guide/dashboard": ["@aidlc-guide/dashboard@workspace:packages/dashboard"],
+    "@andon/dashboard": ["@andon/dashboard@workspace:packages/dashboard"],
 
-    "@aidlc-guide/dashboard-server": ["@aidlc-guide/dashboard-server@workspace:packages/dashboard-server"],
+    "@andon/dashboard-server": ["@andon/dashboard-server@workspace:packages/dashboard-server"],
 
-    "@aidlc-guide/docs-bridge": ["@aidlc-guide/docs-bridge@workspace:packages/docs-bridge"],
+    "@andon/docs-bridge": ["@andon/docs-bridge@workspace:packages/docs-bridge"],
 
-    "@aidlc-guide/mcp-server": ["@aidlc-guide/mcp-server@workspace:packages/mcp-server"],
+    "@andon/mcp-server": ["@andon/mcp-server@workspace:packages/mcp-server"],
 
-    "@aidlc-guide/official-docs": ["@aidlc-guide/official-docs@workspace:packages/official-docs"],
+    "@andon/official-docs": ["@andon/official-docs@workspace:packages/official-docs"],
 
-    "@aidlc-guide/reader-core": ["@aidlc-guide/reader-core@workspace:packages/reader-core"],
+    "@andon/reader-core": ["@andon/reader-core@workspace:packages/reader-core"],
 
-    "@aidlc-guide/shared-types": ["@aidlc-guide/shared-types@workspace:packages/shared-types"],
+    "@andon/shared-types": ["@andon/shared-types@workspace:packages/shared-types"],
 
     "@antfu/install-pkg": ["@antfu/install-pkg@1.1.0", "", { "dependencies": { "package-manager-detector": "^1.3.0", "tinyexec": "^1.0.1" } }, "sha512-MGQsmw10ZyI+EJo45CdSER4zEb+p31LpDAFp2Z3gkSd1yqVZGi0Ebx++YTEMonJy4oChEMLsxZ64j8FH6sSqtQ=="],
 
@@ -791,11 +791,11 @@
 
     "agent-base": ["agent-base@7.1.4", "", {}, "sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ=="],
 
-    "aidlc-guide": ["aidlc-guide@workspace:packages/vscode-extension"],
-
     "ajv": ["ajv@8.20.0", "", { "dependencies": { "fast-deep-equal": "^3.1.3", "fast-uri": "^3.0.1", "json-schema-traverse": "^1.0.0", "require-from-string": "^2.0.2" } }, "sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA=="],
 
     "ajv-formats": ["ajv-formats@3.0.1", "", { "dependencies": { "ajv": "^8.0.0" } }, "sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ=="],
+
+    "andon-for-aidlc": ["andon-for-aidlc@workspace:packages/vscode-extension"],
 
     "ansi-regex": ["ansi-regex@5.0.1", "", {}, "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="],
 

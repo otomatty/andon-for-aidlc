@@ -1,4 +1,4 @@
-import type { ConstructionWalk, StageTiming } from "@aidlc-guide/shared-types";
+import type { ConstructionWalk, StageTiming } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { parseState } from "../src/parse/state.ts";
 import { PER_UNIT_STAGES } from "../src/timing/next-gate.ts";

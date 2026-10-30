@@ -1,4 +1,4 @@
-import type { AuditEvent } from "@aidlc-guide/shared-types";
+import type { AuditEvent } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { readAllAuditEvents } from "../src/audit/events.ts";
 import { expectOk, REAL_RECORD } from "./paths.ts";

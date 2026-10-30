@@ -1,4 +1,4 @@
-import type { ReadResult } from "@aidlc-guide/shared-types";
+import type { ReadResult } from "@andon/shared-types";
 import { useEffect, useState } from "react";
 import { deriveViewState } from "@/store/derive-view-state.ts";
 import type { ViewState } from "@/store/state.ts";

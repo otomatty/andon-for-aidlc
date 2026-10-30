@@ -6,13 +6,13 @@ import type {
   TimingsPayload,
   UnitWalk,
   WorkflowModel,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import {
   formatTimingDuration,
   isNextGateOverrun,
   isStageEstimateOverrun,
   nextGateTarget,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { Progress } from "@mantine/core";
 import { memo, type ReactNode } from "react";
 import {

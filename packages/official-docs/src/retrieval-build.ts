@@ -1,6 +1,6 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { guardPath, readBounded } from "@aidlc-guide/core-utils";
+import { guardPath, readBounded } from "@andon/core-utils";
 import { extractTitle } from "./markdown.ts";
 import { contentHash, indexSections } from "./retrieval-markdown.ts";
 import {

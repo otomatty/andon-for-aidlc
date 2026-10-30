@@ -1,4 +1,4 @@
-import type { CustomizationItem } from "@aidlc-guide/shared-types";
+import type { CustomizationItem } from "@andon/shared-types";
 import descriptions from "@/data/scope-descriptions.ja.json";
 import { sourceBody } from "./source-fields";
 

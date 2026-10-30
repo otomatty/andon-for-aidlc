@@ -1,5 +1,5 @@
 import path from "node:path";
-import { guardPath, readBounded } from "@aidlc-guide/core-utils";
+import { guardPath, readBounded } from "@andon/core-utils";
 import { DOCS_INDEX_REL, type DocsIndex } from "./retrieval-types.ts";
 
 /** The aggregate index can outgrow the 10 MiB single-document limit; cap it at 32 MiB. */

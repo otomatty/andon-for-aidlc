@@ -3,7 +3,7 @@ import type {
   DocsQaEvidence,
   DocsQaJob,
   OfficialDocsLocale,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { HouseIcon, MenuIcon, MessageCircleIcon } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";

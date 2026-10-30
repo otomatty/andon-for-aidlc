@@ -4,8 +4,8 @@ import type {
   CustomizationImportSelection,
   CustomizationItem,
   CustomizationOperation,
-} from "@aidlc-guide/shared-types";
-import { MAX_CUSTOMIZATION_PACKAGE_JSON_BYTES } from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
+import { MAX_CUSTOMIZATION_PACKAGE_JSON_BYTES } from "@andon/shared-types";
 import { Ellipsis } from "lucide-react";
 import {
   type ReactNode,
@@ -528,7 +528,7 @@ export default function CustomizationPage({
       <input
         ref={importInput}
         type="file"
-        accept=".json,.aidlc-guide.json"
+        accept=".json,.andon.json"
         className="hidden"
         aria-label="Andon設定ファイル"
         onChange={(event) => {

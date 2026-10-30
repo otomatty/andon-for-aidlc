@@ -1,4 +1,4 @@
-import type { AnswerError, AnswerRequest } from "@aidlc-guide/shared-types";
+import type { AnswerError, AnswerRequest } from "@andon/shared-types";
 import { fetchArtifact } from "@/services/api.ts";
 import { getTransport } from "@/services/transport/index.ts";
 

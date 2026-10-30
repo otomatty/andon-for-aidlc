@@ -53,8 +53,8 @@ export async function copyOfficialDocsMedia(root: string): Promise<string> {
     `${JSON.stringify({ version: metadata.version })}\n`,
   );
   cpSync(
-    join(root, "packages/mcp-server/skills/aidlc-guide-docs"),
-    join(root, "packages/vscode-extension/media/aidlc-guide-docs"),
+    join(root, "packages/mcp-server/skills/andon-docs"),
+    join(root, "packages/vscode-extension/media/andon-docs"),
     { recursive: true },
   );
 

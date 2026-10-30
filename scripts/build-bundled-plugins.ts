@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // Build the catalog of AI-DLC plugins the extension ships (the 「プラグイン」 page).
 //
-// For each `plugins/<name>/` with a `.aidlc-guide/listing.json`, the plugin is built with the
+// For each `plugins/<name>/` with a `.andon/listing.json`, the plugin is built with the
 // engine's own builder, composed into a copy of this repository's tracked `.claude/` with the
 // engine's own `plugin sync` and `plugin select`, and described from what that actually did:
 // the stages its scope runs, the files it adds and changes, and the source hash its install
@@ -38,7 +38,7 @@ import type {
 import { checkSvg } from "../plugins/focus/tools/focus-diagram.ts";
 
 export const CATALOG_REL = "packages/shared-types/src/bundled-plugins.generated.json";
-const LISTING_REL = ".aidlc-guide/listing.json";
+const LISTING_REL = ".andon/listing.json";
 const HARNESS_DIRS: Record<string, string> = { claude: ".claude" };
 // The engine tools are TypeScript run by bun; under a Node test runner, call bun by name.
 const BUN = process.versions.bun === undefined ? "bun" : process.execPath;
@@ -52,7 +52,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-/** Validate a plugin's `.aidlc-guide/listing.json`, naming the field that is wrong. */
+/** Validate a plugin's `.andon/listing.json`, naming the field that is wrong. */
 export function parseListing(raw: unknown, plugin: string): Listing {
   const fail = (field: string, why: string): never => {
     throw new Error(`plugins/${plugin}/${LISTING_REL}: ${field} ${why}`);
@@ -108,7 +108,7 @@ export function parseListing(raw: unknown, plugin: string): Listing {
       path.posix.normalize(file).startsWith("..") ||
       !file.toLowerCase().endsWith(".svg")
     )
-      fail("sample.file", "must be an .svg path inside .aidlc-guide/");
+      fail("sample.file", "must be an .svg path inside .andon/");
     if (typeof alt !== "string" || alt === "") fail("sample.alt", "must be a non-empty string");
     sample = { file: file as string, alt: alt as string };
   }
@@ -310,12 +310,12 @@ async function describePlugin(root: string, name: string, work: string): Promise
     throw new Error(`plugins/${name}: the composed record does not match the built plugin`);
   let sample: BundledPlugin["sample"] = null;
   if (listing.sample !== null) {
-    const file = path.join(pluginRoot, ".aidlc-guide", listing.sample.file);
+    const file = path.join(pluginRoot, ".andon", listing.sample.file);
     const svg = readFileSync(file, "utf8");
     const problems = checkSvg(svg, statSync(file).size);
     if (problems.length > 0)
       throw new Error(
-        `plugins/${name}/.aidlc-guide/${listing.sample.file}: ${problems.map((p) => p.code).join(", ")}`,
+        `plugins/${name}/.andon/${listing.sample.file}: ${problems.map((p) => p.code).join(", ")}`,
       );
     sample = { alt: listing.sample.alt, svg: svg.replace(/\r\n?/g, "\n") };
   }

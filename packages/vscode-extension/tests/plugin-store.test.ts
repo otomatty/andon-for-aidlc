@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { BundledPlugin } from "@aidlc-guide/shared-types";
+import type { BundledPlugin } from "@andon/shared-types";
 import { afterEach, describe, expect, it } from "vitest";
 import { pluginPackageSourceHash, pluginStoreRelative } from "../src/native-plugin-inputs.ts";
 import { storePluginPackage } from "../src/plugin-store.ts";

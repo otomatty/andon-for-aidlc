@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
-import { guardPath } from "@aidlc-guide/core-utils";
-import { normalizeAnchor, slugifyHeading } from "@aidlc-guide/shared-types";
+import { guardPath } from "@andon/core-utils";
+import { normalizeAnchor, slugifyHeading } from "@andon/shared-types";
 
 /**
  * The anchor algorithm lives in shared-types: official-docs writes deep links

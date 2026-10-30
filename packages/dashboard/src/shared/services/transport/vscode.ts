@@ -1,4 +1,4 @@
-import { parseOnboardingSnapshot, type WsMessage } from "@aidlc-guide/shared-types";
+import { parseOnboardingSnapshot, type WsMessage } from "@andon/shared-types";
 import {
   deliverDocsShellDeepLink,
   deliverOfficialDocsLocale,

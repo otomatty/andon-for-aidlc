@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { bridgeMap } from "@aidlc-guide/docs-bridge";
+import { bridgeMap } from "@andon/docs-bridge";
 import { describe, expect, it } from "vitest";
 import { routeRead } from "../src/handlers/read.ts";
 import { createGuideService } from "../src/service.ts";

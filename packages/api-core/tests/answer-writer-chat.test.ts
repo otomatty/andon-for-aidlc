@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { AnswerError } from "@aidlc-guide/shared-types";
+import type { AnswerError } from "@andon/shared-types";
 import { afterEach, describe, expect, it } from "vitest";
 import { routeAnswer } from "../src/handlers/answer-writer.ts";
 

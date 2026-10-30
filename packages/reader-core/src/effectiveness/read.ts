@@ -1,11 +1,7 @@
 import { readdir } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
-import { guardPath, mapBounded, readBounded, withResult } from "@aidlc-guide/core-utils";
-import type {
-  EffectivenessPayload,
-  IntentEffectiveness,
-  ReadResult,
-} from "@aidlc-guide/shared-types";
+import { guardPath, mapBounded, readBounded, withResult } from "@andon/core-utils";
+import type { EffectivenessPayload, IntentEffectiveness, ReadResult } from "@andon/shared-types";
 import { indexIntentRecords, intentRecord, sortIntentNames } from "../intents/order.ts";
 import { parseState } from "../parse/state.ts";
 import { deriveEffectiveness } from "./derive.ts";

@@ -61,7 +61,7 @@ API は互換性のためレビュー・利用量の集計項目を保持し、`
 Dashboard を Andon 側でビルドしてから、記録を読みたいリポジトリへ移動してサーバーを起動します。PowerShell の例です。2つのパスを手元のチェックアウトに置き換えてください。
 
 ```powershell
-$guideRepo = "C:\src\aidlc-guide"
+$guideRepo = "C:\src\andon-for-aidlc"
 Set-Location $guideRepo
 bun install
 bun run build:dashboard

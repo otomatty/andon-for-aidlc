@@ -1,4 +1,4 @@
-import type { ConstructionWalk, StageTiming, WorkflowModel } from "@aidlc-guide/shared-types";
+import type { ConstructionWalk, StageTiming, WorkflowModel } from "@andon/shared-types";
 import { PER_UNIT_STAGES, UNITS_STAGE } from "./next-gate.ts";
 
 /**

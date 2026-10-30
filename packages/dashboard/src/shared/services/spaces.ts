@@ -1,4 +1,4 @@
-import type { SwitchSpaceRequest } from "@aidlc-guide/shared-types";
+import type { SwitchSpaceRequest } from "@andon/shared-types";
 import { getTransport } from "./transport/index.ts";
 
 export async function switchSpace(request: SwitchSpaceRequest) {

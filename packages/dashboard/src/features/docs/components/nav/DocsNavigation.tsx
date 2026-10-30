@@ -1,4 +1,4 @@
-import type { MarkdownItem, OfficialDocsToc } from "@aidlc-guide/shared-types";
+import type { MarkdownItem, OfficialDocsToc } from "@andon/shared-types";
 import { type ReactNode, useMemo } from "react";
 import {
   Accordion,

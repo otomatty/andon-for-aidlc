@@ -1,8 +1,4 @@
-import type {
-  EffectivenessPayload,
-  IntentEffectiveness,
-  ReadResult,
-} from "@aidlc-guide/shared-types";
+import type { EffectivenessPayload, IntentEffectiveness, ReadResult } from "@andon/shared-types";
 import { act, render, screen, waitFor, within } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";

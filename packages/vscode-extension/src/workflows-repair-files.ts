@@ -9,7 +9,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { canonicalPathSync } from "@aidlc-guide/core-utils";
+import { canonicalPathSync } from "@andon/core-utils";
 import { acquireNativeWorkspaceLock } from "./native-workspace-lock.ts";
 
 // Deliberately excludes application code, credentials, workflow artifacts, and runtime state.

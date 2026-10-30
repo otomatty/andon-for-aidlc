@@ -1,13 +1,13 @@
 import { randomBytes } from "node:crypto";
 import path from "node:path";
-import { inspectVersionGate } from "@aidlc-guide/reader-core";
+import { inspectVersionGate } from "@andon/reader-core";
 import {
   VERSION_GATE_ACTIONS,
   type VersionGateAction,
   versionGateActionLabel,
   versionGateRollbackGuide,
   WORKFLOWS_TARGET_VERSION,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { commands, type ExtensionContext, env, Uri, ViewColumn, window, workspace } from "vscode";
 import { configureCliEnvironment } from "./cli-environment.ts";
 import {
@@ -163,7 +163,7 @@ export async function openWorkflowsUpdatePanel(
   const inspectCli = () => inspectCliManagement(workspaceRoot);
   const gateOf = () => inspectVersionGate(workspaceRoot, target);
   const panel = window.createWebviewPanel(
-    "aidlcGuide.updateWorkflows",
+    "andon.updateWorkflows",
     "AI-DLC の更新",
     ViewColumn.One,
     { enableScripts: true, retainContextWhenHidden: true },
@@ -516,7 +516,7 @@ export async function openWorkflowsUpdatePanel(
       }
       return;
     } else if (type === "open-dashboard") {
-      void commands.executeCommand("aidlc-guide.open");
+      void commands.executeCommand("andon.open");
       return;
     } else if (type === "open-scm") {
       void commands.executeCommand("workbench.view.scm");
@@ -524,15 +524,15 @@ export async function openWorkflowsUpdatePanel(
     }
     if (busy) return;
     if (type === "install") {
-      await commands.executeCommand("aidlc-guide.installWorkflows", workspaceRoot);
+      await commands.executeCommand("andon.installWorkflows", workspaceRoot);
       return;
     }
     if (type === "setup") {
-      await commands.executeCommand("aidlc-guide.setup", workspaceRoot);
+      await commands.executeCommand("andon.setup", workspaceRoot);
       return;
     }
     if (type === "extension-update") {
-      await commands.executeCommand("aidlc-guide.checkUpdate");
+      await commands.executeCommand("andon.checkUpdate");
       return;
     }
     if (type === "refresh") {
@@ -800,8 +800,8 @@ export async function runVersionGateAction(
   root: string,
   action: VersionGateAction,
 ): Promise<void> {
-  if (action === "update-guide") await commands.executeCommand("aidlc-guide.checkUpdate");
-  else if (action === "setup") await commands.executeCommand("aidlc-guide.setup", root);
+  if (action === "update-guide") await commands.executeCommand("andon.checkUpdate");
+  else if (action === "setup") await commands.executeCommand("andon.setup", root);
   else await openWorkflowsUpdatePanel(context, root, action);
 }
 

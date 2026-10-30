@@ -6,7 +6,7 @@ import {
   type OnboardingTarget,
   spotlightTipId,
   WHATS_NEW,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { LightbulbIcon, SparklesIcon, XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";

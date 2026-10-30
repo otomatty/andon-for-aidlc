@@ -1,5 +1,5 @@
-import { withResult } from "@aidlc-guide/core-utils";
-import type { BridgeConfig, ProjectLink, ReadResult, StageDoc } from "@aidlc-guide/shared-types";
+import { withResult } from "@andon/core-utils";
+import type { BridgeConfig, ProjectLink, ReadResult, StageDoc } from "@andon/shared-types";
 import { loadConfig } from "./config.ts";
 import { projectLinks } from "./links.ts";
 import { resolveStage } from "./resolve.ts";

@@ -1,4 +1,4 @@
-import type { WsMessage } from "@aidlc-guide/shared-types";
+import type { WsMessage } from "@andon/shared-types";
 import { backoffFor } from "@/services/live-backoff.ts";
 import type { SubscribeOptions, Transport } from "./types.ts";
 import { GET_TIMEOUT_MS, postTimeoutMs, wsUrlFromLocation } from "./types.ts";

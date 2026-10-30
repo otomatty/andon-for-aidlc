@@ -1,5 +1,5 @@
 {
-  "name": "@aidlc-guide/dashboard-server",
+  "name": "@andon/dashboard-server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,9 +15,9 @@
     "dashboard": "bun run ./src/cli.ts"
   },
   "dependencies": {
-    "@aidlc-guide/api-core": "workspace:*",
-    "@aidlc-guide/docs-bridge": "workspace:*",
-    "@aidlc-guide/reader-core": "workspace:*",
-    "@aidlc-guide/shared-types": "workspace:*"
+    "@andon/api-core": "workspace:*",
+    "@andon/docs-bridge": "workspace:*",
+    "@andon/reader-core": "workspace:*",
+    "@andon/shared-types": "workspace:*"
   }
 }

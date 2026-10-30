@@ -4,7 +4,7 @@ import type {
   DeepLink,
   ReadResult,
   StageDoc,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import rawAgentMap from "../data/agent-map.json";
 import rawArtifactMap from "../data/artifact-map.json";
 import rawMap from "../data/bridge-map.json";

@@ -1,6 +1,6 @@
-import { handleRead, mapResult } from "@aidlc-guide/api-core";
-import { nextStepOf } from "@aidlc-guide/reader-core";
-import type { Matrix, WorkflowModel } from "@aidlc-guide/shared-types";
+import { handleRead, mapResult } from "@andon/api-core";
+import { nextStepOf } from "@andon/reader-core";
+import type { Matrix, WorkflowModel } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { context, ok, stageDoc, stubBridge, stubReader, url } from "./support.ts";
 

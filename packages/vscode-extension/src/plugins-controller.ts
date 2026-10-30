@@ -9,7 +9,7 @@ import {
   type PluginsHostMessage,
   type PluginsState,
   parsePluginsPanelMessage,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { detectHarnesses } from "./harness-detect.ts";
 import { nativePluginEnv, refreshNativeManifest } from "./native-plugin-inputs.ts";
 import {

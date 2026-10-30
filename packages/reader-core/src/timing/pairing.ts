@@ -1,4 +1,4 @@
-import type { AuditEvent } from "@aidlc-guide/shared-types";
+import type { AuditEvent } from "@andon/shared-types";
 import { compareByTime, timeOf } from "../audit/events.ts";
 export const CLOCK_SKEW_RECOVERY_WINDOW_MS = 10 * 60_000;
 

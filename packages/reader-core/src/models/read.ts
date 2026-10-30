@@ -1,6 +1,6 @@
 import path from "node:path";
-import { guardPath, readBounded, withResult } from "@aidlc-guide/core-utils";
-import type { AgentModelSetting, ReadResult, StageModelsPayload } from "@aidlc-guide/shared-types";
+import { guardPath, readBounded, withResult } from "@andon/core-utils";
+import type { AgentModelSetting, ReadResult, StageModelsPayload } from "@andon/shared-types";
 import { usageTrackingDisabled } from "../effectiveness/settings.ts";
 import { objectOf } from "../effectiveness/usage.ts";
 

@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { OnboardingView } from "@aidlc-guide/shared-types";
+import type { OnboardingView } from "@andon/shared-types";
 import { commands, type ExtensionContext, window, workspace } from "vscode";
 import { openDashboardPanel } from "./dashboard-panel.ts";
 import { setBundledPluginStore } from "./native-plugin-inputs.ts";
@@ -21,9 +21,9 @@ import {
   UPDATE_WORKFLOWS_COMMAND,
 } from "./workflows-update-panel.ts";
 
-const SHOW_WELCOME_COMMAND = "aidlc-guide.showWelcome";
-const SHOW_WHATS_NEW_COMMAND = "aidlc-guide.showWhatsNew";
-const OPEN_PLUGINS_COMMAND = "aidlc-guide.openPlugins";
+const SHOW_WELCOME_COMMAND = "andon.showWelcome";
+const SHOW_WHATS_NEW_COMMAND = "andon.showWhatsNew";
+const OPEN_PLUGINS_COMMAND = "andon.openPlugins";
 
 function primaryRoot(): string | undefined {
   return workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -79,7 +79,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   };
 
   context.subscriptions.push(
-    commands.registerCommand("aidlc-guide.open", () => openDashboard()),
+    commands.registerCommand("andon.open", () => openDashboard()),
 
     commands.registerCommand(SHOW_WELCOME_COMMAND, () => openDashboard("welcome")),
 
@@ -87,7 +87,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
     commands.registerCommand(OPEN_PLUGINS_COMMAND, () => openDashboard("plugins")),
 
-    commands.registerCommand("aidlc-guide.setup", (requestedRoot?: unknown) => {
+    commands.registerCommand("andon.setup", (requestedRoot?: unknown) => {
       const ws = requestedRoot === undefined ? primaryRoot() : requestedRoot;
       if (ws === undefined) {
         void window.showErrorMessage("ワークスペースを開いてください。");
@@ -103,7 +103,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       void openSetupPanel(context, ws);
     }),
 
-    commands.registerCommand("aidlc-guide.installWorkflows", (requestedRoot?: unknown) => {
+    commands.registerCommand("andon.installWorkflows", (requestedRoot?: unknown) => {
       const ws = requestedRoot === undefined ? primaryRoot() : requestedRoot;
       if (ws === undefined) {
         void window.showErrorMessage("ワークスペースを開いてください。");
@@ -125,7 +125,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       void openWorkflowsInstallPanel(context, ws);
     }),
 
-    commands.registerCommand("aidlc-guide.registerMcp", async () => {
+    commands.registerCommand("andon.registerMcp", async () => {
       const ws = primaryRoot();
       if (ws === undefined) return;
       if (!workspace.isTrusted) {

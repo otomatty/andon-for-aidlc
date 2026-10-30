@@ -5,8 +5,8 @@ import {
   routePost,
   routeRead,
   UNKNOWN_ROUTE,
-} from "@aidlc-guide/api-core";
-import type { SpaceSelection, WsMessage } from "@aidlc-guide/shared-types";
+} from "@andon/api-core";
+import type { SpaceSelection, WsMessage } from "@andon/shared-types";
 import {
   type ExtensionContext,
   type FileSystemWatcher,
@@ -15,8 +15,8 @@ import {
   workspace,
 } from "vscode";
 
-export const SELECTED_INTENT_KEY = "aidlcGuide.selectedIntent";
-export const SPACE_SELECTION_KEY = "aidlcGuide.spaceSelection";
+export const SELECTED_INTENT_KEY = "andon.selectedIntent";
+export const SPACE_SELECTION_KEY = "andon.spaceSelection";
 
 export interface SelectedIntentPersist {
   get(): string | undefined;
@@ -120,7 +120,7 @@ export class GuideSession {
 
   async handleGet(path: string): Promise<{ reached: true; body: unknown } | { reached: false }> {
     try {
-      const url = new URL(path, "http://aidlc-guide.local");
+      const url = new URL(path, "http://andon.local");
       if (url.pathname === "/api/docs-qa/tools" && !workspace.isTrusted)
         return { reached: true, body: { error: true, reason: "workspace-untrusted" } };
       const result = await routeRead(this.service.readContext, url);

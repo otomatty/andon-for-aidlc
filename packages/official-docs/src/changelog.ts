@@ -1,6 +1,6 @@
 import { existsSync, lstatSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { upstreamBlobUrl } from "@aidlc-guide/shared-types";
+import { upstreamBlobUrl } from "@andon/shared-types";
 
 export const CHANGELOG_INDEX_PATH = "overview/changelog.md";
 

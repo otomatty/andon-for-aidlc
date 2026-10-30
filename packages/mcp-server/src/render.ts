@@ -1,9 +1,5 @@
 import path from "node:path";
-import {
-  type ReadResult,
-  type StandardReason,
-  supportedVersionsLabel,
-} from "@aidlc-guide/shared-types";
+import { type ReadResult, type StandardReason, supportedVersionsLabel } from "@andon/shared-types";
 
 /**
  * The single `ReadResult` → tool-reply mapping (R-MS-2). No handler writes its
@@ -79,7 +75,7 @@ const REASON_TEXT: Readonly<Record<StandardReason, string>> = {
   "undefined-term":
     "未定義: その用語は用語集にありません。別の表記（英語 slug / 日本語）で再試行してください。",
   "config-invalid":
-    "aidlc-guide.config.json が不正で読み込めません。JSON 構文と docsRepoPath の型を確認してください。",
+    "andon.config.json が不正で読み込めません。JSON 構文と docsRepoPath の型を確認してください。",
   "unknown-route":
     "サーバが知らない API パスです。クライアントとサーバのバージョンずれの可能性があります。",
   "missing-path": "パスが指定されていません。読み取りたいファイルの相対パスを指定してください。",

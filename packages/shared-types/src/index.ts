@@ -844,7 +844,7 @@ export interface ProjectLink {
   target: string;
 }
 
-/** `aidlc-guide.config.json`, after loading and validation (D1). */
+/** `andon.config.json`, after loading and validation (D1). */
 export interface BridgeConfig {
   /** Absolute path to the docs checkout. `null` = run without excerpts. */
   docsRepoPath: string | null;
@@ -937,7 +937,7 @@ export interface AgentDoc {
 
 /* ------------------------------------------------------------------ *
  * official-docs (docs-i18n) — wire shapes for GET /api/official-docs/*.
- * Produced by @aidlc-guide/official-docs via api-core; dashboard consumes
+ * Produced by @andon/official-docs via api-core; dashboard consumes
  * these types only (no package import of official-docs / reader-core).
  * ------------------------------------------------------------------ */
 
@@ -952,7 +952,7 @@ export type OfficialDocsLocale = "en" | "ja";
  * (`README.md`, `roadmap.md`) upstream keeps loose in the docs root and that
  * therefore have no directory to be named after.
  *
- * The single source of truth for the section list: `@aidlc-guide/official-docs`
+ * The single source of truth for the section list: `@andon/official-docs`
  * derives `DocSection` from it, the mirror walks it, and the Shell nav renders
  * it. It lives in shared-types because the dashboard needs the list too and
  * must not import official-docs (structural ban).
@@ -1043,7 +1043,7 @@ export function normalizeAnchor(anchor: string): string {
 
 /**
  * `GET /api/official-docs/stage/:slug` value when the slug is mapped.
- * Wire shape only — dashboard must not import `@aidlc-guide/official-docs`.
+ * Wire shape only — dashboard must not import `@andon/official-docs`.
  */
 export interface StageDocRef {
   path: string;

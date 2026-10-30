@@ -249,7 +249,7 @@ export async function configureNativeHarness(
   const harnessDir = path.dirname(path.dirname(harnessVersionRel(harness)));
   const selectedRunner: SetupRunner = (command, args, cwd, env, signal, processOptions) =>
     runner(command, args, cwd, { ...env, AIDLC_HARNESS_DIR: harnessDir }, signal, processOptions);
-  const sidecar = path.join(root, harnessDir, "tools", "data", "aidlc-guide-install.json");
+  const sidecar = path.join(root, harnessDir, "tools", "data", "andon-install.json");
   const detected = detectHarnesses(root).harnesses;
   const alreadyInstalled = detected.some((item) => item.id === harness);
   checkCurrent();
@@ -271,7 +271,7 @@ export async function configureNativeHarness(
     );
   const candidates: string[] = [];
   const generate = async (release: NativeInstall): Promise<string> => {
-    const candidate = await mkdtemp(path.join(tmpdir(), "aidlc-guide-harness-"));
+    const candidate = await mkdtemp(path.join(tmpdir(), "andon-harness-"));
     candidates.push(candidate);
     await seedCandidatePolicy(inputs, candidate);
     checkCurrent();

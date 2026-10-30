@@ -1,4 +1,4 @@
-import type { MatrixCell } from "@aidlc-guide/shared-types";
+import type { MatrixCell } from "@andon/shared-types";
 import type { Selection } from "@/store/state.ts";
 import { cellsWithArtifacts } from "@/features/stage/components/StageArtifacts.tsx";
 

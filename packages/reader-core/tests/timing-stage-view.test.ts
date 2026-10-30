@@ -1,4 +1,4 @@
-import { isLowConfidenceEstimate, type StageView } from "@aidlc-guide/shared-types";
+import { isLowConfidenceEstimate, type StageView } from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { resolveStageViews } from "../src/timing/stage-view.ts";
 import { run, stage, workflow } from "./timing-fixtures.ts";

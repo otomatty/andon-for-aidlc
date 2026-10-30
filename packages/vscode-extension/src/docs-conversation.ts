@@ -1,8 +1,8 @@
-import type { DocsQaCitation, DocsQaTarget } from "@aidlc-guide/shared-types";
+import type { DocsQaCitation, DocsQaTarget } from "@andon/shared-types";
 import type { ExtensionContext } from "vscode";
 
 /** Persist docs Q&A conversation (turns + draft) in the extension host via globalState. */
-export const DOCS_CONVERSATION_KEY = "aidlcGuide.docsConversation";
+export const DOCS_CONVERSATION_KEY = "andon.docsConversation";
 
 export interface DocsConversationTurn {
   id: string;

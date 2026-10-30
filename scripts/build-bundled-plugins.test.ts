@@ -212,7 +212,7 @@ describe("bundlePlugins", () => {
       expect(file).not.toMatch(/(^|\/)aidlc\//);
       expect(file).not.toMatch(/(^|\/)(tests?|__tests__|fixtures)\//);
       expect(file).not.toMatch(/\.test\.ts$/);
-      expect(file).not.toMatch(/(^|\/)\.aidlc-guide\//);
+      expect(file).not.toMatch(/(^|\/)\.andon\//);
     }
   });
 });

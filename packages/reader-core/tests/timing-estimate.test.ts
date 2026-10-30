@@ -4,7 +4,7 @@ import {
   type StageTiming,
   type StageView,
   type WorkflowModel,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { describe, expect, it } from "vitest";
 import { createStageEstimator, estimateRemaining } from "../src/timing/estimate.ts";
 import { resolveStageViews } from "../src/timing/stage-view.ts";

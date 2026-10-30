@@ -1,4 +1,4 @@
-import type { VersionGate } from "@aidlc-guide/shared-types";
+import type { VersionGate } from "@andon/shared-types";
 import { createContext, useContext } from "react";
 
 /**

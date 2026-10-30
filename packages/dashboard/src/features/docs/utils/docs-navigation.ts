@@ -2,7 +2,7 @@ import {
   OFFICIAL_DOCS_SECTIONS,
   type OfficialDocsToc,
   type OfficialDocsTocNode,
-} from "@aidlc-guide/shared-types";
+} from "@andon/shared-types";
 import { flattenToc } from "@/features/docs/components/nav/DocsToc.tsx";
 import type { DocsCategory, TocEntry } from "../types.ts";
 

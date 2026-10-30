@@ -1,4 +1,4 @@
-import type { AuditEvent, StageTiming } from "@aidlc-guide/shared-types";
+import type { AuditEvent, StageTiming } from "@andon/shared-types";
 import { attributeRuns } from "../src/timing/attribution.ts";
 import { pairRuns } from "../src/timing/pairing.ts";
 
