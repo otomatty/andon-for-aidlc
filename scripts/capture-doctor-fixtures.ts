@@ -173,7 +173,10 @@ export async function captureDoctor(options: {
       "choose a fresh output directory; existing captures must not be mixed with a retry",
     );
   mkdirSync(out, { recursive: true });
-  const base = realpathSync(mkdtempSync(path.join(tmpdir(), "aidlc-doctor-capture-")));
+  // Since 2.11.2 Doctor warns on Windows when a project folder is 75 characters
+  // or more, so a healthy scenario needs a short path: the runner's own temp
+  // folder (D:\a\_temp) and a short prefix keep the deepest project near 62.
+  const base = realpathSync(mkdtempSync(path.join(process.env.RUNNER_TEMP ?? tmpdir(), "adc-")));
   const captures: DoctorCapture[] = [];
   const fallbackFix = upstreamFallbackFix(upstream);
   const bun = process.execPath;

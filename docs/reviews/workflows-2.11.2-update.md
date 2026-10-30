@@ -26,6 +26,8 @@
 
 2.11.2 のコンパイル版 Doctor は、`aidlc engine hook <name>` で登録したフックが、実行中のコマンドの隣にあるランタイムに含まれるかを確認する。採取スクリプトはネイティブ版の Doctor をダウンロードした実行ファイルそのもので動かしていたため、隣にランタイムがなく 16 件の失敗になった。利用者と同じく、導入したコマンド（`<install>/versions/<version>/aidlc`）で Doctor・フック・版の確認を動かすように直した（実行ファイルは公式資産と同じハッシュ）。
 
+2.11.2 の Doctor は、Windows でプロジェクトフォルダーが 75 文字以上だと警告する（AI-DLC の記録でさらに約 185 文字増えるため）。CI の採取先（`C:\Users\runneradmin\AppData\Local\Temp\aidlc-doctor-capture-…`）では healthy シナリオが警告になったため、採取先をランナーの一時フォルダー（`RUNNER_TEMP`）と短い接頭辞 `adc-` に変えた。正規化後の出力は Linux・macOS では変わらない。
+
 古い更新確認は `Update: binary X, latest known Y, checked N days ago` と経過日数を示すようになった。warning シナリオの確認日時を固定日（2000-01-01）から採取時点の 30 日前に変え、再採取しても同じ出力になるようにした。
 
 新しい診断の日本語訳を追加した（更新確認の経過日数と、チャンネルの経過日数つきの表示、ランタイムにないフックとその対処、別のクローンで進んだ作業の警告と対処、Kiro CLI Workflows、Windows のプロジェクトフォルダーの深さと対処、doctor 自身の監査記録以外に未コミットの変更がない場合）。
