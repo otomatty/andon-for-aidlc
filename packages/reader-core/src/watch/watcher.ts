@@ -78,10 +78,15 @@ function workspaceLayout(
   };
 }
 
+// v2.11.2 `intent add-checkout` record: a recorded checkout makes review-freshness.ts
+// withhold source verdicts, so adding or removing one recomputes them.
+const SOURCE_CHECKOUTS_RECORD = ".aidlc-engine/source-checkouts.json";
+
 function recordReviewInput(relative: string): boolean {
   return (
     relative === "runtime-graph.json" ||
-    relative === "inception/units-generation/unit-of-work-dependency.md"
+    relative === "inception/units-generation/unit-of-work-dependency.md" ||
+    relative === SOURCE_CHECKOUTS_RECORD
   );
 }
 
@@ -167,10 +172,11 @@ function sourceWatchPolicy(recordDir: string) {
       )
     ) {
       // Engine files do not contribute to source identity. Reviews still need
-      // their own watcher so a removed or tampered record clears its verdict.
+      // their own watcher so a removed or tampered record clears its verdict,
+      // and the recorded checkouts decide whether source verdicts show at all.
       return !permits(
         rel,
-        [],
+        [`${layout.record}/${SOURCE_CHECKOUTS_RECORD}`],
         REVIEW_DIRNAMES.map((name) => `${layout.record}/${name}`),
       );
     }
