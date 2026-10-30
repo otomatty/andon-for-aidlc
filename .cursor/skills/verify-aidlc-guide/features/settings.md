@@ -1,6 +1,6 @@
 # Settings
 
-設定 shows AIDLC Guide's install/update copy. In the browser dashboard the page is real, but install and update buttons stay in the VS Code / Cursor webview.
+設定 shows Andon's install/update copy. In the browser dashboard the page is real, but install and update buttons stay in the VS Code / Cursor webview.
 
 ## Sub-features
 
@@ -11,9 +11,9 @@
 ## How to get to it (user POV)
 
 - Header `メニュー` then `設定`.
-- In the extension: command `AIDLC Guide: Setup` is a different wizard; do not treat it as this page unless you are in the Extension Development Host.
+- In the extension: command `Andon: Setup` is a different wizard; do not treat it as this page unless you are in the Extension Development Host.
 
-## Driving it with the AIDLC Guide harness
+## Driving it with the Andon harness
 
 Preconditions:
 
@@ -28,5 +28,5 @@ Do not mark `settings-ide-actions` verified from this harness. Report it skipped
 ## Gotchas
 
 - Seeing the page without the install buttons is correct in dashboard-server. Do not fail the run for missing `check-update`.
-- `AIDLC Guide: Setup` in the command palette is the preflight wizard inside the extension, not this settings route.
+- `Andon: Setup` in the command palette is the preflight wizard inside the extension, not this settings route.
 - Do not click install/update in a live extension host as part of a default verify run; those mutate the user's tooling install.

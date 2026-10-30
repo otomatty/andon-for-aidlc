@@ -22,7 +22,7 @@ Copilot CLI にログインしてからアプリを再起動してください�
 
 ## Claude Code / Cursor のチャットから質問する
 
-AIDLC Guide の「Register MCP」または Setup の「文書参照を有効にする」を実行し、Claude Code / Cursor の AI セッションを再起動します。文書参照は任意の設定なので、初回 Setup でスキップしてあとから登録できます。
+Andon の「Register MCP」または Setup の「文書参照を有効にする」を実行し、Claude Code / Cursor の AI セッションを再起動します。文書参照は任意の設定なので、初回 Setup でスキップしてあとから登録できます。
 
 「AI-DLCとは」「承認ゲートでセンサーが失敗したらどうする？」「BoltとUnit of Workの違いは？」と質問すると、参照用 Skill が内蔵文書を検索し、該当する節の原文を読んで回答するよう案内します。回答には文書名、節名、同梱版、参照リンクを表示します。AI-DLC の intent をまだ作成していなくても検索できます。
 

@@ -12,7 +12,6 @@ export type AppRoute =
   | { name: "cell"; unit: string; stage: string }
   | { name: "agent"; id: string; returnTo: Selection }
   | { name: "docs"; deepLink?: DocsDeepLink }
-  | { name: "guides" }
   | { name: "effectiveness" }
   | { name: "plugins" }
   | { name: "customization" }
@@ -44,7 +43,6 @@ export function routeSelection(route: AppRoute): Selection {
     case "home":
     case "agent":
     case "docs":
-    case "guides":
     case "effectiveness":
     case "plugins":
     case "customization":

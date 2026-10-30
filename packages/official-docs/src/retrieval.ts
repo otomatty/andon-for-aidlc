@@ -291,7 +291,7 @@ export function createDocsLibrary(root: string) {
         reason === "stale_index" || reason === "path_rejected" || reason === "invalid_index"
           ? reason
           : "docs_unavailable",
-        "内蔵文書または索引を確認できません。AIDLC Guide を更新するか、ソース checkout で bun run build:docs-index を実行してください。推測で仕様を回答しないでください。",
+        "内蔵文書または索引を確認できません。Andon を更新するか、ソース checkout で bun run build:docs-index を実行してください。推測で仕様を回答しないでください。",
       );
     }
   }

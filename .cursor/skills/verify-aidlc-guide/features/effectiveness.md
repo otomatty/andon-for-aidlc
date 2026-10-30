@@ -13,7 +13,7 @@
 
 - Header `メニュー` then `効果測定`.
 
-## Driving it with the AIDLC Guide harness
+## Driving it with the Andon harness
 
 Preconditions:
 

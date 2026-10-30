@@ -45,7 +45,7 @@ it("packages the extension guides and their own version for source navigation in
   });
   expect(citations[0]).toMatchObject({
     target: { kind: "guide", path: "README.md" },
-    version: "AIDLC Guide 1.2.3",
+    version: "Andon 1.2.3",
   });
   const citation = citations[0];
   if (!citation) throw new Error("missing citation");

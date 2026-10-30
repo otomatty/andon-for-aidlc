@@ -986,10 +986,10 @@ describe("docs-shell route exclusivity", () => {
     });
     expect(shell.officialDocsLocale).toBe("en");
 
-    const guides = reducer(shell, { type: "guides", open: true });
-    expect(guides.route).toEqual({ name: "guides" });
+    const plugins = reducer(shell, { type: "plugins", open: true });
+    expect(plugins.route).toEqual({ name: "plugins" });
 
-    const back = reducer(guides, { type: "docs-shell", open: true });
+    const back = reducer(plugins, { type: "docs-shell", open: true });
     expect(back.route).toEqual({ name: "docs" });
 
     const home = reducer(back, { type: "home" });

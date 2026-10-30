@@ -41,7 +41,7 @@ bunx vitest run plugins/focus
 
 ## 導入
 
-VS Code / Cursor の AIDLC Guide 拡張では、ダッシュボードの「プラグイン」から導入できる（拡張に同梱している）。
+VS Code / Cursor の Andon 拡張では、ダッシュボードの「プラグイン」から導入できる（拡張に同梱している）。
 導入先は、ネイティブの `aidlc` で AI-DLC を入れた Claude Code のプロジェクト。
 
 ### CLI で導入する（未検証）

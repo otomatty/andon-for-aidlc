@@ -134,7 +134,7 @@ describe("workspace update prompts", () => {
     mocks.warn.mockResolvedValue(undefined);
     await maybePromptWorkflowsUpdate(context(), "a");
     expect(mocks.warn).toHaveBeenCalledWith(
-      "AIDLC Guide を使うには更新が必要です。プロジェクトの aidlc-workflows 2.8.0 は古いバージョンです。",
+      "Andon を使うには更新が必要です。プロジェクトの aidlc-workflows 2.8.0 は古いバージョンです。",
       expect.stringMatching(/^プロジェクトを .+ に更新$/),
     );
     expect(mocks.warn.mock.calls[0]).toHaveLength(2);
@@ -152,7 +152,7 @@ describe("workspace update prompts", () => {
   it("sends a newer project to the Guide's own update", async () => {
     const { maybePromptWorkflowsUpdate } = await import("../src/workflows-update-panel.ts");
     mocks.gate.mockReturnValue(blocked("project-newer"));
-    mocks.warn.mockResolvedValue("AIDLC Guide を更新");
+    mocks.warn.mockResolvedValue("Andon を更新");
     await maybePromptWorkflowsUpdate(context(), "a");
     expect(mocks.execute).toHaveBeenCalledWith("aidlc-guide.checkUpdate");
     expect(mocks.create).not.toHaveBeenCalled();
@@ -200,7 +200,7 @@ describe("workspace update prompts", () => {
     mocks.show.mockResolvedValue(undefined);
     await maybePromptWorkflowsUpdate(context(), "a");
     expect(mocks.show).toHaveBeenCalledWith(
-      "AIDLC Guide: 前回の更新は未完了です。全ツールの更新を再実行してください。",
+      "Andon: 前回の更新は未完了です。全ツールの更新を再実行してください。",
       "アップデートする",
     );
   });

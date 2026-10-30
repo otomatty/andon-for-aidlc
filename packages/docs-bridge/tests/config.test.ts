@@ -26,12 +26,7 @@ afterEach(async () => {
 describe("loadConfig", () => {
   it("falls back to the defaults when the file does not exist", async () => {
     const { value, warnings } = expectOk(await loadConfig(configAt("nowhere.json")));
-    expect(value).toEqual({
-      docsRepoPath: null,
-      docsBaseUrl: null,
-      stageDocs: {},
-      projectLinks: [],
-    });
+    expect(value).toEqual({ docsRepoPath: null, projectLinks: [] });
     expect(warnings).toEqual([]);
   });
 
@@ -113,36 +108,15 @@ describe("loadConfig", () => {
     expect(warnings[0]).toMatch(/not an array/);
   });
 
-  it("normalises docsBaseUrl to a trailing-slash http(s) URL", async () => {
-    const file = await writeConfig(
-      JSON.stringify({ docsBaseUrl: "https://github.com/org/repo/blob/main" }),
-    );
-    const { value } = expectOk(await loadConfig(file));
-    expect(value.docsBaseUrl).toBe("https://github.com/org/repo/blob/main/");
-  });
-
-  it("ignores a non-http docsBaseUrl with a warning", async () => {
-    const file = await writeConfig(JSON.stringify({ docsBaseUrl: "file:///tmp/docs" }));
-    const { value, warnings } = expectOk(await loadConfig(file));
-    expect(value.docsBaseUrl).toBeNull();
-    expect(warnings[0]).toMatch(/docsBaseUrl/);
-  });
-
-  it("keeps http(s) stageDocs and drops empty or invalid entries", async () => {
+  it("ignores the retired docsBaseUrl and stageDocs keys without a warning", async () => {
     const file = await writeConfig(
       JSON.stringify({
-        stageDocs: {
-          "intent-capture": "https://confluence.example.com/wiki/spaces/X/pages/1",
-          "code-generation": "",
-          "build-and-test": "not-a-url",
-          "ci-pipeline": 12,
-        },
+        docsBaseUrl: "https://github.com/org/repo/blob/main",
+        stageDocs: { "intent-capture": "https://confluence.example.com/wiki/spaces/X/pages/1" },
       }),
     );
     const { value, warnings } = expectOk(await loadConfig(file));
-    expect(value.stageDocs).toEqual({
-      "intent-capture": "https://confluence.example.com/wiki/spaces/X/pages/1",
-    });
-    expect(warnings.length).toBeGreaterThanOrEqual(2);
+    expect(value).toEqual({ docsRepoPath: null, projectLinks: [] });
+    expect(warnings).toEqual([]);
   });
 });

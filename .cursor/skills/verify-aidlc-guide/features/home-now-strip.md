@@ -14,7 +14,7 @@ Home is the first screen after the dashboard loads: the Now strip names the curr
 - Open the dashboard URL the harness printed.
 - From any other Dashboard page, open header `メニュー` then `ステージ一覧`.
 
-## Driving it with the AIDLC Guide harness
+## Driving it with the Andon harness
 
 Preconditions:
 

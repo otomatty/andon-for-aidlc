@@ -116,8 +116,8 @@ export function inspectVersionGate(
     rollback: rollbackFor(root, way),
     message:
       at.preview === null
-        ? `プロジェクトの aidlc-workflows ${version} は、この Guide の対応版 ${target} より新しいバージョンです。Guide を更新してください。`
-        : `プロジェクトは aidlc-workflows のプレビュー版 ${version} を使っています。AIDLC Guide が対応するのは安定版の ${target} だけです。安定版に対応した Guide を待つか、プロジェクトを ${target} に戻してください。`,
+        ? `プロジェクトの aidlc-workflows ${version} は、Andon の対応版 ${target} より新しいバージョンです。Andon を更新してください。`
+        : `プロジェクトは aidlc-workflows のプレビュー版 ${version} を使っています。Andon が対応するのは安定版の ${target} だけです。安定版に対応した Andon を待つか、プロジェクトを ${target} に戻してください。`,
   });
   const wanted = parseReleaseId(target);
   if (wanted === null || wanted.preview !== null)
@@ -213,7 +213,7 @@ export function inspectVersionGate(
     return {
       ...base,
       status: "project-older",
-      message: `プロジェクトの aidlc-workflows ${oldest.version} は、この Guide の対応版 ${target} より古いバージョンです。プロジェクトを ${target} に更新してください。`,
+      message: `プロジェクトの aidlc-workflows ${oldest.version} は、Andon の対応版 ${target} より古いバージョンです。プロジェクトを ${target} に更新してください。`,
     };
 
   // A copy-channel tree is the engine itself; only a native project runs a machine binary.
@@ -232,7 +232,7 @@ export function inspectVersionGate(
     return {
       ...base,
       status: "engine-newer",
-      message: `この PC のエンジンは ${named(engine, engineAt)} で、Guide の対応版 ${target} より新しいバージョンです。このプロジェクトはバージョンを固定していないため、AI ツールも ${engine} のエンジンで動きます。プロジェクトを ${target} に固定してください。`,
+      message: `この PC のエンジンは ${named(engine, engineAt)} で、Andon の対応版 ${target} より新しいバージョンです。このプロジェクトはバージョンを固定していないため、AI ツールも ${engine} のエンジンで動きます。プロジェクトを ${target} に固定してください。`,
     };
   return {
     ...base,

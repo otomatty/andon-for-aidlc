@@ -54,7 +54,7 @@ function useWelcomeActions(): { primary: WelcomeAction; secondary: WelcomeAction
   return { primary: stageList, secondary: null };
 }
 
-/** はじめに — what AIDLC Guide shows, read on a real capture, then tried on real data. */
+/** はじめに — what Andon shows, read on a real capture, then tried on real data. */
 export default function WelcomePage(): ReactNode {
   const state = useAppState();
   const dispatch = useDispatch();
@@ -111,7 +111,7 @@ export default function WelcomePage(): ReactNode {
         </h1>
         <p className="max-w-2xl leading-relaxed text-muted-foreground">
           AIDLC
-          Guideでは、AI-DLCの進捗・成果物・進め方をエディター内で確認できます。AIとのチャットで開発を進めながら、ここで状況や確認事項を把握できます。
+          Andonでは、AI-DLCの進捗・成果物・進め方をエディター内で確認できます。AIとのチャットで開発を進めながら、ここで状況や確認事項を把握できます。
         </p>
         {actions(
           primary,

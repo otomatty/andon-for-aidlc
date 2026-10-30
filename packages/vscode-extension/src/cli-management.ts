@@ -287,7 +287,7 @@ export function inspectCliManagement(
       status: ready ? "ready" : "missing",
       message: ready
         ? `このマシンの CLI を利用できます。プロジェクトの固定バージョン ${requested} は維持します。`
-        : `このプロジェクトの固定バージョンは ${requested} です。Guide から導入できる CLI ${SETUP_RELEASE} を準備できます。固定バージョンは変更しません。`,
+        : `このプロジェクトの固定バージョンは ${requested} です。Andon から導入できる CLI ${SETUP_RELEASE} を準備できます。固定バージョンは変更しません。`,
     };
   }
   if (requested !== SETUP_RELEASE)

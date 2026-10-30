@@ -77,7 +77,7 @@ describe("更新情報 sheet", () => {
       whatsNew: { open: true, fresh: [FIRST.id] },
     });
     const sheet = await screen.findByRole("dialog", { name: "更新情報" });
-    expect(within(sheet).getByText("AIDLC Guide 0.35.0 の新機能と変更点です。")).toBeDefined();
+    expect(within(sheet).getByText("Andon 0.35.0 の新機能と変更点です。")).toBeDefined();
     const fresh = within(sheet).getByRole("region", { name: "新着" });
     expect(within(fresh).getByRole("heading", { name: FIRST.title })).toBeDefined();
     expect(badgeTexts(fresh)).toContain("新着");
@@ -117,7 +117,7 @@ describe("更新情報 sheet", () => {
   it("reads as a plain change list in the browser", async () => {
     renderSheet({ whatsNew: { open: true, fresh: [] } });
     const sheet = await screen.findByRole("dialog", { name: "更新情報" });
-    expect(within(sheet).getByText("AIDLC Guide の新機能と変更点です。")).toBeDefined();
+    expect(within(sheet).getByText("Andon の新機能と変更点です。")).toBeDefined();
     expect(within(sheet).queryByRole("region", { name: "新着" })).toBeNull();
     const recent = within(sheet).getByRole("region", { name: "最近の更新" });
     expect(within(recent).getAllByRole("listitem")).toHaveLength(WHATS_NEW.length);

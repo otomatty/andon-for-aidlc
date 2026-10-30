@@ -20,8 +20,6 @@ import { expectOk, REPO_ROOT } from "./paths.ts";
 
 const noDocs: BridgeConfig = {
   docsRepoPath: null,
-  docsBaseUrl: null,
-  stageDocs: {},
   projectLinks: [],
 };
 
@@ -280,11 +278,7 @@ describe("resolveStage exposes artifact descriptions", () => {
     expect(value.artifactDocs["build-test-results"]?.fileName).toBe("test-results.md");
   });
 
-  it("credits a v7 record only with the artifacts that stage actually wrote", async () => {
-    const { value } = expectOk(await resolveStage(noDocs, "application-design"));
-    expect(value.outputs).toContain("component-methods");
-    // v8's domain-design artifacts must not leak into a v7 record's card.
-    expect(Object.keys(value.artifactDocs)).not.toContain("component-methods");
-    expect(artifactDocsOf("application-design")).toHaveProperty("components");
+  it("has no descriptions for the retired State Version 7 application-design slug", () => {
+    expect(artifactDocsOf("application-design")).toEqual({});
   });
 });

@@ -6,7 +6,6 @@ import {
 } from "@/services/docs-shell-inject.ts";
 import { deliverNowDisclosureRestore } from "@/services/now-disclosure-inject.ts";
 import { deliverOnboardingSnapshot } from "@/services/onboarding.ts";
-import { deliverVideoPacksChanged } from "@/services/video-packs-inject.ts";
 import { vsCodeApi } from "@/services/vscode-api.ts";
 import type { SubscribeOptions, Transport } from "./types.ts";
 import { GET_TIMEOUT_MS, postTimeoutMs } from "./types.ts";
@@ -70,11 +69,6 @@ export function createVscodeTransport(): Transport {
 
     if (data.type === "now-disclosure" && typeof data.expanded === "boolean") {
       deliverNowDisclosureRestore(data.expanded);
-      return;
-    }
-
-    if (data.type === "video-packs-changed") {
-      deliverVideoPacksChanged();
       return;
     }
 

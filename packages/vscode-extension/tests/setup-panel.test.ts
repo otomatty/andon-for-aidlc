@@ -15,7 +15,6 @@ const mocks = vi.hoisted(() => ({
   cliEnvironment: vi.fn(),
   cliTerminal: vi.fn(),
   onPath: vi.fn(),
-  doctor: vi.fn(),
   nativeDoctor: vi.fn(),
   nativeProcess: vi.fn(),
   show: vi.fn(),
@@ -76,7 +75,7 @@ vi.mock("../src/cli-environment.ts", () => ({
   configureCliEnvironment: mocks.cliEnvironment,
   openCliTerminal: mocks.cliTerminal,
 }));
-vi.mock("../src/doctor.ts", () => ({ runDoctor: mocks.doctor, onPath: mocks.onPath }));
+vi.mock("../src/doctor.ts", () => ({ onPath: mocks.onPath }));
 vi.mock("../src/git-prerequisite.ts", async (original) => ({
   ...(await original<typeof import("../src/git-prerequisite.ts")>()),
   isGitRepository: mocks.git,
@@ -1005,7 +1004,7 @@ describe("installation from settings", () => {
     await openWorkflowsInstallPanel(context, "workspace");
     expect(mocks.create).toHaveBeenCalledWith(
       "aidlcGuide.setup",
-      "AIDLC Guide セットアップ",
+      "Andon セットアップ",
       1,
       expect.anything(),
     );
@@ -1226,7 +1225,6 @@ describe("native diagnosis in setup", () => {
         expect.objectContaining({ type: "restore", doctorReport: report }),
       );
       expect(mocks.install).not.toHaveBeenCalled();
-      expect(mocks.doctor).not.toHaveBeenCalled();
     },
   );
 
@@ -1265,7 +1263,6 @@ describe("native diagnosis in setup", () => {
     const calls = mocks.inspect.mock.calls.length;
     await receive({ type: "recheck" });
     expect(mocks.inspect).toHaveBeenCalledTimes(calls + 1);
-    expect(mocks.doctor).not.toHaveBeenCalled();
     expect(mocks.nativeDoctor).not.toHaveBeenCalled();
     expect(panel.webview.postMessage).toHaveBeenCalledWith({
       type: "status",

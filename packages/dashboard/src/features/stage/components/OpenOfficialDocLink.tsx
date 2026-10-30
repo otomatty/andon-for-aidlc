@@ -3,7 +3,7 @@ import { type ReactNode, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { fetchOfficialDocsStageMap } from "@/services/api.ts";
 import { buildOpenOfficialDocMessage, openOfficialDocInIde } from "@/services/docs.ts";
-import { useAppState } from "@/store/context.tsx";
+import { useAppState, useDispatch } from "@/store/context.tsx";
 
 /** Bolt 4 primary CTA strings (FR-B4-2.4) — visible + aria-label. */
 const OPEN_IN_DOCS_LABEL = "Open in Docs";
@@ -21,9 +21,10 @@ export interface OpenOfficialDocLinkProps {
 }
 
 /**
- * StageCard control: fetch stage map → post `open-official-doc`.
- * Bolt 4: primary CTA label `Open in Docs` (solid). Must not call
- * docsOpenHref / openDocInIde / open-doc on this path.
+ * StageCard control: fetch stage map → post `open-official-doc`, or open the
+ * docs view in place when there is no VS Code host.
+ * Bolt 4: primary CTA label `Open in Docs` (solid). Must not post open-doc on
+ * this path.
  */
 export function OpenOfficialDocLink({
   slug,
@@ -31,6 +32,7 @@ export function OpenOfficialDocLink({
   sourceVersion,
 }: OpenOfficialDocLinkProps): ReactNode {
   const locale = useAppState().officialDocsLocale;
+  const dispatch = useDispatch();
   // Bump on each activate / slug change / unmount so a slow map fetch cannot
   // post after the user left this StageCard or started a newer click (#35).
   const activationGen = useRef(0);
@@ -55,7 +57,10 @@ export function OpenOfficialDocLink({
       // lands the wrong document (NFR reliability; Codex P2 on PR #35).
       if (!("ok" in result) || !result.ok) return;
       const message = buildOpenOfficialDocMessage(locale, result.value);
-      openOfficialDocInIde(message);
+      if (openOfficialDocInIde(message)) return;
+      // No VS Code host (the development server): open the same page here.
+      const { type: _type, ...target } = message;
+      dispatch({ type: "docs-shell", open: true, ...target });
     });
   };
 

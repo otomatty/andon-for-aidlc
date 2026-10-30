@@ -2,13 +2,10 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Bridge } from "@aidlc-guide/docs-bridge";
 import type { Reader } from "@aidlc-guide/reader-core";
 import {
   type NextStep,
   type ReadResult,
-  type StageDoc,
-  type TermDoc,
   type WorkflowModel,
   WORKFLOWS_TARGET_VERSION,
 } from "@aidlc-guide/shared-types";
@@ -100,16 +97,6 @@ export function stubReader(overrides: Partial<Reader> = {}): Reader {
   } as Reader;
 }
 
-export function stubBridge(overrides: Partial<Bridge> = {}): Bridge {
-  return {
-    getConfig: NOT_CALLED("getConfig"),
-    resolveStage: NOT_CALLED("resolveStage"),
-    resolveTerm: NOT_CALLED("resolveTerm"),
-    projectLinks: NOT_CALLED("projectLinks"),
-    ...overrides,
-  } as Bridge;
-}
-
 /** Shorthands for the three `ReadResult` branches. */
 export const ok = <T>(value: T, warnings?: string[]): ReadResult<T> => ({
   ok: true,
@@ -132,11 +119,10 @@ export function expectNormalReply(reply: ToolReply): ToolReply {
 }
 
 export const WORKFLOW: WorkflowModel = {
-  project: "AIDLC Guide",
+  project: "Andon",
   scope: "mvp",
   depth: "practical",
   stateVersion: 8,
-  schemaCompatibility: "current",
   phase: "CONSTRUCTION",
   currentStage: "code-generation",
   nextStage: "build-and-test",
@@ -151,24 +137,3 @@ export const NEXT_STEP: NextStep = {
   requirement: "build-and-test: 未着手 — 実行を開始してください",
 };
 
-export const STAGE_DOC: StageDoc = {
-  slug: "code-generation",
-  purpose: "設計をコードに落とす段階。",
-  inputs: ["functional-design", "nfr-design"],
-  outputs: ["code-generation-plan.md", "code-summary.md"],
-  agent: "developer-agent",
-  agentDisplayName: "開発エージェント",
-  gateRequirement: "生成コードのレビューと承認",
-  deepLink: { docPath: "docs/guide/04-construction.md", docAnchor: "code-generation" },
-  excerpt: "# Code Generation\n原文のまま。",
-  artifactDocs: {},
-  sourceVersion: "0.9.0",
-};
-
-export const TERM_DOC: TermDoc = {
-  term: "Bolt",
-  definition: "垂直に切られた出荷可能な作業の単位。",
-  deepLink: null,
-  excerpt: null,
-  sourceVersion: "0.9.0",
-};

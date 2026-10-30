@@ -25,14 +25,8 @@
     "scripts/**/*.ts",
     "vitest.config.ts"
   ],
-  // The dashboard and kamishibai are browser packages: different lib, no bun
-  // globals (and jsx for the dashboard). Each gets its own tsc pass from the
-  // `check` script rather than dragging DOM types into every node package here.
-  "exclude": [
-    "node_modules",
-    "**/dist",
-    "packages/dashboard",
-    "packages/kamishibai",
-    "packages/vscode-extension"
-  ]
+  // The dashboard is a browser package: different lib, no bun globals, and
+  // jsx. It gets its own tsc pass from the `check` script rather than dragging
+  // DOM types into every node package here.
+  "exclude": ["node_modules", "**/dist", "packages/dashboard", "packages/vscode-extension"]
 }

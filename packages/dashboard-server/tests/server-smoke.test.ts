@@ -25,7 +25,7 @@ function processEvents(child: ChildProcess): EventEmitter {
 const BUN = process.platform === "win32" ? "bun.exe" : "bun";
 // Anchored on the ready line's own prefix so a later URL in the log cannot
 // be mistaken for the bind address.
-const READY = /AIDLC Guide dashboard: http:\/\/([\d.]+):(\d+)/;
+const READY = /Andon dashboard: http:\/\/([\d.]+):(\d+)/;
 const TIMEOUT = 30_000;
 // The ready line is printed once Bun.serve returns, but under a busy machine
 // (pre-push packs objects while this suite runs) the upgrade can still fail
@@ -186,7 +186,7 @@ describe("bind and startup", () => {
         reason: "version-gate",
         gate: { status: "project-older" },
       });
-      const docs = await fetch(`${server.origin}/api/docs-settings`);
+      const docs = await fetch(`${server.origin}/api/guides`);
       expect(docs.status).not.toBe(409);
     },
     TIMEOUT,

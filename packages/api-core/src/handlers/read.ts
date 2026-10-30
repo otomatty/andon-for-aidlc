@@ -1,8 +1,6 @@
 import type { Bridge } from "@aidlc-guide/docs-bridge";
-import type { InstalledVideoPack } from "@aidlc-guide/official-docs";
 import { guardPath, nextStepOf, type Reader, readStageModels } from "@aidlc-guide/reader-core";
 import type {
-  DocsSettings,
   IntentList,
   Matrix,
   ReadResult,
@@ -19,7 +17,6 @@ import { buildStageIoPaths } from "./io-paths.ts";
 import {
   officialDocsManifest,
   officialDocsPage,
-  officialDocsVideo,
   officialDocsStageMap,
   officialDocsToc,
 } from "./official-docs.ts";
@@ -103,16 +100,6 @@ export interface ReadContext {
    * not read the user's workspace tree as official content.
    */
   officialDocsRoot: string;
-  /**
-   * Installed doc video packs, asked afresh on every request (packs come and
-   * go as extensions are installed). Absent on hosts without pack support.
-   */
-  videoPacks?: () => readonly InstalledVideoPack[];
-  /**
-   * Turn a pack file into a URL this transport's client can load (a webview
-   * resource URI). Per request, because it depends on the asking webview.
-   */
-  mediaUrl?: (absPath: string) => string;
   recordDir(): Promise<ReadResult<string>>;
   /** Current Dashboard view pin. Overlay onto `GET /api/intents`. */
   selected(): string | null;
@@ -126,12 +113,9 @@ export interface ReadContext {
 }
 
 const STAGE_ROUTE = /^\/api\/stage\/(.+)$/;
-const GLOSSARY_ROUTE = /^\/api\/glossary\/(.+)$/;
 const GUIDE_ROUTE = /^\/api\/guides\/(.+)$/;
 const OFFICIAL_DOCS_TOC = /^\/api\/official-docs\/toc\/([^/]+)$/;
 const OFFICIAL_DOCS_PAGE = /^\/api\/official-docs\/([^/]+)\/(.+)$/;
-/** Checked before {@link OFFICIAL_DOCS_PAGE}, which would otherwise read `videos/…` as a DocPath. */
-const OFFICIAL_DOCS_VIDEO = /^\/api\/official-docs\/([^/]+)\/videos\/(.+)$/;
 const OFFICIAL_DOCS_STAGE = /^\/api\/official-docs\/stage\/([^/]+)$/;
 const AGENT_KNOWLEDGE_ROUTE = /^\/api\/agents\/([^/]+)\/knowledge\/(.+)$/;
 const AGENT_ROUTE = /^\/api\/agents\/([^/]+)$/;
@@ -239,19 +223,6 @@ export async function routeRead(ctx: ReadContext, url: URL): Promise<RouteResult
     });
   }
   if (route === "/api/links") return mapResultRoute(await ctx.bridge.projectLinks());
-  if (route === "/api/docs-settings") {
-    const loaded = await ctx.bridge.getConfig();
-    if (!("ok" in loaded)) return mapResultRoute(loaded);
-    const settings: DocsSettings = {
-      docsBaseUrl: loaded.value.docsBaseUrl,
-      stageDocs: loaded.value.stageDocs,
-    };
-    return mapResultRoute({
-      ok: true,
-      value: settings,
-      ...(loaded.warnings === undefined ? {} : { warnings: loaded.warnings }),
-    });
-  }
   if (route === "/api/guides") return mapResultRoute(await listGuides(ctx.officialDocsRoot));
 
   if (route === "/api/preflight") {
@@ -273,19 +244,6 @@ export async function routeRead(ctx: ReadContext, url: URL): Promise<RouteResult
   if (officialToc?.[1] !== undefined) {
     return mapResultRoute(
       await officialDocsToc(ctx.officialDocsRoot, decodeURIComponent(officialToc[1])),
-    );
-  }
-
-  const officialVideo = OFFICIAL_DOCS_VIDEO.exec(route);
-  if (officialVideo?.[1] !== undefined && officialVideo[2] !== undefined) {
-    return mapResultRoute(
-      await officialDocsVideo(
-        ctx.officialDocsRoot,
-        decodeURIComponent(officialVideo[1]),
-        decodeURIComponent(officialVideo[2]),
-        ctx.videoPacks?.() ?? [],
-        ctx.mediaUrl,
-      ),
     );
   }
 
@@ -322,11 +280,6 @@ export async function routeRead(ctx: ReadContext, url: URL): Promise<RouteResult
   const stage = STAGE_ROUTE.exec(route);
   if (stage?.[1] !== undefined) {
     return mapResultRoute(await ctx.bridge.resolveStage(decodeURIComponent(stage[1])));
-  }
-
-  const term = GLOSSARY_ROUTE.exec(route);
-  if (term?.[1] !== undefined) {
-    return mapResultRoute(await ctx.bridge.resolveTerm(decodeURIComponent(term[1])));
   }
 
   if (route.startsWith("/api/")) return UNKNOWN_ROUTE;

@@ -70,7 +70,7 @@ describe("renderResult", () => {
   it("states the version and the supported one on unsupported", () => {
     const reply = renderResult(unsupported("9"), ROOT, () => "unreachable");
     expect(reply.text).toBe(
-      "この state は State Version 9 で、本ツールは 7 と 8 に対応です（解析不可）。",
+      "この state は State Version 9 で、本ツールは 8 に対応です（解析不可）。",
     );
     expect(reply.degraded).toEqual({ kind: "unsupported", detail: "9" });
   });

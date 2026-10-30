@@ -19,8 +19,8 @@ export function workspaceGate(workspaceRoot: string): GateCheck {
 export function versionGateReply(gate: VersionGate): ToolReply {
   return {
     text:
-      `AIDLC Guide はこのプロジェクトでは使えません。${gate.message}` +
-      "VS Code / Cursor で AIDLC Guide を開くと、更新画面に必要な操作が表示されます。" +
+      `Andon はこのプロジェクトでは使えません。${gate.message}` +
+      "VS Code / Cursor で Andon を開くと、更新画面に必要な操作が表示されます。" +
       "更新が終わるまで、この結果を利用者に伝え、ツールを再試行しないでください。",
     degraded: { kind: "unsupported", detail: "version-gate" },
   };
@@ -40,7 +40,7 @@ export function gated<A extends unknown[]>(
     } catch {
       // An unreadable workspace must fail closed, not open the tools.
       return toContent({
-        text: "AIDLC Guide はこのプロジェクトのバージョンを確認できませんでした。VS Code / Cursor で AIDLC Guide を開いて確認してください。",
+        text: "Andon はこのプロジェクトのバージョンを確認できませんでした。VS Code / Cursor で Andon を開いて確認してください。",
         degraded: { kind: "unsupported", detail: "version-gate" },
       });
     }

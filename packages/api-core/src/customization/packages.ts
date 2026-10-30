@@ -103,7 +103,7 @@ export class CustomizationPackages {
       !Array.isArray(data.items) ||
       data.items.length > 500
     )
-      return fail("package-unsupported", "対応するGuide設定ファイルではありません。");
+      return fail("package-unsupported", "対応するAndon設定ファイルではありません。");
     if (data.contentHash !== digest(JSON.stringify(data.items)))
       return fail("package-corrupt", "設定ファイルのhashが一致しません。");
     const items = data.items.map(parseItem);

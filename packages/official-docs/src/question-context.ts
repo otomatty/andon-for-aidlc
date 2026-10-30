@@ -66,12 +66,12 @@ async function guideVersion(root: string): Promise<string> {
         typeof metadata.version === "string" &&
         /^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/.test(metadata.version)
       )
-        return `AIDLC Guide ${metadata.version}`;
+        return `Andon ${metadata.version}`;
     } catch {
       // Source checkouts use package.json; packaged builds use the small version manifest.
     }
   }
-  return "AIDLC Guide";
+  return "Andon";
 }
 
 /** Preserve complete source blocks and their offsets; never locate repeated text by fuzzy matching. */

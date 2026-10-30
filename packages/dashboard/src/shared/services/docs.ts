@@ -1,5 +1,4 @@
 import type {
-  DeepLink,
   OfficialDocsLocale,
   OpenOfficialDocMessage,
   StageDocRef,
@@ -9,7 +8,7 @@ import { routeSelection } from "@/app/routes.ts";
 import { useAppState, useDispatch } from "@/store/context.tsx";
 import { deriveViewState } from "@/store/derive-view-state.ts";
 import type { Selection } from "@/store/state.ts";
-import { fetchDocsSettings, fetchLinks, fetchStageDoc } from "./api.ts";
+import { fetchLinks, fetchStageDoc } from "./api.ts";
 import { inVsCodeWebview, vsCodeApi } from "./vscode-api.ts";
 
 /**
@@ -134,7 +133,7 @@ export function usePrefetchStageDocs(slugs: readonly string[]): void {
   }, [roster, dispatch, recordRevision]);
 }
 
-/** Step 7: header links + docsBaseUrl, after first paint — never on the critical path. */
+/** Step 7: header links, after first paint — never on the critical path. */
 export function useProjectLinks(): void {
   const dispatch = useDispatch();
   const started = useRef(false);
@@ -146,15 +145,6 @@ export function useProjectLinks(): void {
     const run = (): void => {
       void fetchLinks().then((result) => {
         dispatch({ type: "links", result });
-      });
-      void fetchDocsSettings().then((result) => {
-        if ("ok" in result) {
-          dispatch({
-            type: "docs-settings",
-            docsBaseUrl: result.value.docsBaseUrl,
-            stageDocs: result.value.stageDocs,
-          });
-        }
       });
     };
 
@@ -193,71 +183,6 @@ export function isExternal(target: string): boolean {
   return /^https?:\/\//i.test(target.trim());
 }
 
-function withAnchor(base: string, anchor: string): string {
-  if (anchor === "" || anchor === "#") return base;
-  const fragment = anchor.startsWith("#") ? anchor.slice(1) : anchor;
-  return `${base}#${fragment}`;
-}
-
-/** Join `docsBaseUrl` (trailing slash) with a repo-relative `docPath`. */
-function joinDocsUrl(docsBaseUrl: string, docPath: string): string | null {
-  const base = safeHref(docsBaseUrl);
-  const rel = safeHref(docPath);
-  if (base === null || rel === null || !isExternal(base)) return null;
-  try {
-    return new URL(rel.replace(/^\.\//, ""), base.endsWith("/") ? base : `${base}/`).href;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * `{docPath, docAnchor}` → href when using `docsBaseUrl` + bridge-map path.
- * Prefer {@link docsOpenHref} for StageCard (honours per-stage overrides).
- */
-export function deepLinkHref(
-  link: DeepLink | null,
-  docsBaseUrl: string | null = null,
-): string | null {
-  if (link === null) return null;
-  if (docsBaseUrl !== null && docsBaseUrl.trim() !== "") {
-    const absolute = joinDocsUrl(docsBaseUrl, link.docPath);
-    return absolute === null ? null : withAnchor(absolute, link.docAnchor);
-  }
-  const base = safeHref(link.docPath);
-  if (base === null) return null;
-  return withAnchor(base, link.docAnchor);
-}
-
-/**
- * Open URL for 「docs を開く」:
- * 1. `stageDocs[slug]` (Confluence / Notion / … full URL)
- * 2. else `docsBaseUrl` + bridge-map path
- * 3. else `null` (IDE may open the workspace file)
- */
-export function docsOpenHref(
-  slug: string,
-  link: DeepLink | null,
-  settings: {
-    docsBaseUrl: string | null;
-    stageDocs: Readonly<Record<string, string>>;
-  },
-): string | null {
-  const override = settings.stageDocs[slug]?.trim();
-  if (override !== undefined && override !== "") {
-    return safeHref(override);
-  }
-  return deepLinkHref(link, settings.docsBaseUrl);
-}
-
-/** Ask the VS Code host to open a workspace-relative docs path. */
-export function openDocInIde(link: DeepLink): boolean {
-  const api = vsCodeApi();
-  if (api === null) return false;
-  api.postMessage({ type: "open-doc", path: link.docPath, anchor: link.docAnchor });
-  return true;
-}
-
 export function canOpenDocsInIde(): boolean {
   return inVsCodeWebview();
 }
@@ -294,10 +219,7 @@ export function buildOpenOfficialDocMessage(
   };
 }
 
-/**
- * Post `open-official-doc` to the VS Code host (Docs Shell inject path).
- * Must not be used with `open-doc` / docsOpenHref on the StageCard official path.
- */
+/** Post `open-official-doc` to the VS Code host (Docs Shell inject path). */
 export function openOfficialDocInIde(message: OpenOfficialDocMessage): boolean {
   const api = vsCodeApi();
   if (api === null) return false;

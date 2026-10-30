@@ -15,7 +15,7 @@ shared-types ← core-utils ← reader-core ← api-core ← dashboard-server / 
 ```
 
 - **shared-types** — wire 契約: 型 + 依存ゼロの wire 定数・純粋プレゼンタ
-  （`SUPPORTED_STATE_VERSION` / `CONSTRUCTION_DIRNAME` / `artifactPath` /
+  （`CURRENT_STATE_VERSION` / `CONSTRUCTION_DIRNAME` / `artifactPath` /
   `formatDuration` / `CURRENT_ATTEMPT_STATUSES` / `timingsMatchStage` /
   `currentStageView` / `stageViewMatches` / `StandardReason` /
   `slugifyHeading` / `normalizeAnchor`）。全サーフェスが
@@ -34,11 +34,6 @@ shared-types ← core-utils ← reader-core ← api-core ← dashboard-server / 
   `path.relative` チェックを新設しない。
 - **reader-core** — 純データ層。React / MCP SDK / HTTP・WS を import しない
   （構造テストで強制）。State Version 知識は `parse/` のみ。
-- **kamishibai** — 解説動画の描画エンジン（依存ゼロ、Canvas 2D）。描画は時刻の
-  純粋関数で、再生時刻はナレーション音声（`AudioClock`）から取る。ブラウザ用
-  パッケージのため、型検査は dashboard と同じく専用の tsc パスで行う。
-  動画パックの検証と選択は `official-docs/src/video-pack.ts`
-  （[設計](../docs/maintenance/doc-videos.md)）。
 - **docs-bridge** — slug/用語/agent メタデータ → docs の単一オーナー
   （`bridge-map.json` / `agent-map.json` / `parsePersonaMarkdown`）。
 - **api-core** — トランスポート非依存のハンドラ＋hub。HTTP ステータス写像・

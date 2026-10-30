@@ -13,7 +13,6 @@ const PREFERRED_ORDER = [
   "effectiveness.md",
   "configuring-docs.md",
   "side-questions.md",
-  "browser-dashboard.md",
   "async-sharing.md",
 ] as const;
 

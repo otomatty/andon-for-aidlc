@@ -4,7 +4,7 @@ This bundled guide targets **aidlc-workflows 2.11.1**, State Version 8 and the 3
 
 Welcome to the bundled **aidlc-workflows** guide (English snapshot).
 
-This page is part of the official docs tree served offline by AIDLC Guide.
+This page is part of the official docs tree served offline by Andon.
 
 The full guide starts at [Introduction](00-introduction.md) and [Getting started](01-getting-started.md).
 

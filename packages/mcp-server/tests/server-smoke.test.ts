@@ -59,13 +59,11 @@ function textOf(result: unknown): string {
 }
 
 describe("mcp-server over real stdio", () => {
-  it("registers seven read-only tools, each saying when to use it", async () => {
+  it("registers five read-only tools, each saying when to use it", async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       "aidlc_docs_read",
       "aidlc_docs_search",
-      "aidlc_explain_stage",
-      "aidlc_glossary",
       "aidlc_next_steps",
       "aidlc_read_artifact",
       "aidlc_status",
@@ -86,24 +84,6 @@ describe("mcp-server over real stdio", () => {
     expect(textOf(result)).toMatch(/次のステージ|ワークフロー完了/);
   });
 
-  it("aidlc_explain_stage returns the static fields for a real slug", async () => {
-    const result = await client.callTool({
-      name: "aidlc_explain_stage",
-      arguments: { slug: "code-generation" },
-    });
-    expect(result.isError).toBeFalsy();
-    expect(textOf(result)).toContain("担当エージェント:");
-  });
-
-  it("aidlc_glossary answers 未定義 for an unknown term as a NORMAL reply", async () => {
-    const result = await client.callTool({
-      name: "aidlc_glossary",
-      arguments: { term: "definitely-not-a-term" },
-    });
-    expect(result.isError).toBeFalsy();
-    expect(textOf(result)).toContain("未定義");
-  });
-
   it("aidlc_read_artifact refuses a traversal as a NORMAL reply, not a protocol error", async () => {
     const result = await client.callTool({
       name: "aidlc_read_artifact",
@@ -116,20 +96,18 @@ describe("mcp-server over real stdio", () => {
   it.each([
     ["aidlc_status", {}],
     ["aidlc_next_steps", {}],
-    ["aidlc_explain_stage", { slug: "code-generation" }],
     ["aidlc_read_artifact", { path: "aidlc-state.md" }],
-    ["aidlc_glossary", { term: "intent" }],
     ["aidlc_docs_search", { query: "AI-DLC" }],
     ["aidlc_docs_read", { id: "guide/concepts" }],
   ] as const)("%s answers an older project with the update notice", async (name, args) => {
     const result = await blocked.callTool({ name, arguments: { ...args } });
     expect(result.isError).toBeFalsy();
-    expect(textOf(result)).toContain("AIDLC Guide はこのプロジェクトでは使えません");
+    expect(textOf(result)).toContain("Andon はこのプロジェクトでは使えません");
     expect(textOf(result)).toContain("version-gate");
   });
 
   it("isError is reserved for schema violations — the one protocol-error path", async () => {
-    const missing = await client.callTool({ name: "aidlc_explain_stage", arguments: {} });
+    const missing = await client.callTool({ name: "aidlc_read_artifact", arguments: {} });
     expect(missing.isError).toBe(true);
     const empty = await client.callTool({
       name: "aidlc_read_artifact",

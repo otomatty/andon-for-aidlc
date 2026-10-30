@@ -5,16 +5,9 @@ import { StoreProvider } from "@/store/context.tsx";
 import { stageDoc } from "@tests/fixtures.ts";
 
 describe("StageCard (US-03 / FR-4.4)", () => {
-  it("renders all four mandatory fields plus a per-stage docs URL", () => {
+  it("renders all four mandatory fields plus the bundled-docs button", () => {
     render(
-      <StoreProvider
-        preloaded={{
-          stageDocs: {
-            "code-generation":
-              "https://confluence.example.com/wiki/spaces/AIDLC/pages/123/Code+Generation",
-          },
-        }}
-      >
+      <StoreProvider>
         <StageCard doc={stageDoc()} />
       </StoreProvider>,
     );
@@ -24,18 +17,13 @@ describe("StageCard (US-03 / FR-4.4)", () => {
     expect(screen.getByText("担当エージェント")).toBeDefined();
     expect(screen.getByText("ゲート要求")).toBeDefined();
 
-    const link = screen.getByRole("link", { name: "docs を開く" });
-    expect(link.getAttribute("href")).toBe(
-      "https://confluence.example.com/wiki/spaces/AIDLC/pages/123/Code+Generation",
-    );
-    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
-    expect(link.getAttribute("target")).toBe("_blank");
+    expect(screen.getByRole("button", { name: "Open in Docs" })).toBeDefined();
   });
 
-  it("drops a deep link whose target is not a plain path or http(s) URL (S-UI-4)", () => {
+  it("never turns the deep link into an href, whatever it names (S-UI-4)", () => {
     const doc = stageDoc({ deepLink: { docPath: "javascript:alert(1)", docAnchor: "x" } });
     render(
-      <StoreProvider preloaded={{ docsBaseUrl: "https://example.com/" }}>
+      <StoreProvider>
         <StageCard doc={doc} />
       </StoreProvider>,
     );

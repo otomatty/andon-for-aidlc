@@ -171,7 +171,7 @@ describe("first-run activation", () => {
       expect(openSetupPanel).not.toHaveBeenCalled();
       expect(openDashboardPanel).not.toHaveBeenCalled();
       expect(mocks.info).toHaveBeenCalledExactlyOnceWith(
-        "AIDLC Guide: 登録済みの文書参照連携を更新しました。AI セッションを再起動してください。",
+        "Andon: 登録済みの文書参照連携を更新しました。AI セッションを再起動してください。",
       );
     },
   );
@@ -391,7 +391,7 @@ describe("onboarding entry points", () => {
       updated: true,
     };
     mocks.startOnboarding.mockResolvedValue(start);
-    mocks.updateNotice.mockReturnValue("AIDLC Guide を 0.35.0 に更新しました。");
+    mocks.updateNotice.mockReturnValue("Andon を 0.35.0 に更新しました。");
     mocks.info.mockResolvedValue("更新情報を見る");
     const context = { subscriptions: [] } as unknown as ExtensionContext;
     await activate(context);
@@ -401,14 +401,14 @@ describe("onboarding entry points", () => {
     expect(mocks.startOnboarding).toHaveBeenCalledExactlyOnceWith(context, "0.35.0");
     expect(mocks.updateNotice).toHaveBeenCalledWith(start, "0.35.0");
     expect(mocks.info).toHaveBeenCalledWith(
-      "AIDLC Guide を 0.35.0 に更新しました。",
+      "Andon を 0.35.0 に更新しました。",
       "更新情報を見る",
     );
   });
 
   it("does not open anything when the update notice is dismissed", async () => {
     mocks.workspace.workspaceFolders = [{ uri: { fsPath: "project" } }];
-    mocks.updateNotice.mockReturnValue("AIDLC Guide を 0.35.0 に更新しました。");
+    mocks.updateNotice.mockReturnValue("Andon を 0.35.0 に更新しました。");
     mocks.info.mockResolvedValue(undefined);
     await activate({ subscriptions: [] } as unknown as ExtensionContext);
     await vi.waitFor(() => expect(mocks.info).toHaveBeenCalled());
@@ -416,7 +416,7 @@ describe("onboarding entry points", () => {
   });
 
   it("does not announce an update without an open folder to show it in", async () => {
-    mocks.updateNotice.mockReturnValue("AIDLC Guide を 0.35.0 に更新しました。");
+    mocks.updateNotice.mockReturnValue("Andon を 0.35.0 に更新しました。");
     await activate({ subscriptions: [] } as unknown as ExtensionContext);
     await vi.waitFor(() => expect(mocks.startOnboarding).toHaveBeenCalled());
     await new Promise((resolve) => setTimeout(resolve, 0));

@@ -110,7 +110,7 @@ function statusCopy(
         return {
           tone: "warning",
           title: `プロジェクトを ${target} に更新してください`,
-          sub: "更新するまで、AIDLC Guide のワークフロー表示は使えません。",
+          sub: "更新するまで、Andon のワークフロー表示は使えません。",
         };
       if (phase.reason === "retry")
         return {
@@ -153,16 +153,16 @@ function statusCopy(
       return {
         tone: "warning",
         title: `このプロジェクトを ${target} に固定してください`,
-        sub: `この PC の既定 ${cli.machineVersion ?? "（不明）"} は、Guide の対応版より新しいバージョンです。`,
+        sub: `この PC の既定 ${cli.machineVersion ?? "（不明）"} は、Andon の対応版より新しいバージョンです。`,
       };
     case "newer": {
       const version = shownProjectVersion(gate, view.workflows, view.records) ?? "（不明）";
       return {
         tone: "warning",
-        title: "AIDLC Guide を更新してください",
+        title: "Andon を更新してください",
         sub: version.includes("-preview")
-          ? `このプロジェクトはプレビュー版 ${version} を使っています。この Guide が対応するのは安定版の ${target} です。`
-          : `このプロジェクトの ${version} は、この Guide が対応する ${target} より新しいバージョンです。`,
+          ? `このプロジェクトはプレビュー版 ${version} を使っています。Andon が対応するのは安定版の ${target} です。`
+          : `このプロジェクトの ${version} は、Andon が対応する ${target} より新しいバージョンです。`,
       };
     }
     case "unknown":
@@ -180,8 +180,8 @@ function statusCopy(
         tone: "success",
         title: "最新です",
         sub: gate.native
-          ? `この PC とプロジェクトは、Guide の対応版 ${target} です。`
-          : `このプロジェクトは、Guide の対応版 ${target} です。`,
+          ? `この PC とプロジェクトは、Andon の対応版 ${target} です。`
+          : `このプロジェクトは、Andon の対応版 ${target} です。`,
       };
   }
 }
@@ -196,7 +196,7 @@ function compareMark(version: string | null, target: string): Mark {
   return null;
 }
 
-/** この PC / このプロジェクト / Guide の対応版, each marked against the target. */
+/** この PC / このプロジェクト / Andon の対応版, each marked against the target. */
 function versionsHtml(phase: UpdatePhase, view: UpdateView): string {
   const { gate, cli, workflows } = view;
   const target = gate.target;
@@ -225,7 +225,7 @@ function versionsHtml(phase: UpdatePhase, view: UpdateView): string {
             : compareMark(project, target);
   const cell = (label: string, value: string | null, mark: Mark) =>
     `<div><dt>${esc(label)}</dt><dd><span class="ver">${esc(value ?? "—")}</span>${mark ? `<span class="badge tone-${mark.tone}">${esc(mark.text)}</span>` : ""}</dd></div>`;
-  return `<dl class="versions">${cell("この PC", pc, pcMark)}${cell("このプロジェクト", project, projectMark)}${cell("Guide の対応版", target, null)}</dl>`;
+  return `<dl class="versions">${cell("この PC", pc, pcMark)}${cell("このプロジェクト", project, projectMark)}${cell("Andon の対応版", target, null)}</dl>`;
 }
 
 function outcomeHtml(view: UpdateView): string {
@@ -277,8 +277,8 @@ function changeHtml(change: UpdateChange): string {
           .join("")}${more > 0 ? `<li class="muted small">ほか ${more} 件</li>` : ""}</ul>`;
   return `${list}
 <div class="commit"><span class="muted small">コミットメッセージ</span><pre id="commit-message">${esc(change.commitMessage)}</pre></div>
-<div class="actions"><button type="button" id="copy-commit" data-send="copy-commit">コミットメッセージをコピー</button><button type="button" class="text-link" id="open-scm" data-send="open-scm">ソース管理を開く</button><button type="button" class="text-link" id="open-dashboard" data-send="open-dashboard">AIDLC Guide を開く</button></div>
-<p class="muted">チームのメンバーは pull すると、AIDLC Guide の案内で同じバージョンにそろえられます。</p>`;
+<div class="actions"><button type="button" id="copy-commit" data-send="copy-commit">コミットメッセージをコピー</button><button type="button" class="text-link" id="open-scm" data-send="open-scm">ソース管理を開く</button><button type="button" class="text-link" id="open-dashboard" data-send="open-dashboard">Andon を開く</button></div>
+<p class="muted">チームのメンバーは pull すると、Andon の案内で同じバージョンにそろえられます。</p>`;
 }
 
 const AI_LABELS: Record<string, string> = {
@@ -451,7 +451,7 @@ function reviewHtml(view: UpdateView, reviews: readonly RepairReview[], total: n
         `<div class="review"><div class="problem-head"><code>${esc(review.path)}</code><span class="muted small">${esc(AI_LABELS[review.tool] ?? review.tool)} の修正案${review.action === "ai-merge" ? "（更新の後のファイル）" : ""}</span></div>
 ${diffHtml(review.before, review.after)}
 ${review.summary ? `<div class="ai-note"><p class="muted small">AI の説明</p><p>${esc(review.summary)}</p></div>` : ""}
-<ul class="checks" aria-label="Guide による確認">${review.checks
+<ul class="checks" aria-label="Andon による確認">${review.checks
           .map(
             (check) =>
               `<li class="${check.ok ? "ok" : "warn"}"><span aria-hidden="true">${check.ok ? "✓" : "!"}</span><span>${esc(check.text)}</span></li>`,
@@ -617,9 +617,9 @@ function newerCard(view: UpdateView): string {
       }</div></details>`
     : "";
   return `<section class="card" aria-labelledby="action-title">
-<h2 class="step-title" id="action-title">AIDLC Guide を更新</h2>
-<p class="lead">${esc(version.includes("-preview") ? `安定版に対応した AIDLC Guide を待つか、プロジェクトを ${target} に戻してください。` : `新しい AIDLC Guide が ${version} に対応していれば、そのまま使えます。`)}</p>
-<div class="actions"><button type="button" id="extension-update" data-send="extension-update">AIDLC Guide を更新</button></div>
+<h2 class="step-title" id="action-title">Andon を更新</h2>
+<p class="lead">${esc(version.includes("-preview") ? `安定版に対応した Andon を待つか、プロジェクトを ${target} に戻してください。` : `新しい Andon が ${version} に対応していれば、そのまま使えます。`)}</p>
+<div class="actions"><button type="button" id="extension-update" data-send="extension-update">Andon を更新</button></div>
 ${rollback}
 </section>`;
 }
@@ -648,7 +648,7 @@ ${doctorHtml(view)}
 function okCard(view: UpdateView): string {
   const doctor = view.workflows.tools.length > 0;
   return `<section class="card" aria-label="操作">
-<div class="actions"><button type="button" id="open-dashboard" data-send="open-dashboard">AIDLC Guide を開く</button><button type="button" class="text-link" id="install" data-send="install">ツールを追加</button>${doctor ? '<button type="button" class="text-link" id="doctor" data-send="doctor">Doctor で診断</button>' : ""}<button type="button" class="text-link" id="extension-update" data-send="extension-update">拡張機能の更新を確認</button></div>
+<div class="actions"><button type="button" id="open-dashboard" data-send="open-dashboard">Andon を開く</button><button type="button" class="text-link" id="install" data-send="install">ツールを追加</button>${doctor ? '<button type="button" class="text-link" id="doctor" data-send="doctor">Doctor で診断</button>' : ""}<button type="button" class="text-link" id="extension-update" data-send="extension-update">拡張機能の更新を確認</button></div>
 ${activityHtml(view)}
 ${view.activity ? "" : outcomeHtml(view)}
 ${toolResultsHtml(view)}
@@ -810,7 +810,7 @@ ${webviewPageStyles}
 ${UPDATE_STYLES}
 </style></head><body><main aria-busy="${view.activity ? "true" : "false"}" data-phase="${phase.name}">
 <header>
-<div class="eyebrow">AIDLC GUIDE / UPDATE</div>
+<div class="eyebrow">ANDON / UPDATE</div>
 <h1>AI-DLC の更新</h1>
 <p class="folder muted">対象プロジェクト：<code>${esc(view.workflows.root)}</code></p>
 </header>
@@ -820,7 +820,7 @@ ${versionsHtml(phase, view)}
 </section>
 ${actionHtml(phase, view)}
 ${detailsHtml(phase, view)}
-<footer><button type="button" class="text-link" id="refresh" data-send="refresh">状態を再確認</button><a class="text-link" id="docs" data-send="docs" href="${esc(INSTALL_GUIDE_URL)}">公式の手順</a><span class="muted">AIDLC Guide ${esc(view.extensionVersion ?? "不明")}</span></footer>
+<footer><button type="button" class="text-link" id="refresh" data-send="refresh">状態を再確認</button><a class="text-link" id="docs" data-send="docs" href="${esc(INSTALL_GUIDE_URL)}">公式の手順</a><span class="muted">Andon ${esc(view.extensionVersion ?? "不明")}</span></footer>
 </main><script nonce="${nonce}">
 const vscode = acquireVsCodeApi();
 const main = document.querySelector('main');

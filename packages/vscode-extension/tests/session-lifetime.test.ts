@@ -67,7 +67,7 @@ describe("workspace session ownership", () => {
     });
     mocks.create.mockReturnValueOnce(blocked);
     await refreshStatusBar("blocked-test");
-    expect(mocks.item.text).toBe("$(warning) AIDLC Guide: 更新が必要");
+    expect(mocks.item.text).toBe("$(warning) Andon: 更新が必要");
     expect(mocks.item.tooltip).toContain("2.10.0 は古いバージョンです");
     expect(blocked.reader.getWorkflow).not.toHaveBeenCalled();
   });

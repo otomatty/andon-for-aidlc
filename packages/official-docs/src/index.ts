@@ -42,16 +42,6 @@ export {
 } from "./roots.ts";
 export { MAPPED_STAGE_SLUGS, mapStageToDoc } from "./stage-map.ts";
 export { listToc } from "./toc.ts";
-export { findPageVideo, type InstalledVideoPack } from "./video-library.ts";
-export {
-  packBudgetViolations,
-  parsePackContributions,
-  VIDEO_FILES,
-  VIDEO_PACK_MANIFEST,
-  type VideoPackManifest,
-  type VideoPackSource,
-  type VideoPageEntry,
-} from "./video-pack.ts";
 export type {
   AnchorApplied,
   DocPath,

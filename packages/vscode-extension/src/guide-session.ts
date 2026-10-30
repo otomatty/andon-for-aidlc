@@ -7,7 +7,6 @@ import {
   UNKNOWN_ROUTE,
 } from "@aidlc-guide/api-core";
 import type { SpaceSelection, WsMessage } from "@aidlc-guide/shared-types";
-import { installedVideoPacks } from "./video-packs.ts";
 import {
   type ExtensionContext,
   type FileSystemWatcher,
@@ -74,7 +73,6 @@ export class GuideSession {
       officialDocsRoot,
       canEdit: () => workspace.isTrusted,
       initialSelected: persist?.get() ?? null,
-      videoPacks: installedVideoPacks,
       ...(persist?.setSelection ? {} : { onSelect: persist?.set }),
       ...(initialSelection ? { initialSelection } : {}),
       ...(persist?.setSelection ? { onSelection: persist.setSelection } : {}),
@@ -120,23 +118,12 @@ export class GuideSession {
     };
   }
 
-  /**
-   * @param mediaUrl how the asking webview loads a local file (its `asWebviewUri`);
-   * without it, pack media is answered with no URL.
-   */
-  async handleGet(
-    path: string,
-    mediaUrl?: (absPath: string) => string,
-  ): Promise<{ reached: true; body: unknown } | { reached: false }> {
+  async handleGet(path: string): Promise<{ reached: true; body: unknown } | { reached: false }> {
     try {
       const url = new URL(path, "http://aidlc-guide.local");
       if (url.pathname === "/api/docs-qa/tools" && !workspace.isTrusted)
         return { reached: true, body: { error: true, reason: "workspace-untrusted" } };
-      const ctx =
-        mediaUrl === undefined
-          ? this.service.readContext
-          : { ...this.service.readContext, mediaUrl };
-      const result = await routeRead(ctx, url);
+      const result = await routeRead(this.service.readContext, url);
       if (result === null) return { reached: false };
       return { reached: true, body: result.body };
     } catch {
@@ -183,7 +170,7 @@ export class GuideSession {
       () => closingSessions.delete(closing),
       (error) => {
         // Disposable callers cannot await failure. Keep it for deactivation too.
-        console.error("AIDLC Guide session shutdown failed", error);
+        console.error("Andon session shutdown failed", error);
       },
     );
     return closing;
@@ -248,5 +235,5 @@ export async function closeAllSessions(): Promise<void> {
   const results = await Promise.allSettled(pending);
   for (const closing of pending) closingSessions.delete(closing);
   const errors = results.flatMap((result) => (result.status === "rejected" ? [result.reason] : []));
-  if (errors.length > 0) throw new AggregateError(errors, "Failed to close AIDLC Guide sessions");
+  if (errors.length > 0) throw new AggregateError(errors, "Failed to close Andon sessions");
 }

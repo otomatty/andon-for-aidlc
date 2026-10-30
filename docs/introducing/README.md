@@ -1,4 +1,4 @@
-# AIDLC Guideの紹介資料
+# Andonの紹介資料
 
 社内のConfluenceやチーム向け案内に使う本文と、拡張のオンボーディング用文案です。
 
@@ -22,18 +22,19 @@ Confluence Cloudでは画像をページへドラッグ＆ドロップするか�
 
 ## 短い紹介文
 
-> AIDLC Guideは、AI-DLCの現在地・成果物・進め方をVS Code / Cursor内で確認できる拡張機能です。工程ごとの確認事項を読み、AIが作った文書を開き、内蔵ドキュメントで手順を調べられます。チーム向けの設定や、案件ごとの実行記録の振り返りにも利用できます。まずは一つの案件で、現在地と成果物を確認してみてください。
+> Andonは、AI-DLCの現在地・成果物・進め方をVS Code / Cursor内で確認できる拡張機能です。工程ごとの確認事項を読み、AIが作った文書を開き、内蔵ドキュメントで手順を調べられます。チーム向けの設定や、案件ごとの実行記録の振り返りにも利用できます。まずは一つの案件で、現在地と成果物を確認してみてください。
 
 ## 撮影記録
 
-- 撮影日：2026年10月29日
+- 撮影日：2026年10月30日
 - 実行環境：Linux 上の Chromium（Playwright）。
 - 画面の大きさ：幅 960×高さ 600、拡大率 1.6（画像は 1536×960）。
 - 表示方法：Dashboard を VS Code / Cursor の拡張の中と同じ表示にしています。
   - 拡張の webview と同じやり取りを、このリポジトリに向けて起動した `api-core` へ中継します。
   - これで、拡張の中だけで出る表示（成果物のプレビュー、「エディタで編集」、プラグインの導入ボタンなど）が出ます。
   - 配色は、VS Code 標準の Light Modern テーマの値を `--vscode-*` 変数に設定しています。
-- 表示対象：AIDLC Guide自身の開発案件 `260720-aidlc-guide-prd` と同一スペースの記録。
+  - 文字は Inter と Noto Sans JP、等幅は JetBrains Mono を `--vscode-font-family`・`--vscode-editor-font-family` に設定しています（撮影環境の Linux に VS Code の既定フォントがないため）。
+- 表示対象：Andon自身の開発案件 `260720-aidlc-guide-prd` と同一スペースの記録。
 - バージョン確認：撮影した環境には aidlc のエンジンがないため、撮影用のサーバーでは確認を外しています。
 - プラグインの状態：拡張が送る状態は、`packages/vscode-extension/src/plugins-state.ts` の `pluginPrerequisites` で「Claude Code だけで AI-DLC を使い、focus は未導入」の場合を作っています。
 - セットアップ：`packages/vscode-extension/src/setup-html.ts` の `setupHtml` で「既存プロジェクトに参加し、このマシンにはまだ CLI がない」場合を描画しています。
@@ -47,8 +48,8 @@ Confluence Cloudでは画像をページへドラッグ＆ドロップするか�
 | 3   | `02b-artifact.webp`     | 同工程の出力 `intent-statement` を開き、プレビューまでスクロール          |
 | 4   | `03-documents.webp`     | 右上メニュー → ドキュメント。トップページ                                 |
 | 5   | `04-customization.webp` | 右上メニュー → カスタマイズ。対応エンジンが必要という案内を含む           |
-| 6   | `05-effectiveness.webp` | 右上メニュー → 効果測定。同一スペースの6案件を集計                        |
-| 7   | `06-setup.webp`         | `AIDLC Guide: Setup`。既存プロジェクトへの参加画面で「詳しく見る」を開く |
+| 6   | `05-effectiveness.webp` | 右上メニュー → 効果測定。同一スペースの6案件のうち、State Version 8 の3案件を集計 |
+| 7   | `06-setup.webp`         | `Andon: Setup`。既存プロジェクトへの参加画面で「詳しく見る」を開く |
 
 `07-plugins.webp` は「はじめに」の「プラグイン」だけで使います。右上メニュー → プラグイン → focus の詳細を開き、導入状態と「何が変わるか」を表示しています。
 

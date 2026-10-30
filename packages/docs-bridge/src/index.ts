@@ -1,14 +1,8 @@
 import { withResult } from "@aidlc-guide/core-utils";
-import type {
-  BridgeConfig,
-  ProjectLink,
-  ReadResult,
-  StageDoc,
-  TermDoc,
-} from "@aidlc-guide/shared-types";
+import type { BridgeConfig, ProjectLink, ReadResult, StageDoc } from "@aidlc-guide/shared-types";
 import { loadConfig } from "./config.ts";
 import { projectLinks } from "./links.ts";
-import { resolveStage, resolveTerm } from "./resolve.ts";
+import { resolveStage } from "./resolve.ts";
 
 export { CONFIG_FILENAME, loadConfig } from "./config.ts";
 export { readExcerpt, sliceSection, slugifyHeading } from "./excerpt.ts";
@@ -22,7 +16,6 @@ export type {
   BridgeMap,
   StageEntry,
   StageIo,
-  TermEntry,
 } from "./resolve.ts";
 export {
   agentEntry,
@@ -32,21 +25,16 @@ export {
   artifactMap,
   artifactProducerOf,
   bridgeMap,
-  LEGACY_STAGE_IO,
-  normalizeTerm,
   resolveStage,
-  resolveTerm,
-  STAGE_SLUG_ALIASES,
   stageEntryOf,
   stageIoOf,
   stagesForAgent,
 } from "./resolve.ts";
 
-/** The four public methods (component-methods.md). Every one returns ReadResult. */
+/** The three public methods (component-methods.md). Every one returns ReadResult. */
 export interface Bridge {
   getConfig(): Promise<ReadResult<BridgeConfig>>;
   resolveStage(slug: string): Promise<ReadResult<StageDoc>>;
-  resolveTerm(term: string): Promise<ReadResult<TermDoc>>;
   projectLinks(): Promise<ReadResult<ProjectLink[]>>;
 }
 
@@ -86,7 +74,6 @@ export function createBridge(configPath?: string): Bridge {
   return {
     getConfig: config,
     resolveStage: (slug) => withConfig((c) => resolveStage(c, slug)),
-    resolveTerm: (term) => withConfig((c) => resolveTerm(c, term)),
     projectLinks: () => withConfig((c) => projectLinks(c)),
   };
 }

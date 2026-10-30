@@ -5,10 +5,10 @@ import { join } from "node:path";
 import type { DocsQaCitation, DocsQaJob, DocsQaResult } from "@aidlc-guide/shared-types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createDocsQaService, type DocsQaDependencies, type DocsQaService } from "../src/docs-qa";
-import { copilotCommands } from "../src/docs-qa/copilot";
-import { AnswerStream, cliArguments, publicError, runCli } from "../src/docs-qa/process";
+import { copilotCommands } from "../src/ai-cli/copilot";
+import { AnswerStream, cliArguments, publicError, runCli } from "../src/ai-cli/process";
 import { answerText, questionPrompt } from "../src/docs-qa/prompt";
-import { createScratch } from "../src/docs-qa/scratch";
+import { createScratch } from "../src/ai-cli/scratch";
 
 const citation: DocsQaCitation = {
   id: "1",

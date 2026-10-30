@@ -1,11 +1,12 @@
 import { render, screen, waitFor } from "@tests/render.tsx";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { OpenOfficialDocLink } from "@/features/stage/components/OpenOfficialDocLink.tsx";
 import { StageCard } from "@/features/stage/components/StageCard.tsx";
-import { buildOpenOfficialDocMessage, openDocInIde, stageDisplayName } from "@/services/docs.ts";
+import { buildOpenOfficialDocMessage, stageDisplayName } from "@/services/docs.ts";
 import { deliverOfficialDocsLocale, onOfficialDocsLocale } from "@/services/docs-shell-inject.ts";
-import { StoreProvider } from "@/store/context.tsx";
+import { StoreProvider, useAppState } from "@/store/context.tsx";
 import { reducer } from "@/store/reducer.ts";
 import { initialState } from "@/store/state.ts";
 import { stageDoc } from "@tests/fixtures.ts";
@@ -24,6 +25,44 @@ function stubVsCodeHost(): { posted: () => unknown[] } {
   }));
   return { posted: () => posted };
 }
+
+function RouteProbe(): ReactNode {
+  const { route } = useAppState();
+  return (
+    <div data-testid="route-probe" hidden>
+      {JSON.stringify(route)}
+    </div>
+  );
+}
+
+describe("Open in Docs outside VS Code", () => {
+  it("opens the mapped page in the app's own docs view", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          ok: true,
+          value: { path: "guide/getting-started.md", anchor: "approval-gates" },
+        }),
+      ),
+    );
+    render(
+      <StoreProvider>
+        <OpenOfficialDocLink slug="intent-capture" />
+        <RouteProbe />
+      </StoreProvider>,
+    );
+
+    await userEvent.click(screen.getByTestId("open-official-doc"));
+
+    await waitFor(() => {
+      expect(JSON.parse(screen.getByTestId("route-probe").textContent ?? "{}")).toEqual({
+        name: "docs",
+        deepLink: { locale: "ja", path: "guide/getting-started.md", anchor: "approval-gates" },
+      });
+    });
+  });
+});
 
 describe("buildOpenOfficialDocMessage", () => {
   it("mapped: locale + path + optional anchor", () => {
@@ -89,7 +128,7 @@ describe("OpenOfficialDocLink / StageCard a11y", () => {
     expect(control.getAttribute("data-testid")).toBe("open-official-doc");
   });
 
-  it("mapped StageCard path does not call openDocInIde / open-doc", async () => {
+  it("mapped StageCard path does not post open-doc", async () => {
     const host = stubVsCodeHost();
     vi.stubGlobal(
       "fetch",
@@ -124,9 +163,6 @@ describe("OpenOfficialDocLink / StageCard a11y", () => {
       anchor: "approval-gates",
     });
     expect(host.posted().some((m) => (m as { type?: string }).type === "open-doc")).toBe(false);
-
-    // openDocInIde still exists for guides, but was not used on this path.
-    expect(typeof openDocInIde).toBe("function");
   });
 
   it("uses officialDocsLocale from store for payload locale", async () => {

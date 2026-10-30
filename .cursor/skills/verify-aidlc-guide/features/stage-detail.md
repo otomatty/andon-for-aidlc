@@ -14,7 +14,7 @@ Choosing a stage from the rail opens that stage's card: purpose, artifacts, and 
 - After a card is open, `panel-prev-stage` / `panel-next-stage` move between stages.
 - `panel-back` returns toward the list.
 
-## Driving it with the AIDLC Guide harness
+## Driving it with the Andon harness
 
 Preconditions:
 

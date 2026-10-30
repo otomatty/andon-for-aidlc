@@ -1,6 +1,6 @@
 {
   "name": "aidlc-guide",
-  "displayName": "AIDLC Guide",
+  "displayName": "Andon for AI-DLC",
   "description": "Visualize aidlc-workflows state and artifacts inside VS Code / Cursor.",
   "version": "0.40.2",
   "publisher": "aidlc",
@@ -30,47 +30,47 @@
       {
         "command": "aidlc-guide.open",
         "title": "Open",
-        "category": "AIDLC Guide"
+        "category": "Andon"
       },
       {
         "command": "aidlc-guide.setup",
         "title": "Setup",
-        "category": "AIDLC Guide"
+        "category": "Andon"
       },
       {
         "command": "aidlc-guide.showWelcome",
         "title": "Show Welcome",
-        "category": "AIDLC Guide"
+        "category": "Andon"
       },
       {
         "command": "aidlc-guide.showWhatsNew",
         "title": "Show What's New",
-        "category": "AIDLC Guide"
+        "category": "Andon"
       },
       {
         "command": "aidlc-guide.openPlugins",
         "title": "Open Plugins",
-        "category": "AIDLC Guide"
+        "category": "Andon"
       },
       {
         "command": "aidlc-guide.registerMcp",
         "title": "Register MCP",
-        "category": "AIDLC Guide"
+        "category": "Andon"
       },
       {
         "command": "aidlc-guide.checkUpdate",
         "title": "Check for Updates",
-        "category": "AIDLC Guide"
+        "category": "Andon"
       },
       {
         "command": "aidlc-guide.installWorkflows",
         "title": "Install Workflows",
-        "category": "AIDLC Guide"
+        "category": "Andon"
       },
       {
         "command": "aidlc-guide.updateWorkflows",
         "title": "Update Workflows",
-        "category": "AIDLC Guide"
+        "category": "Andon"
       }
     ]
   },

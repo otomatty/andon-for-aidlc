@@ -46,7 +46,7 @@ async function main(argv: readonly string[]): Promise<number> {
 
   const server = await serve({ port: options.port });
   if (server.apiOnly) process.stdout.write(`${DIST_MISSING_HINT}\n`);
-  process.stdout.write(`AIDLC Guide dashboard: http://${server.hostname}:${server.port}\n`);
+  process.stdout.write(`Andon dashboard: http://${server.hostname}:${server.port}\n`);
   return 0;
 }
 

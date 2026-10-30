@@ -1,6 +1,6 @@
 # AI-DLC on Cursor
 
-This project uses **AI-DLC Workflows 2.11.1** (State Version **8**, 33 stages) in lockstep on two harnesses: Cursor (`.cursor/`) and Claude Code (`.claude/`). Both share the `aidlc/` workspace shell. AIDLC Guide's reader / docs-bridge target this same graph. Method files live in `aidlc/spaces/default/memory/` — edit those, not the harness trees. Do not install v1 `.aidlc-rule-details` alongside this tree.
+This project uses **AI-DLC Workflows 2.11.1** (State Version **8**, 33 stages) in lockstep on two harnesses: Cursor (`.cursor/`) and Claude Code (`.claude/`). Both share the `aidlc/` workspace shell. Andon's (formerly AIDLC Guide) reader / docs-bridge target this same graph. Method files live in `aidlc/spaces/default/memory/` — edit those, not the harness trees. Do not install v1 `.aidlc-rule-details` alongside this tree.
 
 ## How to run
 

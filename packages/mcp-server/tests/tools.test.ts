@@ -1,8 +1,6 @@
 import type { ReadResult } from "@aidlc-guide/shared-types";
 import { describe, expect, it, vi } from "vitest";
 import type { ToolReply } from "../src/render.ts";
-import { explainStage } from "../src/tools/explain-stage.ts";
-import { glossary } from "../src/tools/glossary.ts";
 import { nextSteps } from "../src/tools/next-steps.ts";
 import { readArtifact } from "../src/tools/read-artifact.ts";
 import { status } from "../src/tools/status.ts";
@@ -12,10 +10,7 @@ import {
   NEXT_STEP,
   ok,
   ROOT,
-  STAGE_DOC,
-  stubBridge,
   stubReader,
-  TERM_DOC,
   unsupported,
   WORKFLOW,
 } from "./support.ts";
@@ -43,16 +38,6 @@ const CASES: ToolCase[] = [
     name: "aidlc_next_steps",
     run: (result) => nextSteps(stubReader({ getNextStep: async () => result }), ROOT),
     reasons: ["no-active-intent", "state-missing", "internal: boom"],
-  },
-  {
-    name: "aidlc_explain_stage",
-    run: (result) => explainStage(stubBridge({ resolveStage: async () => result }), ROOT, "x"),
-    reasons: ["not-found", "config-invalid", "internal: boom"],
-  },
-  {
-    name: "aidlc_glossary",
-    run: (result) => glossary(stubBridge({ resolveTerm: async () => result }), ROOT, "x"),
-    reasons: ["undefined-term", "config-invalid", "internal: boom"],
   },
   {
     name: "aidlc_read_artifact",
@@ -135,75 +120,6 @@ describe("aidlc_next_steps (M3)", () => {
       await nextSteps(stubReader({ getNextStep: async () => ok(done) }), ROOT),
     );
     expect(reply.text).toContain("ワークフロー完了");
-  });
-});
-
-describe("aidlc_explain_stage (M2)", () => {
-  it("returns the five static fields plus the excerpt verbatim (BR-MS-4)", async () => {
-    const reply = expectNormalReply(
-      await explainStage(
-        stubBridge({ resolveStage: async () => ok(STAGE_DOC) }),
-        ROOT,
-        "code-generation",
-      ),
-    );
-    expect(reply.text).toContain("目的: 設計をコードに落とす段階。");
-    expect(reply.text).toContain("担当エージェント: 開発エージェント（developer-agent）");
-    expect(reply.text).toContain("承認ゲートで求められること: 生成コードのレビューと承認");
-    expect(reply.text).toContain("docs/guide/04-construction.md#code-generation");
-    // Verbatim: the excerpt appears exactly as docs-bridge sliced it.
-    expect(reply.text).toContain(STAGE_DOC.excerpt as string);
-  });
-
-  it("passes the slug through to the bridge unchanged", async () => {
-    const resolveStage = vi.fn(async () => ok(STAGE_DOC));
-    await explainStage(stubBridge({ resolveStage }), ROOT, "user-stories");
-    expect(resolveStage).toHaveBeenCalledWith("user-stories");
-  });
-
-  it("answers 該当なし for an unknown slug instead of erroring", async () => {
-    const reply = expectNormalReply(
-      await explainStage(
-        stubBridge({ resolveStage: async () => failed("not-found") }),
-        ROOT,
-        "nope",
-      ),
-    );
-    expect(reply.text).toContain("該当なし");
-  });
-
-  it("renders a doc with no deep link", async () => {
-    const doc = { ...STAGE_DOC, deepLink: null, excerpt: null, inputs: [], outputs: [] };
-    const reply = expectNormalReply(
-      await explainStage(stubBridge({ resolveStage: async () => ok(doc) }), ROOT, "x"),
-    );
-    expect(reply.text).toContain("ドキュメント: （リンクなし）");
-    expect(reply.text).toContain("入力: （なし）");
-  });
-});
-
-describe("aidlc_glossary (M5)", () => {
-  it("returns the definition verbatim", async () => {
-    const reply = expectNormalReply(
-      await glossary(stubBridge({ resolveTerm: async () => ok(TERM_DOC) }), ROOT, "Bolt"),
-    );
-    expect(reply.text).toContain("定義: 垂直に切られた出荷可能な作業の単位。");
-    expect(reply.data).toBe(TERM_DOC);
-  });
-
-  it("includes the excerpt when docs are present", async () => {
-    const doc = { ...TERM_DOC, excerpt: "# Bolt\n原文。" };
-    const reply = expectNormalReply(
-      await glossary(stubBridge({ resolveTerm: async () => ok(doc) }), ROOT, "Bolt"),
-    );
-    expect(reply.text).toContain("# Bolt\n原文。");
-  });
-
-  it("answers 未定義 for an unknown term", async () => {
-    const reply = expectNormalReply(
-      await glossary(stubBridge({ resolveTerm: async () => failed("undefined-term") }), ROOT, "zz"),
-    );
-    expect(reply.text).toContain("未定義");
   });
 });
 

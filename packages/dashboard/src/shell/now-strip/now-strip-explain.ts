@@ -202,7 +202,7 @@ export function explainGate(gate: StageStatus | null): FieldExplain {
     bullets: [
       "awaiting approval = 成果物を確認して承認する番",
       "revising = 差し戻し後の再作業中",
-      "承認操作は /aidlc セッション側（Guide は読み取り中心）",
+      "承認操作は /aidlc セッション側（Andon は読み取り中心）",
     ],
   };
 }

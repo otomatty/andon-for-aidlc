@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  UPSTREAM_ARCHIVE_BASE,
   UPSTREAM_GIT_URL,
   UPSTREAM_REPO_SLUG,
   UPSTREAM_REPO_URL,
@@ -12,9 +11,6 @@ describe("upstream repository coordinates", () => {
     expect(UPSTREAM_REPO_SLUG).toBe("awslabs/aidlc-workflows");
     expect(UPSTREAM_REPO_URL).toBe("https://github.com/awslabs/aidlc-workflows");
     expect(UPSTREAM_GIT_URL).toBe("https://github.com/awslabs/aidlc-workflows.git");
-    expect(UPSTREAM_ARCHIVE_BASE).toBe(
-      "https://codeload.github.com/awslabs/aidlc-workflows/tar.gz",
-    );
   });
 
   // The default branch moved v2 -> main at GA and v2 was deleted; a link that

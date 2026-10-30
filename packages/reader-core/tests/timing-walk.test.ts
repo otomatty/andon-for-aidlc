@@ -64,7 +64,6 @@ describe("constructionWalkOf", () => {
         scope: "feature",
         depth: "practical",
         stateVersion: 8,
-        schemaCompatibility: "current",
         phase: "CONSTRUCTION",
         currentStage: null,
         nextStage: null,

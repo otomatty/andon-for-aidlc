@@ -1,27 +1,21 @@
 import type { BridgeConfig } from "@aidlc-guide/shared-types";
 import { describe, expect, it } from "vitest";
-import { bridgeMap, normalizeTerm, resolveStage, resolveTerm } from "../src/resolve.ts";
+import { bridgeMap, resolveStage } from "../src/resolve.ts";
 import { DOCS_ROOT, expectError, expectOk, REPO_ROOT } from "./paths.ts";
 
 /** docs absent — the default posture of an unconfigured install. */
 const noDocs: BridgeConfig = {
   docsRepoPath: null,
-  docsBaseUrl: null,
-  stageDocs: {},
   projectLinks: [],
 };
 /** The real repository, where every docPath in the map resolves. */
 const realDocs: BridgeConfig = {
   docsRepoPath: REPO_ROOT,
-  docsBaseUrl: null,
-  stageDocs: {},
   projectLinks: [],
 };
 /** A docs root that exists but contains none of the mapped files. */
 const wrongDocs: BridgeConfig = {
   docsRepoPath: DOCS_ROOT,
-  docsBaseUrl: null,
-  stageDocs: {},
   projectLinks: [],
 };
 
@@ -58,27 +52,9 @@ describe("resolveStage", () => {
     expect(warnings[0]).toMatch(/unreadable/);
   });
 
-  it("aliases application-design docs to domain-design, but keeps v7 I/O", async () => {
-    const aliased = expectOk(await resolveStage(noDocs, "application-design"));
+  it("no longer maps the State Version 7 application-design slug onto domain-design", async () => {
+    expect(expectError(await resolveStage(noDocs, "application-design"))).toBe("not-found");
     const current = expectOk(await resolveStage(noDocs, "domain-design"));
-    expect(aliased.value.slug).toBe("application-design");
-    expect(aliased.value.purpose).toBe(current.value.purpose);
-    expect(aliased.value.deepLink).toEqual(current.value.deepLink);
-    expect(aliased.value.inputs).toEqual([
-      "requirements",
-      "stories",
-      "architecture",
-      "component-inventory",
-      "team-practices",
-    ]);
-    expect(aliased.value.outputs).toEqual([
-      "components",
-      "decisions",
-      "component-methods",
-      "services",
-      "component-dependency",
-      "application-design-questions",
-    ]);
     expect(current.value.inputs).toContain("component-inventory");
     expect(current.value.outputs).toEqual(["components", "decisions", "traceability"]);
   });
@@ -95,36 +71,6 @@ describe("resolveStage", () => {
   });
 });
 
-describe("resolveTerm", () => {
-  it("resolves a known term case- and whitespace-insensitively", async () => {
-    const { value } = expectOk(await resolveTerm(noDocs, "  Walking Skeleton "));
-    expect(value.term).toBe("walking skeleton");
-    expect(value.definition).toMatch(/Unit/);
-    expect(value.deepLink?.docPath).toContain("stage-protocol-construction.md");
-  });
-
-  it("attaches the excerpt of a level-3 anchor from the real docs", async () => {
-    const { value, warnings } = expectOk(await resolveTerm(realDocs, "walking skeleton"));
-    expect(warnings).toEqual([]);
-    expect(value.excerpt?.startsWith("### Unit and skeleton checkpoints")).toBe(true);
-  });
-
-  it("degrades to {ok} + warning when the mapped file is absent (BR-DB-3)", async () => {
-    const { value, warnings } = expectOk(await resolveTerm(wrongDocs, "bolt"));
-    expect(value.definition.length).toBeGreaterThan(0);
-    expect(value.excerpt).toBeNull();
-    expect(warnings).toHaveLength(1);
-  });
-
-  it("rejects an unknown term with its own reason", async () => {
-    expect(expectError(await resolveTerm(noDocs, "flux capacitor"))).toBe("undefined-term");
-  });
-
-  it("normalizeTerm is the lookup key builder", () => {
-    expect(normalizeTerm(" Unit Of Work ")).toBe("unit of work");
-  });
-});
-
 describe("determinism (R-DB-3 / US-23 cross-consumer AC)", () => {
   it("returns an identical value for the same slug on repeated calls", async () => {
     const first = expectOk(await resolveStage(realDocs, "delivery-planning"));
@@ -137,18 +83,14 @@ describe("determinism (R-DB-3 / US-23 cross-consumer AC)", () => {
     // dashboard-server: same function, same data file, therefore same answer.
     const asMcp: BridgeConfig = {
       docsRepoPath: REPO_ROOT,
-      docsBaseUrl: null,
-      stageDocs: {},
       projectLinks: [],
     };
     const asDashboard: BridgeConfig = {
       docsRepoPath: REPO_ROOT,
-      docsBaseUrl: null,
-      stageDocs: {},
       projectLinks: [{ label: "x", target: "y" }],
     };
-    const a = expectOk(await resolveTerm(asMcp, "gate"));
-    const b = expectOk(await resolveTerm(asDashboard, "GATE"));
+    const a = expectOk(await resolveStage(asMcp, "delivery-planning"));
+    const b = expectOk(await resolveStage(asDashboard, "delivery-planning"));
     expect(b.value).toEqual(a.value);
   });
 

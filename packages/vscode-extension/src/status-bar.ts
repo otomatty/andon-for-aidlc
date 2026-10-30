@@ -78,8 +78,8 @@ function nextGateDetails(nextGate: NextGateEstimate, current: StageView): string
 export function createStatusBar(context: ExtensionContext): StatusBarItem {
   item = window.createStatusBarItem(StatusBarAlignment.Left, 100);
   item.command = "aidlc-guide.open";
-  item.text = "$(list-tree) AIDLC Guide";
-  item.tooltip = "AIDLC Guide: Open";
+  item.text = "$(list-tree) Andon";
+  item.tooltip = "Andon: Open";
   context.subscriptions.push(item);
   item.show();
   return item;
@@ -106,16 +106,16 @@ async function refreshSessionStatus(session: GuideSession): Promise<void> {
   // The status bar reads the reader directly, so it applies the version check itself.
   const gate = session.service.versionGate();
   if (gate !== null && gate.status !== "ok") {
-    item.text = "$(warning) AIDLC Guide: 更新が必要";
-    item.tooltip = `AIDLC Guide — ${gate.message}`;
+    item.text = "$(warning) Andon: 更新が必要";
+    item.tooltip = `Andon — ${gate.message}`;
     return;
   }
   try {
     const state = await session.service.reader.getWorkflow();
     if (stale()) return;
     if (!("ok" in state) || state.value.currentStage === null) {
-      item.text = "$(list-tree) AIDLC Guide";
-      item.tooltip = "AIDLC Guide: Open";
+      item.text = "$(list-tree) Andon";
+      item.tooltip = "Andon: Open";
       return;
     }
 
@@ -123,7 +123,7 @@ async function refreshSessionStatus(session: GuideSession): Promise<void> {
     // Stage-only label first, so a timing failure below has something
     // already-correct to fall back on instead of the bare default.
     item.text = `$(list-tree) ${stage}`;
-    item.tooltip = `AIDLC Guide — ${state.value.phase} / ${stage}`;
+    item.tooltip = `Andon — ${state.value.phase} / ${stage}`;
 
     // Timing is best-effort decoration: a failure here must not blank the
     // stage name set above — this inner try means it doesn't.
@@ -150,7 +150,7 @@ async function refreshSessionStatus(session: GuideSession): Promise<void> {
       const overrun = isStageEstimateOverrun(current);
       item.text = `$(list-tree) ${stage} · 作業時間 ${elapsed} / ${nextGateStatus(payload.nextGate, current, remaining)}`;
       const details = [
-        `AIDLC Guide — ${state.value.phase} / ${stage}`,
+        `Andon — ${state.value.phase} / ${stage}`,
         `作業時間: ${elapsed}`,
         `残り時間: ${remaining}${overrun ? "（見積り超過・未完了）" : ""}${current.remainingMs !== null && (current.status === "not-started" || current.status === "skipped") ? " (参考)" : ""}`,
         ...(payload.nextGate === undefined ? [] : nextGateDetails(payload.nextGate, current)),
@@ -173,7 +173,7 @@ async function refreshSessionStatus(session: GuideSession): Promise<void> {
     }
   } catch {
     if (stale()) return;
-    item.text = "$(list-tree) AIDLC Guide";
+    item.text = "$(list-tree) Andon";
   }
 }
 
@@ -211,8 +211,8 @@ export function startStatusBarRefresh(
       session.service.hub.remove(pushClient);
       lease.dispose();
       if (item) {
-        item.text = "$(list-tree) AIDLC Guide";
-        item.tooltip = "AIDLC Guide: Open";
+        item.text = "$(list-tree) Andon";
+        item.tooltip = "Andon: Open";
       }
     },
   };

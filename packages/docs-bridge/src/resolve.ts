@@ -4,7 +4,6 @@ import type {
   DeepLink,
   ReadResult,
   StageDoc,
-  TermDoc,
 } from "@aidlc-guide/shared-types";
 import rawAgentMap from "../data/agent-map.json";
 import rawArtifactMap from "../data/artifact-map.json";
@@ -21,16 +20,9 @@ export interface StageEntry {
   docAnchor: string;
 }
 
-export interface TermEntry {
-  definition: string;
-  docPath: string;
-  docAnchor: string;
-}
-
 export interface BridgeMap {
   sourceVersion: string;
   stages: Record<string, StageEntry>;
-  terms: Record<string, TermEntry>;
 }
 
 /** Learner-facing Japanese copy for agent personas (UI / MCP explain). */
@@ -86,63 +78,24 @@ export const agentMap: AgentMap = Object.freeze(rawAgentMap satisfies AgentMap);
  */
 export const artifactMap: ArtifactMap = Object.freeze(rawArtifactMap satisfies ArtifactMap);
 
-/**
- * Docs-lookup only. Disk slugs stay as written on the state file (v7
- * `application-design` still names `inception/application-design/`).
- * I/O lists are {@link stageIoOf}, not this alias.
- */
-export const STAGE_SLUG_ALIASES: Readonly<Record<string, string>> = Object.freeze({
-  "application-design": "domain-design",
-});
-
 export interface StageIo {
   inputs: readonly string[];
   outputs: readonly string[];
 }
 
-/**
- * State Version 7 slugs whose artifact names are not the current map entry.
- * `application-design` produced methods/services/dependency, not traceability.
- */
-export const LEGACY_STAGE_IO: Readonly<Record<string, StageIo>> = Object.freeze({
-  "application-design": {
-    inputs: ["requirements", "stories", "architecture", "component-inventory", "team-practices"],
-    outputs: [
-      "components",
-      "decisions",
-      "component-methods",
-      "services",
-      "component-dependency",
-      "application-design-questions",
-    ],
-  },
-});
-
 export function stageEntryOf(slug: string): StageEntry | undefined {
-  if (Object.hasOwn(bridgeMap.stages, slug)) return bridgeMap.stages[slug];
-  if (!Object.hasOwn(STAGE_SLUG_ALIASES, slug)) return undefined;
-  const aliased = STAGE_SLUG_ALIASES[slug];
-  if (aliased === undefined || !Object.hasOwn(bridgeMap.stages, aliased)) return undefined;
-  return bridgeMap.stages[aliased];
+  return Object.hasOwn(bridgeMap.stages, slug) ? bridgeMap.stages[slug] : undefined;
 }
 
-/** Version-specific I/O. Never follows {@link STAGE_SLUG_ALIASES}. */
 export function stageIoOf(slug: string): StageIo | undefined {
-  if (Object.hasOwn(LEGACY_STAGE_IO, slug)) return LEGACY_STAGE_IO[slug];
   if (!Object.hasOwn(bridgeMap.stages, slug)) return undefined;
   const entry = bridgeMap.stages[slug];
   return entry === undefined ? undefined : { inputs: entry.inputs, outputs: entry.outputs };
 }
 
-/**
- * Artifact descriptions for one stage, keyed by canonical artifact name.
- * Follows {@link STAGE_SLUG_ALIASES}, so a v7 `application-design` record still
- * explains the artifacts that kept their names; the ones v7 alone produced are
- * simply absent rather than described with v8 copy.
- */
+/** Artifact descriptions for one stage, keyed by canonical artifact name. */
 export function artifactDocsOf(slug: string): Record<string, ArtifactDoc> {
-  const key = Object.hasOwn(artifactMap.stages, slug) ? slug : (STAGE_SLUG_ALIASES[slug] ?? slug);
-  const entry = artifactMap.stages[key];
+  const entry = Object.hasOwn(artifactMap.stages, slug) ? artifactMap.stages[slug] : undefined;
   return entry === undefined ? {} : artifactDocsOfEntry(entry);
 }
 
@@ -207,11 +160,6 @@ export function artifactProducerOf(artifact: string): string | undefined {
     producerIndex = new Map([...seen].filter((pair): pair is [string, string] => pair[1] !== null));
   }
   return producerIndex.get(artifact);
-}
-
-/** Terms are looked up case- and whitespace-insensitively (D3 step 1). */
-export function normalizeTerm(term: string): string {
-  return term.trim().toLowerCase();
 }
 
 /** Stage slugs whose bridge-map entry names the given lead agent. */
@@ -294,26 +242,4 @@ function artifactDocsFor(slug: string, io: StageIo): Record<string, ArtifactDoc>
     if (doc !== undefined) docs[artifact] = doc;
   }
   return docs;
-}
-
-/** D3 — a glossary entry (US-04). Same degradation ladder as {@link resolveStage}. */
-export async function resolveTerm(
-  config: BridgeConfig,
-  term: string,
-): Promise<ReadResult<TermDoc>> {
-  const key = normalizeTerm(term);
-  const entry = bridgeMap.terms[key];
-  if (entry === undefined) return { error: true, reason: "undefined-term" };
-
-  const deepLink = deepLinkOf(entry);
-  const { excerpt, warnings } = await attachExcerpt(config, deepLink);
-
-  const value: TermDoc = {
-    term: key,
-    definition: entry.definition,
-    deepLink,
-    excerpt,
-    sourceVersion: bridgeMap.sourceVersion,
-  };
-  return warnings.length > 0 ? { ok: true, value, warnings } : { ok: true, value };
 }

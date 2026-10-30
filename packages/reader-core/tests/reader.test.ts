@@ -1,7 +1,6 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { LEGACY_STATE_WARNING } from "@aidlc-guide/shared-types";
 import { describe, expect, it } from "vitest";
 import { createReader } from "../src/index.ts";
 import { expectOk, fixture, REPO_ROOT } from "./paths.ts";
@@ -380,14 +379,14 @@ describe("createReader — happy path over the fixture record", () => {
   });
 });
 
-describe("createReader — State Version 7 browse warning", () => {
+describe("createReader — State Version 7 is unsupported", () => {
   const reader = readerOn(fixture("golden-v7"));
 
-  it("keeps the legacy warning on getWorkflow and derived reads", async () => {
-    expect(expectOk(await reader.getWorkflow()).warnings).toEqual([LEGACY_STATE_WARNING]);
-    expect(expectOk(await reader.getNextStep()).warnings).toEqual([LEGACY_STATE_WARNING]);
-    expect(expectOk(await reader.getMatrix()).warnings).toEqual([LEGACY_STATE_WARNING]);
-    expect(expectOk(await reader.getTimings()).warnings).toContain(LEGACY_STATE_WARNING);
+  it("answers every derived read with the explicit unsupported state", async () => {
+    const unsupported = { unsupported: true, version: "7" };
+    expect(await reader.getWorkflow()).toEqual(unsupported);
+    expect(await reader.getNextStep()).toEqual(unsupported);
+    expect(await reader.getMatrix()).toEqual(unsupported);
   });
 });
 

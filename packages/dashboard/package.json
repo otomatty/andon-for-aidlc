@@ -9,7 +9,6 @@
     "dev": "vite"
   },
   "dependencies": {
-    "@aidlc-guide/kamishibai": "workspace:*",
     "@aidlc-guide/shared-types": "workspace:*",
     "@mantine/core": "^9.7.2",
     "@mantine/hooks": "^9.7.2",

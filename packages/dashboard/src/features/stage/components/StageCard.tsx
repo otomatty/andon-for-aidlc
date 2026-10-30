@@ -7,7 +7,7 @@ import type {
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { canOpenDocsInIde, docsOpenHref, isExternal } from "@/services/docs.ts";
+import { canOpenDocsInIde } from "@/services/docs.ts";
 import { useAppState, useDispatch } from "@/store/context.tsx";
 import { OpenOfficialDocLink } from "./OpenOfficialDocLink.tsx";
 
@@ -95,33 +95,9 @@ function SectionLabel({ children }: { children: ReactNode }): ReactNode {
   return <h4 className="mb-1.5 text-sm font-bold">{children}</h4>;
 }
 
+/** Bolt 3: the bundled Official Docs Shell (open-official-doc), never open-doc (FR-B3-5.1). */
 function DocsLink({ doc }: { doc: StageDoc }): ReactNode {
-  const { docsBaseUrl, stageDocs } = useAppState();
-  const inIde = canOpenDocsInIde();
-
-  // Bolt 3: VS Code webview uses Official Docs Shell (open-official-doc).
-  // Must not call docsOpenHref / openDocInIde / open-doc on this path (FR-B3-5.1).
-  if (inIde) {
-    return <OpenOfficialDocLink slug={doc.slug} sourceVersion={doc.sourceVersion} />;
-  }
-
-  // Browser / Mob: legacy Confluence override or docsBaseUrl href (not Fail for NFR-B3-2).
-  const href = docsOpenHref(doc.slug, doc.deepLink, { docsBaseUrl, stageDocs });
-  if (href === null) return null;
-
-  return (
-    <p>
-      <a
-        href={href}
-        className="text-primary underline-offset-4 hover:underline"
-        rel="noopener noreferrer"
-        {...(isExternal(href) ? { target: "_blank" } : {})}
-      >
-        docs を開く
-      </a>{" "}
-      <span className="text-muted-foreground">（sync: {doc.sourceVersion}）</span>
-    </p>
-  );
+  return <OpenOfficialDocLink slug={doc.slug} sourceVersion={doc.sourceVersion} />;
 }
 
 function AgentLink({ agentId, label }: { agentId: string; label: string }): ReactNode {

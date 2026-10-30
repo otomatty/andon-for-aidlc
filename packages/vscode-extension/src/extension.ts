@@ -179,7 +179,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   void announceOnboarding(context).catch((error: unknown) => {
     // Onboarding is an aid; storage trouble must not stop activation.
-    console.warn("AIDLC Guide: オンボーディングの状態を初期化できませんでした。", error);
+    console.warn("Andon: オンボーディングの状態を初期化できませんでした。", error);
   });
 
   let refreshingRoot: string | undefined;
@@ -210,7 +210,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (!isCurrent() || !workspace.isTrusted) return;
     if (registration.updated)
       void window.showInformationMessage(
-        "AIDLC Guide: 登録済みの文書参照連携を更新しました。AI セッションを再起動してください。",
+        "Andon: 登録済みの文書参照連携を更新しました。AI セッションを再起動してください。",
       );
     const setup = await inspectSetup(context, root);
     if (isCurrent() && !needsSetup(setup) && workspace.isTrusted)
@@ -218,7 +218,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   };
   const initialize = () => {
     void initializeRoot().catch((error) => {
-      void window.showErrorMessage(`AIDLC Guide の起動に失敗しました: ${String(error)}`);
+      void window.showErrorMessage(`Andon の起動に失敗しました: ${String(error)}`);
     });
   };
   context.subscriptions.push(

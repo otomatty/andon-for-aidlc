@@ -46,18 +46,12 @@ export type Action =
   | { type: "intents"; result: ReadResult<IntentList> }
   | { type: "stage-doc"; slug: string; state: ViewState<StageDoc>; recordRevision?: number }
   | { type: "links"; result: ReadResult<ProjectLink[]> }
-  | {
-      type: "docs-settings";
-      docsBaseUrl: string | null;
-      stageDocs: Readonly<Record<string, string>>;
-    }
   // `receivedAt` is stamped at the socket (services/live.ts). Required, not
   // optional: the reducer reads no clock, so a caller that omitted it would
   // silently stop 「最終更新」 from advancing.
   | { type: "ws"; message: WsMessage; receivedAt: string }
   | { type: "live"; connected: boolean }
   | { type: "select"; selection: Selection }
-  | { type: "guides"; open: boolean }
   | { type: "effectiveness"; open: boolean }
   | { type: "settings"; open: boolean }
   | { type: "plugins"; open: boolean }
@@ -140,13 +134,6 @@ function reduce(state: AppState, action: Action): AppState {
     case "links":
       return { ...state, projectLinks: deriveViewState(action.result) };
 
-    case "docs-settings":
-      return {
-        ...state,
-        docsBaseUrl: action.docsBaseUrl,
-        stageDocs: action.stageDocs,
-      };
-
     case "ws":
       return applyWs(state, action.message, action.receivedAt);
 
@@ -177,9 +164,6 @@ function reduce(state: AppState, action: Action): AppState {
       return action.selection === null
         ? leaveRecordRoute(state)
         : go(state, selectionRoute(action.selection));
-
-    case "guides":
-      return action.open ? go(state, { name: "guides" }) : leaveNamed(state, "guides");
 
     case "docs-shell": {
       const [docs, extra] = docsRoute(action);

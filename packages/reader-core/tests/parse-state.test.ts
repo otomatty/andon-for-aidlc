@@ -1,14 +1,12 @@
-import { LEGACY_STATE_WARNING } from "@aidlc-guide/shared-types";
 import { describe, expect, it } from "vitest";
-import { parseState, readState, SUPPORTED_STATE_VERSION } from "../src/parse/state.ts";
+import { CURRENT_STATE_VERSION, parseState, readState } from "../src/parse/state.ts";
 import { expectOk, fixture, REAL_RECORD } from "./paths.ts";
 
 describe("readState — golden snapshot (pinned copy of a State Version 8 file)", () => {
   it("parses every section of the real format", async () => {
     const { value, warnings } = expectOk(await readState(fixture("golden")));
 
-    expect(value.stateVersion).toBe(SUPPORTED_STATE_VERSION);
-    expect(value.schemaCompatibility).toBe("current");
+    expect(value.stateVersion).toBe(CURRENT_STATE_VERSION);
     expect(value.project).toBe("PRDに従って実装をしてください");
     expect(value.scope).toBe("prd-implementation");
     expect(value.depth).toBe("Standard");
@@ -56,7 +54,7 @@ describe("readState — golden snapshot (pinned copy of a State Version 8 file)"
 describe("readState — live record (this workspace runs the 2.6.2 engine)", () => {
   it("parses the repository's own State Version 8 record", async () => {
     const { value } = expectOk(await readState(REAL_RECORD));
-    expect(value.stateVersion).toBe(SUPPORTED_STATE_VERSION);
+    expect(value.stateVersion).toBe(CURRENT_STATE_VERSION);
     expect(value.scope).toBe("prd-implementation");
     expect(value.phase).toBe("OPERATION");
     expect(value.currentStage).toBe("performance-validation");
@@ -71,23 +69,9 @@ describe("readState — live record (this workspace runs the 2.6.2 engine)", () 
   });
 });
 
-describe("readState — State Version 7 browse compatibility", () => {
-  it("parses a v7 file, keeps disk slugs, and does not invent contract-design", async () => {
-    const { value, warnings } = expectOk(await readState(fixture("golden-v7")));
-
-    expect(value.stateVersion).toBe(7);
-    expect(value.schemaCompatibility).toBe("legacy");
-    expect(warnings).toEqual([LEGACY_STATE_WARNING]);
-    expect(value.stages).toHaveLength(32);
-    expect(value.stages.find((s) => s.slug === "application-design")).toEqual({
-      slug: "application-design",
-      phase: "INCEPTION",
-      execution: "EXECUTE",
-      status: "completed",
-    });
-    expect(value.stages.find((s) => s.slug === "domain-design")).toBeUndefined();
-    expect(value.stages.find((s) => s.slug === "contract-design")).toBeUndefined();
-    expect(value.currentStage).toBe("code-generation");
+describe("readState — State Version 7 is no longer read", () => {
+  it("refuses a v7 file as unsupported instead of browsing it", async () => {
+    expect(await readState(fixture("golden-v7"))).toEqual({ unsupported: true, version: "7" });
   });
 });
 

@@ -818,7 +818,7 @@ async function promptOnce(
     const label = versionGateActionLabel(action, WORKFLOWS_TARGET_VERSION);
     // No "later": the Guide stays blocked until the versions match, so there is nothing to defer to.
     const pick = await window.showWarningMessage(
-      `AIDLC Guide を使うには更新が必要です。${gate.message}`,
+      `Andon を使うには更新が必要です。${gate.message}`,
       label,
     );
     if (!isCurrent() || !workspace.isTrusted || !isOpenFolder(root)) return;
@@ -830,10 +830,7 @@ async function promptOnce(
     context.workspaceState.get<boolean>(workflowsRepairKey(root)) === true,
   );
   if (!state.updateRetryNeeded) return;
-  const pick = await window.showInformationMessage(
-    `AIDLC Guide: ${state.message}`,
-    "アップデートする",
-  );
+  const pick = await window.showInformationMessage(`Andon: ${state.message}`, "アップデートする");
   if (!isCurrent() || !workspace.isTrusted || !isOpenFolder(root)) return;
   if (pick === "アップデートする") await openWorkflowsUpdatePanel(context, root);
 }

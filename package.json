@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "check": "bun run lint && bun run format:check && bun run typecheck && bun run check:docs-index && bun run check:video-packs && bun run check:plugins && bun run check:plugins-catalog && bun run check:workflows-compatibility && bun run test:coverage && bun run check:audit-shards && bun run audit",
+    "check": "bun run lint && bun run format:check && bun run typecheck && bun run check:docs-index && bun run check:plugins && bun run check:plugins-catalog && bun run check:workflows-compatibility && bun run test:coverage && bun run check:audit-shards && bun run audit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "lint": "bun run lint:oxlint && bun run lint:canonical-classes && bun run lint:canonical-paths && bun run lint:workflows",
@@ -18,9 +18,8 @@
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/dashboard && tsc --noEmit -p packages/kamishibai && tsc --noEmit -p packages/vscode-extension",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/dashboard && tsc --noEmit -p packages/vscode-extension",
     "check:docs-index": "bun scripts/build-docs-index.ts --check",
-    "check:video-packs": "bun packages/doc-video/src/cli.ts check",
     "build:plugins-catalog": "bun scripts/build-bundled-plugins.ts",
     "check:plugins-catalog": "bun scripts/build-bundled-plugins.ts --check",
     "check:plugins": "bun .claude/tools/aidlc-plugin-validate.ts plugins/focus && bun .claude/tools/aidlc-plugin-test.ts plugins/focus --install . --harness claude",
@@ -31,13 +30,9 @@
     "build:dashboard:webview": "vite build packages/dashboard --mode webview",
     "build:official-docs-media": "bun scripts/copy-official-docs-media.ts",
     "build:docs-index": "bun scripts/build-docs-index.ts",
-    "docs:search": "bun packages/official-docs/src/cli.ts search",
     "build:artifact-map": "bun scripts/build-artifact-map.ts",
     "build:extension": "bun run build:dashboard:webview && bun run build:official-docs-media && bun run --cwd packages/vscode-extension build && bun scripts/build-bundled-plugins.ts --check --out packages/vscode-extension/dist/plugins",
-    "package:extension": "bun run build:extension && bun run --cwd packages/vscode-extension package",
-    "video": "bun packages/doc-video/src/cli.ts",
-    "package:video-pack-ja": "bun run video pack packages/video-pack-ja && bun run --cwd packages/video-pack-ja package",
-    "dashboard": "bun run build:dashboard && bun packages/dashboard-server/src/cli.ts"
+    "package:extension": "bun run build:extension && bun run --cwd packages/vscode-extension package"
   },
   "devDependencies": {
     "@shadcn/lint": "^0.2.3",

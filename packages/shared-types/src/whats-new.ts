@@ -1,7 +1,7 @@
 import type { WhatsNewEntry } from "./onboarding.ts";
 
 /**
- * AIDLC Guide's own user-facing changes, newest first, shown in the 更新情報
+ * Andon's own user-facing changes, newest first, shown in the 更新情報
  * sheet and announced after an update.
  *
  * Entries are keyed by id and date rather than by version: the release
@@ -12,6 +12,24 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  * check. Never rename or reuse a shipped id — stored seen-sets refer to it.
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
+  {
+    id: "renamed-to-andon",
+    date: "2026-10-29",
+    title: "名前を「Andon for AI-DLC」に変えました",
+    body: "AIDLC Guide は「Andon for AI-DLC」（略して Andon）になりました。アンドンは、現場の状態を一目で示し、人の判断が要るときに人を呼ぶ表示灯です。コマンドパレットでは「Andon: Open」のように表示します。拡張はそのまま更新でき、入れ直す必要はありません。",
+  },
+  {
+    id: "unused-features-removed",
+    date: "2026-10-29",
+    title: "使われていない機能を整理しました",
+    body: "ブラウザ版ダッシュボードの提供を終え、拡張だけになりました。「Open in Docs」は常に同梱のドキュメントを開きます（stageDocs / docsBaseUrl は廃止）。State Version 7 の記録は「未対応」と表示します。MCP の用語・ステージ解説ツールは文書の検索・読み取りにまとめました。",
+  },
+  {
+    id: "doc-videos-removed",
+    date: "2026-10-29",
+    title: "ドキュメントの解説動画をなくしました",
+    body: "ドキュメントのページ上部に出ていた解説動画を表示しなくなりました。解説動画パックの拡張を入れている場合は、アンインストールしてかまいません。本文の内容は変わりません。",
+  },
   {
     id: "welcome-screenshots-refresh",
     date: "2026-10-29",
@@ -49,13 +67,13 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
     id: "vscode-theme-colors",
     date: "2026-10-27",
     title: "VS Code のカラーテーマの色で表示します",
-    body: "ダッシュボードとセットアップ・更新の画面を、VS Code で選んでいるカラーテーマの背景・文字・ボタン・リンクの色で描きます。テーマを切り替えると、画面の色もその場で変わります。ブラウザで開くダッシュボードの配色は、これまでどおりです。",
+    body: "ダッシュボードとセットアップ・更新の画面を、VS Code で選んでいるカラーテーマの背景・文字・ボタン・リンクの色で描きます。テーマを切り替えると、画面の色もその場で変わります。",
   },
   {
     id: "update-screen-steps",
     date: "2026-10-27",
     title: "AI-DLC の更新画面を整理しました",
-    body: "いまの状態を 1 行で示し、この PC・このプロジェクト・Guide の対応版の 3 つの版を並べます。やることは手順で示し、押すボタンは 1 つだけです。プロジェクトの更新は、この PC への準備と更新前のチェックから、変わったファイルのコミットまで続けて案内します。",
+    body: "いまの状態を 1 行で示し、この PC・このプロジェクト・Andon の対応版の 3 つの版を並べます。やることは手順で示し、押すボタンは 1 つだけです。プロジェクトの更新は、この PC への準備と更新前のチェックから、変わったファイルのコミットまで続けて案内します。",
   },
   {
     id: "mantine-look",
@@ -74,7 +92,7 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
     id: "manual-engine-update",
     date: "2026-10-22",
     title: "aidlc を手動で新しくしたときの案内を改善しました",
-    body: "この PC の aidlc だけを新しくしても、バージョンを固定したプロジェクトはそのまま使えます。固定していない場合は、更新画面から対応版に固定できます。プロジェクトまで新しくした場合は、対応する Guide があるかと、対応版に戻すコマンドを案内します。プレビュー版も正しく案内します。",
+    body: "この PC の aidlc だけを新しくしても、バージョンを固定したプロジェクトはそのまま使えます。固定していない場合は、更新画面から対応版に固定できます。プロジェクトまで新しくした場合は、対応する Andon があるかと、対応版に戻すコマンドを案内します。プレビュー版も正しく案内します。",
   },
   {
     id: "workflows-2-11-1",
@@ -105,7 +123,7 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
     id: "space-switch",
     date: "2026-10-14",
-    title: "Guide から Space を切り替えられます",
+    title: "Andon から Space を切り替えられます",
     body: "画面上部の Space から、既存の作業スペースと使用するツールを選べます。切り替えると、そのスペースのインテント・成果物・作業時間を読み直します。",
   },
   {
@@ -125,7 +143,7 @@ export const WHATS_NEW: readonly WhatsNewEntry[] = [
     id: "version-check",
     date: "2026-10-09",
     title: "対応版と違うプロジェクトでは更新画面を表示します",
-    body: "プロジェクトやエンジンのバージョンが Guide の対応版（aidlc-workflows 2.11.0）と違う場合、ダッシュボードの代わりに「バージョン確認」の画面を表示し、必要な更新を一つずつ案内します。更新が済むまでは、更新・セットアップ画面、同梱ドキュメント、Doctor と修復だけを使えます。",
+    body: "プロジェクトやエンジンのバージョンが Andon の対応版（aidlc-workflows 2.11.0）と違う場合、ダッシュボードの代わりに「バージョン確認」の画面を表示し、必要な更新を一つずつ案内します。更新が済むまでは、更新・セットアップ画面、同梱ドキュメント、Doctor と修復だけを使えます。",
   },
   {
     id: "remove-sharing-btw",

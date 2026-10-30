@@ -1,6 +1,6 @@
 # Official docs
 
-ドキュメント is the in-app reader for aidlc-workflows official pages and AIDLC Guide extension docs. The landing page is built for reading: a page search (`ページを探す`), a numbered reading order (`はじめて読むなら`), and shelves (`目的から選ぶ`) whose rows open a page directly. Asking the AI sits at the bottom.
+ドキュメント is the in-app reader for aidlc-workflows official pages and Andon extension docs. The landing page is built for reading: a page search (`ページを探す`), a numbered reading order (`はじめて読むなら`), and shelves (`目的から選ぶ`) whose rows open a page directly. Asking the AI sits at the bottom.
 
 ## Sub-features
 
@@ -15,7 +15,7 @@
 
 - Header `メニュー` then `ドキュメント`.
 
-## Driving it with the AIDLC Guide harness
+## Driving it with the Andon harness
 
 Preconditions:
 

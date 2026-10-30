@@ -3,16 +3,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  compareWorkflowsVersion,
   parseAidlcVersionSource,
-  parsePinnedManifest,
   parsePinnedManifestInfo,
   parseUpstreamSha,
   readPinnedManifestInfo,
-  readPinnedVersion,
   readWorkspaceAidlcVersion,
   requiresNativeInstaller,
-  workflowsApplyEnabled,
 } from "../src/workflows-version.ts";
 
 const temps: string[] = [];
@@ -24,14 +20,6 @@ it("routes 2.8 native releases to the official installer instead of a missing di
   expect(requiresNativeInstaller("unknown")).toBe(false);
 });
 
-it("enables the update button for an older 2.8 pin when a harness is present", () => {
-  expect(workflowsApplyEnabled({ kind: "older", workspace: "2.7.1", pin: "2.8.0" }, 1)).toBe(true);
-  expect(workflowsApplyEnabled({ kind: "older", workspace: "2.7.1", pin: "2.8.0" }, 0)).toBe(false);
-  expect(
-    workflowsApplyEnabled({ kind: "current-or-newer", workspace: "2.8.1", pin: "2.8.0" }, 1),
-  ).toBe(false);
-  expect(workflowsApplyEnabled({ kind: "unparseable", raw: "dev", pin: "2.8.0" }, 1)).toBe(false);
-});
 
 afterEach(() => {
   for (const dir of temps.splice(0)) {
@@ -54,40 +42,6 @@ describe("parseAidlcVersionSource", () => {
   it("returns null when the constant is missing or not a semver", () => {
     expect(parseAidlcVersionSource("export const OTHER = '2.6.99';")).toBeNull();
     expect(parseAidlcVersionSource('export const AIDLC_VERSION = "dev";')).toBeNull();
-  });
-});
-
-describe("parsePinnedManifest / readPinnedVersion", () => {
-  it("reads sourceVersion from the official-docs manifest", () => {
-    expect(
-      parsePinnedManifest(
-        JSON.stringify({
-          sourceVersion: "2.6.99",
-          source: "aidlc-workflows",
-          capturedAt: "2026-08-26T02:58:44Z",
-        }),
-      ),
-    ).toBe("2.6.99");
-    expect(parsePinnedManifest("{not-json")).toBeNull();
-    expect(parsePinnedManifest(JSON.stringify({ source: "x" }))).toBeNull();
-  });
-
-  it("reads the packaged docs tree", () => {
-    const docsRoot = tempDir("aidlc-pin-");
-    mkdirSync(join(docsRoot, "docs"), { recursive: true });
-    writeFileSync(
-      join(docsRoot, "docs", "official-docs.manifest.json"),
-      JSON.stringify({
-        sourceVersion: "2.6.99",
-        source: "aidlc-workflows",
-        capturedAt: "2026-08-01T00:00:00Z",
-      }),
-    );
-    expect(readPinnedVersion(docsRoot)).toBe("2.6.99");
-  });
-
-  it("returns null when the manifest is missing", () => {
-    expect(readPinnedVersion(tempDir("aidlc-pin-missing-"))).toBeNull();
   });
 });
 
@@ -203,23 +157,4 @@ describe("readWorkspaceAidlcVersion", () => {
       raw: null,
     });
   });
-});
-
-describe("compareWorkflowsVersion", () => {
-  it("flags only a workspace older than the Guide pin", () => {
-    expect(compareWorkflowsVersion("2.5.0", "2.6.99")).toEqual({
-      kind: "older",
-      workspace: "2.5.0",
-      pin: "2.6.99",
-    });
-    expect(compareWorkflowsVersion("2.6.99", "2.6.99").kind).toBe("current-or-newer");
-    expect(compareWorkflowsVersion("2.7.0", "2.6.99").kind).toBe("current-or-newer");
-  });
-
-  it("treats a missing pin as unparseable rather than an update offer", () => {
-    expect(compareWorkflowsVersion("2.5.0", null).kind).toBe("unparseable");
-    expect(compareWorkflowsVersion(null, "2.6.99")).toEqual({ kind: "missing", pin: "2.6.99" });
-  });
-
-
 });

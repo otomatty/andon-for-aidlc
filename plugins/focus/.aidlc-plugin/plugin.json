@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Jira チケットから要件・設計・Unit 分割・テスト先行・TDD 実装まで進める、Claude Code と Claude Opus 5.5 向けのワークフロー。説明は図解を中心にする。",
   "author": {
-    "name": "AIDLC Guide"
+    "name": "Andon"
   },
   "dependencies": ["core"],
   "aidlc": {

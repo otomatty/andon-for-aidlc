@@ -62,12 +62,6 @@ export interface AppState {
   /** slug → explanation. Fetched on selection and memoised for the session. */
   stageDoc: Record<string, ViewState<StageDoc>>;
   projectLinks: ViewState<ProjectLink[]>;
-  /**
-   * From `aidlc-guide.config.json` — base URL + per-stage overrides for
-   * 「docs を開く」. Empty until `/api/docs-settings` lands.
-   */
-  docsBaseUrl: string | null;
-  stageDocs: Readonly<Record<string, string>>;
   live: LiveSlice;
   theme: Theme;
   onboarding: OnboardingSlice;
@@ -137,8 +131,6 @@ export const initialState: AppState = {
   officialDocsLocale: "ja",
   stageDoc: {},
   projectLinks: { kind: "loading" },
-  docsBaseUrl: null,
-  stageDocs: {},
   live: { connected: false, degraded: false, everConnected: false, reconnects: 0 },
   theme: "light",
   onboarding: {

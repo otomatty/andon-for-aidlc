@@ -518,7 +518,7 @@ describe("parseAgentsDeclaration", () => {
 
 describe("parseReadmeDeclaration", () => {
   const readme = [
-    "# AIDLC Guide",
+    "# Andon",
     "",
     "aidlc-workflows 2.7.0（State Version **8** / 33 ステージ）のためのツールです。",
     "",
@@ -570,7 +570,7 @@ describe("parseReadmeDeclaration", () => {
     // phrase and carries no version. Read as the declaration, it turned a
     // deleted declaration into a bogus "stale pin" finding.
     const prose = [
-      "# AIDLC Guide",
+      "# Andon",
       "",
       "| `README.md` 冒頭の「対応 aidlc-workflows バージョン」行 | 何が古くなるか |",
       "",

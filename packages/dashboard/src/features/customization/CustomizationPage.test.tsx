@@ -18,7 +18,7 @@ it("rejects imports above the shared JSON limit before reading them", async () =
     size: { value: 70 * 1024 * 1024 + 1 },
     text: { value: read },
   });
-  fireEvent.change(screen.getByLabelText("Guide設定ファイル"), { target: { files: [file] } });
+  fireEvent.change(screen.getByLabelText("Andon設定ファイル"), { target: { files: [file] } });
   expect(await screen.findByText("設定ファイルは70 MB以下にしてください。")).toBeTruthy();
   expect(read).not.toHaveBeenCalled();
   expect(analyze).not.toHaveBeenCalled();
@@ -65,7 +65,7 @@ it("passes a Guide export above 25 MB to server validation", async () => {
   const text = JSON.stringify(content);
   const file = new File([text], "export.json", { type: "application/json" });
   Object.defineProperty(file, "text", { value: async () => text });
-  fireEvent.change(screen.getByLabelText("Guide設定ファイル"), { target: { files: [file] } });
+  fireEvent.change(screen.getByLabelText("Andon設定ファイル"), { target: { files: [file] } });
   await waitFor(() => expect(analyze).toHaveBeenCalled());
   expect(analyze.mock.calls[0]?.[0].package).toEqual(content);
 });
@@ -76,10 +76,10 @@ it("explains malformed Guide JSON in Japanese before saving or analyzing the imp
   await openRule();
   const file = new File(["invalid"], "invalid.json", { type: "application/json" });
   Object.defineProperty(file, "text", { value: async () => "invalid" });
-  fireEvent.change(screen.getByLabelText("Guide設定ファイル"), { target: { files: [file] } });
+  fireEvent.change(screen.getByLabelText("Andon設定ファイル"), { target: { files: [file] } });
   expect(
     await screen.findByText(
-      "設定ファイルのJSONを読み取れません。Guideから書き出した有効なJSONファイルを選択してください。",
+      "設定ファイルのJSONを読み取れません。Andonから書き出した有効なJSONファイルを選択してください。",
     ),
   ).toBeTruthy();
   expect(analyze).not.toHaveBeenCalled();

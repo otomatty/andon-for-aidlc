@@ -359,7 +359,7 @@ export default function CustomizationPage({
       content = JSON.parse(text);
     } catch {
       throw new Error(
-        "設定ファイルのJSONを読み取れません。Guideから書き出した有効なJSONファイルを選択してください。",
+        "設定ファイルのJSONを読み取れません。Andonから書き出した有効なJSONファイルを選択してください。",
       );
     }
     importItems.current = view.items;
@@ -530,7 +530,7 @@ export default function CustomizationPage({
         type="file"
         accept=".json,.aidlc-guide.json"
         className="hidden"
-        aria-label="Guide設定ファイル"
+        aria-label="Andon設定ファイル"
         onChange={(event) => {
           const file = event.target.files?.[0];
           event.target.value = "";

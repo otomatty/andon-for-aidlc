@@ -177,7 +177,7 @@ describe("setup webview frame", () => {
       type: "docs",
       harnesses: ["cursor"],
     });
-    expect(view.text()).toContain("AIDLC Guide test-extension");
+    expect(view.text()).toContain("Andon test-extension");
     expect(view.text()).not.toContain("状態を再確認");
     view.dom.window.close();
   });

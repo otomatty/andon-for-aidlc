@@ -11,7 +11,7 @@ const citation: DocsQaCitation = {
   target: { kind: "guide", path: "browser-dashboard.md", locale: "ja" },
   title: "ブラウザー",
   headings: ["ブラウザー"],
-  version: "AIDLC Guide 1.2.3",
+  version: "Andon 1.2.3",
   hash: "a".repeat(64),
   startLine: 3,
   endLine: 3,

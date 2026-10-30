@@ -130,7 +130,7 @@ export async function serve(config: ServeConfig): Promise<RunningServer> {
           result.status === "rejected" ? [result.reason] : [],
         );
         if (errors.length === 1) throw errors[0];
-        if (errors.length > 1) throw new AggregateError(errors, "Failed to stop AIDLC Guide");
+        if (errors.length > 1) throw new AggregateError(errors, "Failed to stop Andon");
       })();
       return stopping;
     },

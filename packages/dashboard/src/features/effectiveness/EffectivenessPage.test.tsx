@@ -548,7 +548,7 @@ describe("effectiveness observations", () => {
 
   it("opens a route exclusive of the other panels and closes on home/stage/docs navigation", () => {
     const open = reducer(
-      { ...initialState, route: { name: "guides" } },
+      { ...initialState, route: { name: "plugins" } },
       { type: "effectiveness", open: true },
     );
     expect(open.route).toEqual({ name: "effectiveness" });

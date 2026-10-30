@@ -37,21 +37,6 @@ export function requiresNativeInstaller(pin: string): boolean {
   return version !== null && (version.major > 2 || (version.major === 2 && version.minor >= 8));
 }
 
-/** Enable the update button for an older or missing workspace that has a detected harness. */
-export function workflowsApplyEnabled(
-  status: WorkflowsVersionStatus,
-  harnessCount: number,
-): boolean {
-  if (harnessCount <= 0) return false;
-  return status.kind === "older" || status.kind === "missing";
-}
-
-export type WorkflowsVersionStatus =
-  | { kind: "older"; workspace: string; pin: string }
-  | { kind: "current-or-newer"; workspace: string; pin: string }
-  | { kind: "unparseable"; raw: string | null; pin: string | null }
-  | { kind: "missing"; pin: string };
-
 export type PinnedManifest = {
   version: string;
   upstreamSha: string | null;
@@ -86,11 +71,6 @@ export function parsePinnedManifestInfo(json: string): PinnedManifest | null {
   return { version: trimmed, upstreamSha: parseUpstreamSha(record.upstreamSha) };
 }
 
-/** The pinned `AIDLC_VERSION` alone; see {@link parsePinnedManifestInfo}. */
-export function parsePinnedManifest(json: string): string | null {
-  return parsePinnedManifestInfo(json)?.version ?? null;
-}
-
 /** Read the packaged docs manifest; null when it is missing or unparseable. */
 export function readPinnedManifestInfo(docsRoot: string): PinnedManifest | null {
   const file = path.join(docsRoot, OFFICIAL_DOCS_MANIFEST_REL);
@@ -100,11 +80,6 @@ export function readPinnedManifestInfo(docsRoot: string): PinnedManifest | null 
   } catch {
     return null;
   }
-}
-
-/** The version this Guide is built against — the pin a workspace is compared to. */
-export function readPinnedVersion(docsRoot: string): string | null {
-  return readPinnedManifestInfo(docsRoot)?.version ?? null;
 }
 
 export function readWorkspaceAidlcVersion(workspaceRoot: string): WorkspaceAidlcVersion {
@@ -123,25 +98,4 @@ export function readWorkspaceAidlcVersion(workspaceRoot: string): WorkspaceAidlc
     }
   }
   return oldest;
-}
-
-export function compareWorkflowsVersion(
-  workspace: string | null,
-  pin: string | null,
-): WorkflowsVersionStatus {
-  if (pin === null || parseSemver(pin) === null) {
-    return { kind: "unparseable", raw: workspace, pin };
-  }
-  if (workspace === null) {
-    return { kind: "missing", pin };
-  }
-  const workspaceSemver = parseSemver(workspace);
-  const pinSemver = parseSemver(pin);
-  if (workspaceSemver === null || pinSemver === null) {
-    return { kind: "unparseable", raw: workspace, pin };
-  }
-  if (compareSemver(workspaceSemver, pinSemver) < 0) {
-    return { kind: "older", workspace, pin };
-  }
-  return { kind: "current-or-newer", workspace, pin };
 }

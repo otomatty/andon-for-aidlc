@@ -20,7 +20,6 @@ export function workflow(over: Partial<WorkflowModel> = {}): WorkflowModel {
     scope: "feature",
     depth: "practical",
     stateVersion: 8,
-    schemaCompatibility: "current",
     phase: "CONSTRUCTION",
     currentStage: null,
     nextStage: null,

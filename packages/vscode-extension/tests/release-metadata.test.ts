@@ -86,7 +86,7 @@ describe("updateConfirmDetail with a supported-release change", () => {
   it("leads with what the person must do afterwards", () => {
     const detail = updateConfirmDetail("0.40.0", ["修正"], { from: "2.10.0", to: "2.11.0" });
     expect(detail?.split("\n")[0]).toBe(
-      "この更新後は、プロジェクトの aidlc-workflows を 2.10.0 から 2.11.0 に更新するまで AIDLC Guide を使えません。",
+      "この更新後は、プロジェクトの aidlc-workflows を 2.10.0 から 2.11.0 に更新するまで Andon を使えません。",
     );
     expect(detail).toContain("リポジトリへのコミットが必要です");
     expect(detail).toContain("今は更新しない場合は、このダイアログを閉じてください。");
@@ -96,8 +96,8 @@ describe("updateConfirmDetail with a supported-release change", () => {
   it("warns that compatibility was not checked when the metadata could not be read", () => {
     const detail = updateConfirmDetail("0.40.0", ["修正"], "unverified");
     expect(detail?.split("\n").slice(0, 2)).toEqual([
-      "新しい AIDLC Guide が対応する aidlc-workflows の版を確認できませんでした。",
-      "対応する版が変わっていた場合、更新後はプロジェクトの aidlc-workflows を更新するまで AIDLC Guide を使えません。",
+      "新しい Andon が対応する aidlc-workflows の版を確認できませんでした。",
+      "対応する版が変わっていた場合、更新後はプロジェクトの aidlc-workflows を更新するまで Andon を使えません。",
     ]);
     expect(detail).toContain("今は更新しない場合は、このダイアログを閉じてください。");
     expect(detail).toContain("0.40.0 の主な変更:\n・修正");

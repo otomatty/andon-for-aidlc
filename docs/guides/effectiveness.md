@@ -58,7 +58,7 @@ API は互換性のためレビュー・利用量の集計項目を保持し、`
 
 ## 別のリポジトリの記録をブラウザで確認する
 
-Dashboard を AIDLC Guide 側でビルドしてから、記録を読みたいリポジトリへ移動してサーバーを起動します。PowerShell の例です。2つのパスを手元のチェックアウトに置き換えてください。
+Dashboard を Andon 側でビルドしてから、記録を読みたいリポジトリへ移動してサーバーを起動します。PowerShell の例です。2つのパスを手元のチェックアウトに置き換えてください。
 
 ```powershell
 $guideRepo = "C:\src\aidlc-guide"
@@ -72,4 +72,4 @@ bun "$guideRepo/packages/dashboard-server/src/cli.ts" --port 4700
 
 [ローカルの Dashboard](http://127.0.0.1:4700) を開き、ヘッダーの「効果測定」を選びます。サーバーを起動した作業ディレクトリが参照対象です。`aidlc/` 自体や案件ディレクトリではなく、その親のリポジトリルートから起動してください。対象に案件の記録がなければ「計測対象の案件がありません」と表示します。
 
-画面のコードを変更した場合は、AIDLC Guide 側で `bun run build:dashboard` を再実行してブラウザを更新します。サーバーは `Ctrl+C` で停止できます。
+画面のコードを変更した場合は、Andon 側で `bun run build:dashboard` を再実行してブラウザを更新します。サーバーは `Ctrl+C` で停止できます。

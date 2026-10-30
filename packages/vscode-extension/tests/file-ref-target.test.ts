@@ -1,6 +1,6 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { docTarget, fileRefTarget, isInside, rankCandidates } from "../src/file-ref-target.ts";
+import { fileRefTarget, isInside, rankCandidates } from "../src/file-ref-target.ts";
 
 /**
  * The trust boundary between the webview and the filesystem. The dashboard
@@ -98,27 +98,5 @@ describe("isInside", () => {
     expect(isInside(ROOT, ROOT)).toBe(false);
     expect(isInside(ROOT, path.resolve(ROOT, ".."))).toBe(false);
     expect(isInside(ROOT, path.join(ROOT, "packages"))).toBe(true);
-  });
-});
-
-describe("docTarget — the open-doc trust boundary", () => {
-  // Negative cases first: the gate has to demonstrably stop escapes before
-  // the happy path means anything.
-  it.each([
-    ["", "empty"],
-    ["/etc/passwd", "absolute"],
-    ["../secrets.md", "escapes"],
-    ["./../secrets.md", "escapes after ./ strip"],
-    ["docs/../../secrets.md", "escapes through an interior .."],
-    ["docs\\guide.md", "backslash (not the POSIX wire dialect)"],
-  ])("refuses %s (%s)", (cited) => {
-    expect(docTarget(ROOT, cited)).toBe(null);
-  });
-
-  it("resolves a contained doc path against the docs root", () => {
-    expect(docTarget(ROOT, "reference/01-architecture.md")).toBe(
-      path.resolve(ROOT, "reference/01-architecture.md"),
-    );
-    expect(docTarget(ROOT, "./guide/README.md")).toBe(path.resolve(ROOT, "guide/README.md"));
   });
 });

@@ -117,12 +117,12 @@ export async function applyNativeWorkflowsUpdate(opts: {
   const blocked = nativeUpdateBlockReason(opts.pin);
   if (blocked === "pin-ahead") {
     opts.log(
-      `この Guide の想定バージョン ${opts.pin} は、拡張が導入できる本体 ${SETUP_RELEASE} より新しいため、自動更新はできません。公式手順から手動で更新してください。`,
+      `Andon の想定バージョン ${opts.pin} は、拡張が導入できる本体 ${SETUP_RELEASE} より新しいため、自動更新はできません。公式手順から手動で更新してください。`,
     );
     return { ok: false, reason: blocked, target: opts.pin };
   }
   if (blocked !== null) {
-    opts.log("Guide の想定バージョンが読めません。公式手順から手動で更新してください。");
+    opts.log("Andon の想定バージョンが読めません。公式手順から手動で更新してください。");
     return { ok: false, reason: blocked, target: opts.pin };
   }
   const target = SETUP_RELEASE;

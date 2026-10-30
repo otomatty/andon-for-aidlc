@@ -1,4 +1,4 @@
-# AIDLC Guide verification map
+# Andon verification map
 
 This directory is the maintained source for verifying user-facing Dashboard behavior. Read the index before driving the app, then use the matching feature file as the recipe.
 
@@ -31,7 +31,7 @@ Each feature file starts with an H1 title and one paragraph describing the user-
 
 1. `Sub-features` lists short IDs with one line for each behavior.
 2. `How to get to it (user POV)` lists every user entry point.
-3. `Driving it with the AIDLC Guide harness` starts with `Preconditions:` and uses labeled bullets that pair each user action with an exact control and observable result.
+3. `Driving it with the Andon harness` starts with `Preconditions:` and uses labeled bullets that pair each user action with an exact control and observable result.
 4. `Gotchas` lists traps that can waste or invalidate a verification run.
 
 Keep implementation details out of the map. Name only user paths, stable handles, required state, commands, and observable proof.

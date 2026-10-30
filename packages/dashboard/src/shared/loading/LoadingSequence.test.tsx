@@ -1,26 +1,11 @@
 import type { EffectivenessPayload, ReadResult } from "@aidlc-guide/shared-types";
 import { act, fireEvent, render, screen } from "@tests/render.tsx";
-import { lazy, StrictMode, type ComponentType } from "react";
+import { lazy, StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import EffectivenessPanel from "@/features/effectiveness/EffectivenessPage.tsx";
-import { GuidesPanel } from "@/features/guides/GuidesPage.tsx";
 import { LoadingSuspense } from "@/shared/loading/LoadingSequence.tsx";
 import { EffectivenessSkeleton } from "@/features/effectiveness/components/EffectivenessSkeleton.tsx";
 import { StoreProvider } from "@/store/context.tsx";
-
-const markdown = vi.hoisted(() => {
-  let resolve!: (value: { default: ComponentType }) => void;
-  return {
-    promise: new Promise<{ default: ComponentType }>((done) => {
-      resolve = done;
-    }),
-    resolve: (value: { default: ComponentType }) => resolve(value),
-  };
-});
-vi.mock("@/viewer/lazy-markdown.ts", async () => {
-  const { lazy } = await import("react");
-  return { MarkdownSurface: lazy(() => markdown.promise) };
-});
 
 afterEach(() => {
   vi.useRealTimers();
@@ -101,38 +86,4 @@ describe("continuous loading", () => {
       expect(screen.getByText("読み込みエラー")).toBeTruthy();
     },
   );
-
-  it("keeps the guide's data skeleton visible through the Markdown chunk load", async () => {
-    vi.useFakeTimers();
-    const guide = deferred<unknown>();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string) =>
-        Response.json(
-          url === "/api/guides"
-            ? { ok: true, value: [{ name: "start.md", title: "ガイド" }] }
-            : await guide.promise,
-        ),
-      ),
-    );
-    render(
-      <StoreProvider preloaded={{ route: { name: "guides" } }}>
-        <GuidesPanel />
-      </StoreProvider>,
-    );
-    await act(async () => vi.advanceTimersByTime(300));
-    const name = "ガイド本文を読み込み中";
-    expect(screen.getByRole("status", { name })).toBeTruthy();
-    await act(async () => {
-      guide.resolve({ ok: true, value: { title: "ガイド", markdown: "本文" } });
-    });
-    expect(screen.getByRole("status", { name })).toBeTruthy();
-    await act(async () => vi.advanceTimersByTime(100));
-    expect(screen.getByRole("status", { name })).toBeTruthy();
-    await act(async () => {
-      markdown.resolve({ default: () => <p>本文を表示しました</p> });
-    });
-    expect(screen.getByText("本文を表示しました")).toBeTruthy();
-    expect(screen.queryByRole("status", { name })).toBeNull();
-  });
 });

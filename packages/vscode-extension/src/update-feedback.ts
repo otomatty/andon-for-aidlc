@@ -50,11 +50,11 @@ export function applyFailureMessage(result: Exclude<ApplyReleaseResult, { ok: tr
 }
 
 export function applySuccessMessage(version: string): string {
-  return `AIDLC Guide ${version} への更新が完了しました。新しいバージョンを有効にするには、ウィンドウを再読み込みしてください。`;
+  return `Andon ${version} への更新が完了しました。新しいバージョンを有効にするには、ウィンドウを再読み込みしてください。`;
 }
 
 export function applyProgressTitle(version: string): string {
-  return `AIDLC Guide ${version} を更新しています…`;
+  return `Andon ${version} を更新しています…`;
 }
 
 export async function presentApplyResult(
@@ -114,9 +114,9 @@ export function projectUnsupportedNotice(
   preview: boolean,
 ): string {
   const lead = preview
-    ? `AIDLC Guide は aidlc-workflows のプレビュー版（${projectVersion}）に対応しません。最新の AIDLC Guide ${current} が対応するのは ${target} です。`
-    : `最新の AIDLC Guide ${current} は、まだ aidlc-workflows ${projectVersion} に対応していません。`;
-  return `${lead}対応する Guide が出るまで、このプロジェクトでは Guide を使えません。${target} に戻す方法は、Guide の更新の案内で確認できます。`;
+    ? `Andon は aidlc-workflows のプレビュー版（${projectVersion}）に対応しません。最新の Andon ${current} が対応するのは ${target} です。`
+    : `最新の Andon ${current} は、まだ aidlc-workflows ${projectVersion} に対応していません。`;
+  return `${lead}対応する Andon が出るまで、このプロジェクトでは Andon を使えません。${target} に戻す方法は、Andon の更新の案内で確認できます。`;
 }
 
 function projectLead(project: ProjectSupport, change: WorkflowsChange): string[] {
@@ -124,19 +124,19 @@ function projectLead(project: ProjectSupport, change: WorkflowsChange): string[]
     return [`この更新で、プロジェクトの aidlc-workflows ${project.version} に対応します。`];
   if (project.supported === "partial")
     return [
-      `この更新の対応版は ${project.target ?? project.version} ですが、このプロジェクトには、それと異なるバージョンのツールや固定バージョン、読めないファイルも残っています。更新後に Guide の案内に従ってプロジェクトを整えるまで、AIDLC Guide を使えません。`,
+      `この更新の対応版は ${project.target ?? project.version} ですが、このプロジェクトには、それと異なるバージョンのツールや固定バージョン、読めないファイルも残っています。更新後に Andon の案内に従ってプロジェクトを整えるまで、Andon を使えません。`,
       "プロジェクトの更新で変わるファイルは、リポジトリへのコミットが必要です。",
     ];
   if (project.supported === "unverified")
     return [
-      "新しい AIDLC Guide が対応する aidlc-workflows の版を確認できませんでした。",
+      "新しい Andon が対応する aidlc-workflows の版を確認できませんでした。",
       `プロジェクトの aidlc-workflows ${project.version} に対応しているかは、更新後の画面で確認できます。`,
     ];
   const to = change !== null && change !== "unverified" ? change.to : null;
   return [
     to === null
-      ? `この更新の対応版は変わりません。プロジェクトの aidlc-workflows ${project.version} にはまだ対応していないため、更新後も AIDLC Guide を使えません。`
-      : `この更新の対応版は ${to} です。プロジェクトの aidlc-workflows ${project.version} にはまだ対応していないため、更新後も AIDLC Guide を使えません。`,
+      ? `この更新の対応版は変わりません。プロジェクトの aidlc-workflows ${project.version} にはまだ対応していないため、更新後も Andon を使えません。`
+      : `この更新の対応版は ${to} です。プロジェクトの aidlc-workflows ${project.version} にはまだ対応していないため、更新後も Andon を使えません。`,
   ];
 }
 
@@ -162,11 +162,11 @@ export function updateConfirmDetail(
       ? null
       : workflowsChange === "unverified"
         ? [
-            "新しい AIDLC Guide が対応する aidlc-workflows の版を確認できませんでした。",
-            "対応する版が変わっていた場合、更新後はプロジェクトの aidlc-workflows を更新するまで AIDLC Guide を使えません。",
+            "新しい Andon が対応する aidlc-workflows の版を確認できませんでした。",
+            "対応する版が変わっていた場合、更新後はプロジェクトの aidlc-workflows を更新するまで Andon を使えません。",
           ]
         : [
-            `この更新後は、プロジェクトの aidlc-workflows を ${workflowsChange.from} から ${workflowsChange.to} に更新するまで AIDLC Guide を使えません。`,
+            `この更新後は、プロジェクトの aidlc-workflows を ${workflowsChange.from} から ${workflowsChange.to} に更新するまで Andon を使えません。`,
           ];
   // A project already ahead needs no project update from this Guide, only to know whether it unblocks.
   const warning =

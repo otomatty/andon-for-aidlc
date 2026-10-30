@@ -1,5 +1,4 @@
 #!/usr/bin/env bun
-import { createBridge } from "@aidlc-guide/docs-bridge";
 import { bundledDocsRoot } from "@aidlc-guide/official-docs";
 import { createReader, resolveRecordDir } from "@aidlc-guide/reader-core";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -8,8 +7,6 @@ import { z } from "zod";
 import { DOCS_INSTRUCTIONS, registerDocsTools } from "./docs-tools.ts";
 import { type ToolReply, toContent } from "./render.ts";
 import { safeHandler } from "./safe.ts";
-import { EXPLAIN_STAGE_DESCRIPTION, explainStage } from "./tools/explain-stage.ts";
-import { GLOSSARY_DESCRIPTION, glossary } from "./tools/glossary.ts";
 import { NEXT_STEPS_DESCRIPTION, nextSteps } from "./tools/next-steps.ts";
 import { READ_ARTIFACT_DESCRIPTION, readArtifact } from "./tools/read-artifact.ts";
 import { STATUS_DESCRIPTION, status } from "./tools/status.ts";
@@ -20,8 +17,8 @@ import { gated, workspaceGate } from "./version-gate.ts";
  * package knows; there is no HTTP/SSE code path to disable).
  *
  * Startup touches no filesystem: `createReader` re-resolves the record on every
- * call and `createBridge` loads its config lazily, so an uninitialised
- * workspace still yields a *running* server whose tools explain the situation
+ * call, so an uninitialised workspace still yields a *running* server whose
+ * tools explain the situation
  * (R-MS-3), rather than a spawn failure Claude Code reports as a broken
  * integration.
  */
@@ -35,7 +32,6 @@ function main(): Promise<void> {
   // Claude Code spawns MCP servers with cwd = project root (business-logic-model.md).
   const workspaceRoot = process.cwd();
   const reader = createReader(workspaceRoot);
-  const bridge = createBridge();
   const recordDir = () => resolveRecordDir(workspaceRoot);
 
   const safe = <A extends unknown[]>(fn: (...args: A) => Promise<ToolReply>) =>
@@ -62,20 +58,6 @@ function main(): Promise<void> {
   );
 
   server.registerTool(
-    "aidlc_explain_stage",
-    {
-      title: "AI-DLC ステージ解説",
-      description: EXPLAIN_STAGE_DESCRIPTION,
-      inputSchema: {
-        slug: z.string().min(1).describe("ステージ slug（例: requirements-analysis）"),
-      },
-    },
-    gated(check, async ({ slug }: { slug: string }) =>
-      toContent(await safe(explainStage)(bridge, workspaceRoot, slug)),
-    ),
-  );
-
-  server.registerTool(
     "aidlc_read_artifact",
     {
       title: "AI-DLC 成果物の読取",
@@ -86,18 +68,6 @@ function main(): Promise<void> {
     },
     gated(check, async ({ path: relPath }: { path: string }) =>
       toContent(await safe(readArtifact)(reader, workspaceRoot, recordDir, relPath)),
-    ),
-  );
-
-  server.registerTool(
-    "aidlc_glossary",
-    {
-      title: "AI-DLC 用語集",
-      description: GLOSSARY_DESCRIPTION,
-      inputSchema: { term: z.string().min(1).describe("引きたい用語（英語 slug / 日本語）") },
-    },
-    gated(check, async ({ term }: { term: string }) =>
-      toContent(await safe(glossary)(bridge, workspaceRoot, term)),
     ),
   );
 

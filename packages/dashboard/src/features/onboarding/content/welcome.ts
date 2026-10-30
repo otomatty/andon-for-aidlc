@@ -34,7 +34,7 @@ export interface WelcomeFeature extends WelcomeShot {
 export const SHOT_WIDTH = 1536;
 export const SHOT_HEIGHT = 960;
 
-export const CAPTURED_ON = "2026年10月29日";
+export const CAPTURED_ON = "2026年10月30日";
 
 export const BASICS: readonly WelcomeShot[] = [
   {
@@ -75,7 +75,7 @@ export const MORE: readonly WelcomeFeature[] = [
       "進め方や用語、AI-DLCの運用Tipsを調べられます。対応するAIツールで、文書について質問することもできます。",
     where: "右上のメニューの「ドキュメント」から開きます。",
     what: "「ページを探す」でページ名から探せます。初めてなら「はじめて読むなら」を上から順に読み、目的別のカードからページを直接開けます。見つからないときは「AIに質問する」から、チャット画面で内蔵の文書をもとにAIへ質問できます。",
-    alt: "質問欄と、ワークフロー・拡張機能のドキュメントへの入口を並べたドキュメント画面",
+    alt: "ページの検索、はじめて読む順のページ、AIに質問するボタンを並べたドキュメント画面",
     open: "ドキュメントを開く",
   },
   {
@@ -88,7 +88,6 @@ export const MORE: readonly WelcomeFeature[] = [
     where: "右上のメニューの「プラグイン」から開きます。",
     what: "導入前に、必要な準備と、変わるステージ・成果物の図の例を確認できます。導入したプラグインは無効にすることもできます。",
     alt: "focus プラグインの導入状態と導入ボタン、変わるステージの一覧を表示したプラグイン画面",
-    note: "導入ボタンは VS Code / Cursor の拡張の中でだけ表示します。ブラウザ版の Dashboard では内容の確認だけができます。",
     open: "プラグインを開く",
   },
   {

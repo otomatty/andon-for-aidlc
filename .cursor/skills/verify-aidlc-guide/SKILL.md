@@ -1,11 +1,11 @@
 ---
 name: verify-aidlc-guide
-description: Drive the AIDLC Guide dashboard the way a user does (local dashboard-server SPA in a browser). Use when proving a UI change, reproducing a dashboard bug, or checking Now strip, docs, settings, or effectiveness against the real app — not unit tests.
+description: Drive the Andon dashboard the way a user does (local dashboard-server SPA in a browser). Use when proving a UI change, reproducing a dashboard bug, or checking Now strip, docs, settings, or effectiveness against the real app — not unit tests.
 ---
 
-# Verify AIDLC Guide
+# Verify Andon
 
-Primary user surface is the VS Code / Cursor extension webview. Agents cannot drive that host reliably. The same Dashboard SPA is served by `bun run dashboard` / `packages/dashboard-server`. **Verify against that local server**, from the repo root, in a browser. Header destinations always live in the waffle menu (`header-menu-trigger`); width does not change the nav shape.
+Primary user surface is the VS Code / Cursor extension webview. Agents cannot drive that host reliably. The same Dashboard SPA is served by the development-only `packages/dashboard-server` (not offered to users; there is no `bun run dashboard` script). **Verify against that local server**, from the repo root, in a browser. Header destinations always live in the waffle menu (`header-menu-trigger`); width does not change the nav shape.
 
 Other surfaces, not this skill's default drive path:
 
@@ -23,7 +23,7 @@ bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts launch
 That command is idempotent. It starts `packages/dashboard-server/src/cli.ts --port 0` with `cwd` = repo root (so it reads this checkout's `aidlc/`). It builds `packages/dashboard` when `dist/index.html` or a referenced `/assets/*` file is missing. After Dashboard UI source changes, run `bun run build:dashboard` yourself before `launch`, or you will drive a stale SPA. Waits for:
 
 ```text
-AIDLC Guide dashboard: http://127.0.0.1:<port>
+Andon dashboard: http://127.0.0.1:<port>
 ```
 
 and writes `.cursor/skills/verify-aidlc-guide/.run.json` atomically (temp file, then replace). The child stays referenced until that write succeeds; a persist failure, a missed ready line, or a missing start key kills the spawn handle and waits for that pid (SIGKILL if SIGTERM is ignored) so `stop` is not left without a record. `launch` reuses that pid only when the origin is still this SPA **and** a fingerprint of `packages/dashboard-server`, `api-core`, `reader-core`, `docs-bridge`, `official-docs`, `core-utils`, and `shared-types` sources — plus each of those `package.json` files, `docs-bridge/data` (`agent-map.json`, `artifact-map.json`, `bridge-map.json`), and the workspace `bun.lock` — still matches (path + size + mtime of every file, so deletions and dependency resolution changes both force a respawn; Bun does not reload them). A truncated or malformed `.run.json` is not treated as absent: `launch` / `doctor` / `origin` / `stop` fail and leave the file so a still-running pid is not orphaned. The server binds `127.0.0.1` only. Never start on the default `4700` unless this harness printed that port. Print `origin` from the JSON; do not guess.
@@ -42,7 +42,7 @@ bun .cursor/skills/verify-aidlc-guide/scripts/harness.ts doctor
 
 Pass only when all of these hold:
 
-- `.run.json` exists, is readable JSON with a `pid` and `origin`, that pid is still alive, **and** `{origin}` still serves this Dashboard SPA (`AIDLC Guide` + `#root`). A live PID alone is not enough — the OS may have reused it. `doctor` / `origin` / `launch` reuse also require the stored OS start identity to still match that pid. Malformed JSON is an error, not a missing run.
+- `.run.json` exists, is readable JSON with a `pid` and `origin`, that pid is still alive, **and** `{origin}` still serves this Dashboard SPA (`Andon` + `#root`). A live PID alone is not enough — the OS may have reused it. `doctor` / `origin` / `launch` reuse also require the stored OS start identity to still match that pid. Malformed JSON is an error, not a missing run.
 - `GET {origin}/` is 200 and the HTML includes `id="root"` (SPA, not API-only) **and** each bundled `/assets/*` reference returns 200 with a non-HTML content type (the static server falls back to `index.html` for unknown paths, so a 200 HTML body is a missing bundle, not a healthy asset). Connection refusal, a hung header/body read (8s abort), or a non-HTML body fails as `{ ok: false }` JSON, not an uncaught exception. `launch` reuse uses the same deadline; `stop` does not require a healthy origin.
 - `GET {origin}/api/workflow` is 200 JSON that is one of: a `{ workflow, nextStep }` payload; a typed `{ error: true, reason: string }` (`no-selected-intent`, `no-active-intent`, `state-missing`, …); or `{ unsupported: true, version }` when the workspace state version is not current. HTTP 200 with any of those bodies is still a healthy instance; a dead port, non-JSON, or `{ error: true }` without `reason` is not. This checkout gitignores `active-intent`, so a fresh server often returns `no-selected-intent` until the Intent picker pins one.
 
@@ -92,7 +92,7 @@ Write under the run's `evidenceDir` from `launch` / `doctor` JSON (`.cursor/skil
 Proof standards:
 
 - Exercise the real click path. A green `bun test` or a raw `GET /api/workflow` without opening the SPA is not Dashboard proof.
-- Capture the action and the resulting state: accessibility snapshot (or equivalent role dump) **and** a screenshot that shows the `AIDLC Guide` shell (`app-shell`, header or Now strip).
+- Capture the action and the resulting state: accessibility snapshot (or equivalent role dump) **and** a screenshot that shows the `Andon` shell (`app-shell`, header or Now strip).
 - Save `GET {origin}/api/workflow` JSON next to the screenshot when the claim is about the current stage, scope, or completion counts — that is the second view of the stored workflow, not a mock.
 - Name files `{feature-id}-{step}.{png|aria.txt|json}`. Record the feature id and entry point in a short `PROOF.md` in the same folder.
 

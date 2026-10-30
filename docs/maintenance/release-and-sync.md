@@ -116,7 +116,7 @@ jq '.version="0.2.1"' packages/vscode-extension/package.json > tmp && mv tmp pac
 
 Doctor の対応版は [doctor-compatibility.json](../../packages/vscode-extension/data/doctor-compatibility.json) から導出します。導入対象には 3 OS 各 9 ケースの実採取が必要です。通常・警告・異常をコピー版とネイティブ版で確認し、コピー版では Bun の PATH 案内、JSON に出ない追加警告、Kiro の provider 診断も確認します。旧 2.8.x の組み立てた例は legacy として区別し、新版の証跡には流用しません。
 
-[doctor-contract.yml](../../.github/workflows/doctor-contract.yml) は公式タグから再採取します。上流の診断データと追加警告から期待値を作り、Guide の解析結果・件数・終了コード・訳と照合します。期待値を Guide の parser から生成しません。未知の行、未翻訳の診断、関連ソースの変更は失敗としてレポートします。`core/tools` の全 TypeScript / JSON を比較するため、採取ケースが通らない分岐の変更も要確認になります。版定数の値だけは別の版検査で確認します。
+[doctor-contract.yml](../../.github/workflows/doctor-contract.yml) は公式タグから再採取します。上流の診断データと追加警告から期待値を作り、Andon の解析結果・件数・終了コード・訳と照合します。期待値を Andon の parser から生成しません。未知の行、未翻訳の診断、関連ソースの変更は失敗としてレポートします。`core/tools` の全 TypeScript / JSON を比較するため、採取ケースが通らない分岐の変更も要確認になります。版定数の値だけは別の版検査で確認します。
 
 採取物（artifact）を手元に取得できない環境では、作業ブランチで [doctor-record.yml](../../.github/workflows/doctor-record.yml) を手動実行します。doctor-contract で採取したあと、`record` ジョブが `record-doctor-candidate.ts --all-platforms` で検査・登録し、そのブランチにコミットします。3 OS すべての採取物がそろわない場合は登録しません。main では動かず、書き込み権限はこのジョブだけが持ちます。上流の実行ファイルは動かしません。
 

@@ -11,7 +11,7 @@ MCP はワークフロー状態を進めたり、インテントを切り替え�
 
 ## 準備（MCP）
 
-1. [はじめに](./getting-started.md) の Setup、または **`AIDLC Guide: Register MCP`**
+1. [はじめに](./getting-started.md) の Setup、または **`Andon: Register MCP`**
 2. プロジェクトルートの `.mcp.json` に `aidlc-guide` が入っていることを確認
 3. Claude Code を再起動し、`/mcp` で `aidlc-guide` が見えること
 4. `bun` が PATH にあること（サーバは `bun run packages/mcp-server/...` で起動する）
@@ -33,15 +33,13 @@ MCP はワークフロー状態を進めたり、インテントを切り替え�
 
 ## MCP ツール（何を聞くか）
 
-| ツール                | 質問の例                                          |
-| --------------------- | ------------------------------------------------- |
-| `aidlc_status`        | 今どのフェーズ / ステージ / ゲートか              |
-| `aidlc_next_steps`    | 次のステージと、人間に求められること              |
-| `aidlc_explain_stage` | `code-generation` とは何をする段階か（slug 指定） |
-| `aidlc_read_artifact` | レコード相対パスの成果物本文                      |
-| `aidlc_glossary`      | 「Bolt」「Gate」などの用語                        |
+| ツール                | 質問の例                             |
+| --------------------- | ------------------------------------ |
+| `aidlc_status`        | 今どのフェーズ / ステージ / ゲートか |
+| `aidlc_next_steps`    | 次のステージと、人間に求められること |
+| `aidlc_read_artifact` | レコード相対パスの成果物本文         |
 
-応答は日本語テキスト + 構造化 JSON です。`explain_stage` / `glossary` は docs-bridge の原文をそのまま返します（サーバ側で要約しません）。
+応答は日本語テキスト + 構造化 JSON です。ステージの解説や「Bolt」「Gate」などの用語は、文書ツール（`aidlc_docs_search` / `aidlc_docs_read`）で同梱ドキュメントから引きます（[文書への質問ガイド](asking-aidlc.md)）。
 
 ## うまくいかないとき
 
@@ -55,4 +53,3 @@ MCP はワークフロー状態を進めたり、インテントを切り替え�
 ## 次に読む
 
 - 画面で成果物を追う → [Dashboard で現在地と成果物を読む](./reading-workflow.md)
-- 自分のブラウザで見る → [ブラウザの Dashboard](./browser-dashboard.md)

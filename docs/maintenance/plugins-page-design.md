@@ -40,7 +40,7 @@ VSIX に AI-DLC のプラグイン（最初は `focus`）を同梱し、ダッ�
 | `onClick` | `dispatch({ type: "plugins", open: true })`                     |
 | ルート    | `{ name: "plugins" }`（`packages/dashboard/src/app/routes.ts`） |
 
-コマンドパレットにも `aidlc-guide.openPlugins`（`AIDLC Guide: Open Plugins`）を足し、ダッシュボードを開いてこの画面へ移る（段階 2。ダッシュボードを開いたときの画面の指定は、いまは「はじめに」と「更新情報」用の仕組みしかないため、拡張側に手を入れる段階 2 で足す）。
+コマンドパレットにも `aidlc-guide.openPlugins`（`Andon: Open Plugins`）を足し、ダッシュボードを開いてこの画面へ移る（段階 2。ダッシュボードを開いたときの画面の指定は、いまは「はじめに」と「更新情報」用の仕組みしかないため、拡張側に手を入れる段階 2 で足す）。
 
 ### 一覧
 
@@ -126,7 +126,7 @@ bun .claude/tools/aidlc-plugin-build.ts plugins/focus claude packages/vscode-ext
 ```
 
 - ネットワークは使わない。リリースの CI（`bun` だけを入れる）でもそのまま動く。
-- bun を使うのは Guide のビルドのときだけ（開発時の作業）。利用者のプロジェクトには bun は要らない。
+- bun を使うのは Andon のビルドのときだけ（開発時の作業）。利用者のプロジェクトには bun は要らない。
 - `!dist/**` が `.vscodeignore` で残るため、VSIX に入る。
 - 出力は `.claude-plugin/plugin.json`、`hooks/compose.ts`、`stages/` などのプラグインの出力一式。`tests/` と `README.md` は入らない。
 - 大きさは 1 プラグインで約 0.5 MB。VSIX の大きさの上限は設けない（NFR が予算を決めるまで）。
@@ -152,7 +152,7 @@ bun .claude/tools/aidlc-plugin-build.ts plugins/focus claude packages/vscode-ext
 ファイル一覧は `.claude/` の中だけにする。`engine plugin select` は AI-DLC の記録（`aidlc/`）に選択を変えた記録を 1 行書くが、
 そのファイル名はマシンごとに違うため、一覧には載せず、画面で文章で伝える。
 
-`listing.json` は Guide のための表示情報で、プラグインの `sourceHash` の対象外（`agents`・`stages` などの外）に置く。
+`listing.json` は Andon のための表示情報で、プラグインの `sourceHash` の対象外（`agents`・`stages` などの外）に置く。
 
 ```json
 {
@@ -250,7 +250,7 @@ bun .claude/tools/aidlc-plugin-build.ts plugins/focus claude packages/vscode-ext
 
 ## 既存の制約との関係
 
-- **読み取り専用の原則:** Guide は `aidlc/` と `.claude/` に直接書き込まない。書き込みはエンジンの CLI が、エンジンの手順（ロック・取り消し・監査の記録）で行う。セットアップ・更新・カスタマイズの保存と同じ扱いで、利用者が画面で操作したときだけ動く。
+- **読み取り専用の原則:** Andon は `aidlc/` と `.claude/` に直接書き込まない。書き込みはエンジンの CLI が、エンジンの手順（ロック・取り消し・監査の記録）で行う。セットアップ・更新・カスタマイズの保存と同じ扱いで、利用者が画面で操作したときだけ動く。
 - **出荷ランタイム:** 追加するのはプラグインの出力（Markdown と、エンジンが動かす TypeScript）だけで、拡張の実行時ランタイムは増えない。
 - **パス:** すべて `node:path` / `vscode.Uri` で組み立てる。
 - **パッケージ衛生:** 同梱物に秘密情報・`.env`・`aidlc/` の実行時状態が入らないことをテストで確かめる。

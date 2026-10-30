@@ -348,7 +348,7 @@ ${webviewPageStyles}
   .note { padding: 12px 16px; border-radius: 8px; background: var(--m-warning-light); }
 </style></head><body><main aria-busy="false">
 <header>
-<div class="eyebrow">AIDLC GUIDE / SETUP</div>
+<div class="eyebrow">ANDON / SETUP</div>
 <h1>AI-DLC のセットアップ</h1>
 <p class="folder muted">設定するフォルダ：<code>${esc(state.root)}</code></p>
 </header>
@@ -358,7 +358,7 @@ ${cliStep}
 ${projectStep}
 ${finishStep}
 </ol>
-<footer><button type="button" class="text-link" id="update-workflows" data-send="open-workflows-update">更新・修復画面を開く</button><a class="text-link" id="docs" data-send="docs" href="${esc(INSTALL_GUIDE_URL)}">公式の手順</a><span class="muted">AIDLC Guide ${esc(extensionVersion)}</span></footer>
+<footer><button type="button" class="text-link" id="update-workflows" data-send="open-workflows-update">更新・修復画面を開く</button><a class="text-link" id="docs" data-send="docs" href="${esc(INSTALL_GUIDE_URL)}">公式の手順</a><span class="muted">Andon ${esc(extensionVersion)}</span></footer>
 </main><script nonce="${nonce}">
 const vscode = acquireVsCodeApi();
 const harnesses = [...document.querySelectorAll('input[name="harness"]')];

@@ -120,7 +120,7 @@ describe("Header (BLM step 7)", () => {
       expect(fetchMock).toHaveBeenCalledWith("/api/links", expect.anything());
     });
 
-    expect(screen.queryByText("AIDLC Guide")).toBeNull();
+    expect(screen.queryByText("Andon")).toBeNull();
     expect(screen.queryByRole("menu")).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "メニュー" }));
     const external = await screen.findByRole("menuitem", { name: "リポジトリ" });
@@ -270,7 +270,7 @@ describe("Header (BLM step 7)", () => {
       </StoreProvider>,
     );
     const page = await openSettings();
-    expect(page.textContent).toContain("IDEでAIDLC Guideを開き");
+    expect(page.textContent).toContain("IDEでAndonを開き");
     expect(within(page).queryByTestId("check-update")).toBeNull();
     expect(page.textContent).toContain("IDEで対象のプロジェクトを開き");
     expect(within(page).queryByRole("button", { name: "セットアップを開く" })).toBeNull();
@@ -297,7 +297,7 @@ describe("Header (BLM step 7)", () => {
     const updates = within(page).getByRole("region", { name: "更新・修復" });
     const tools = within(page).getByRole("region", { name: "ツール追加" });
     expect(setup.textContent).toContain("既存プロジェクトに参加する方");
-    expect(updates.textContent).toContain("このPCとプロジェクトを、Guideの対応版にそろえます");
+    expect(updates.textContent).toContain("このPCとプロジェクトを、Andonの対応版にそろえます");
     expect(tools.textContent).toContain("追加するツールは複数選べます");
     expect(within(page).queryByRole("button", { name: "更新を確認" })).toBeNull();
     expect(postMessage).toHaveBeenCalledWith({ type: "get-workflows-management" });

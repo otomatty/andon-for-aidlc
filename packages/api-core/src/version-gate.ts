@@ -13,8 +13,7 @@ export function isVersionGateOpenRoute(route: string): boolean {
   return (
     route.startsWith("/api/official-docs/") ||
     route === "/api/guides" ||
-    route.startsWith("/api/guides/") ||
-    route === "/api/docs-settings"
+    route.startsWith("/api/guides/")
   );
 }
 

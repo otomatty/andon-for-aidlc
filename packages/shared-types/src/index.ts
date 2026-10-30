@@ -98,23 +98,12 @@ export {
 } from "./answers.ts";
 
 export const CURRENT_STATE_VERSION = 8;
-export const SUPPORTED_STATE_VERSIONS = [7, 8] as const;
+export const SUPPORTED_STATE_VERSIONS = [8] as const;
 export type SupportedStateVersion = (typeof SUPPORTED_STATE_VERSIONS)[number];
-
-/** @deprecated Use {@link CURRENT_STATE_VERSION}. Kept so existing imports keep compiling. */
-export const SUPPORTED_STATE_VERSION = CURRENT_STATE_VERSION;
 
 export function isSupportedStateVersion(n: number): n is SupportedStateVersion {
   return (SUPPORTED_STATE_VERSIONS as readonly number[]).includes(n);
 }
-
-export function schemaCompatibilityOf(version: number): "current" | "legacy" {
-  return version === CURRENT_STATE_VERSION ? "current" : "legacy";
-}
-
-/** Shown when a registered pre-current State Version is read (browse-only). */
-export const LEGACY_STATE_WARNING =
-  "State Version 7（aidlc-workflows 2.6.1 相当）を閲覧互換で表示しています。このツールは state を移行しません。";
 
 export function supportedVersionsLabel(): string {
   return SUPPORTED_STATE_VERSIONS.join(" と ");
@@ -239,8 +228,6 @@ export interface WorkflowModel {
   /** `Plan`: the name of a plan tailored to this piece of work (v2.11.0 composer). */
   plan?: string;
   stateVersion: SupportedStateVersion;
-  /** `legacy` = a registered older schema, readable but not the native graph. */
-  schemaCompatibility: "current" | "legacy";
   /** Current Status → Lifecycle Phase. */
   phase: Phase;
   currentStage: string | null;
@@ -861,17 +848,6 @@ export interface ProjectLink {
 export interface BridgeConfig {
   /** Absolute path to the docs checkout. `null` = run without excerpts. */
   docsRepoPath: string | null;
-  /**
-   * Optional base URL joined with bridge-map `docPath` when a stage has no
-   * `stageDocs` override. Must be `http(s)://…` when set.
-   */
-  docsBaseUrl: string | null;
-  /**
-   * Per-stage open URL for 「docs を開く」 (Confluence / Notion / GitHub / …).
-   * Absolute `http(s)` URLs preferred. Empty / omitted → fall back to
-   * `docsBaseUrl` + map path, then IDE file open.
-   */
-  stageDocs: Readonly<Record<string, string>>;
   projectLinks: ProjectLink[];
 }
 
@@ -925,15 +901,6 @@ export interface StageIoPaths {
   /** 論理名 → record 相対 POSIX path。無い・曖昧なら null。 */
   inputs: Record<string, string | null>;
   outputs: Record<string, string | null>;
-}
-
-/** resolveTerm() — glossary entry (US-04). */
-export interface TermDoc {
-  term: string;
-  definition: string;
-  deepLink: DeepLink | null;
-  excerpt: string | null;
-  sourceVersion: string;
 }
 
 /**
@@ -1015,7 +982,6 @@ export type OfficialDocsSection = (typeof OFFICIAL_DOCS_SECTIONS)[number];
 export const UPSTREAM_REPO_SLUG = "awslabs/aidlc-workflows";
 export const UPSTREAM_REPO_URL = `https://github.com/${UPSTREAM_REPO_SLUG}`;
 export const UPSTREAM_GIT_URL = `${UPSTREAM_REPO_URL}.git`;
-export const UPSTREAM_ARCHIVE_BASE = `https://codeload.github.com/${UPSTREAM_REPO_SLUG}/tar.gz`;
 
 /**
  * Link to a file in upstream's repository on its current default branch.
@@ -1172,12 +1138,6 @@ export interface WorkflowPayload {
   workflow: WorkflowModel;
   nextStep: NextStep;
   warnings?: string[];
-}
-
-/** `GET /api/docs-settings` success body — the client-safe slice of {@link BridgeConfig}. */
-export interface DocsSettings {
-  docsBaseUrl: string | null;
-  stageDocs: Readonly<Record<string, string>>;
 }
 
 /**
@@ -1388,9 +1348,3 @@ export type {
   DocsQaToolStatus,
 } from "./docs-qa.ts";
 export type { AgentModelSetting, StageModelSettings, StageModelsPayload } from "./stage-models.ts";
-export {
-  DOC_VIDEO_TEMPLATES,
-  type DocVideoFreshness,
-  type DocVideoPayload,
-  type DocVideoTemplate,
-} from "./doc-video.ts";

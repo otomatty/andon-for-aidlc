@@ -1,8 +1,10 @@
-import { LEGACY_STATE_WARNING, type WsMessage } from "@aidlc-guide/shared-types";
+import type { WsMessage } from "@aidlc-guide/shared-types";
 import { describe, expect, it } from "vitest";
 import { type Action, reducer } from "@/store/reducer.ts";
 import { initialState, viewValue } from "@/store/state.ts";
 import { matrix, nextStep, payload, workflow } from "@tests/fixtures.ts";
+
+const STATE_WARNING = "成果物の一部を読めませんでした。";
 
 /** Each WsMessage variant lands in exactly one slice — and audit lands nowhere. */
 
@@ -101,13 +103,11 @@ describe("reducer / WS messages", () => {
         scope: "state",
         workflow: workflow(),
         nextStep: nextStep(),
-        warnings: [LEGACY_STATE_WARNING],
+        warnings: [STATE_WARNING],
       },
     });
     expect(state.workflow.kind).toBe("partial");
-    expect(state.workflow.kind === "partial" && state.workflow.notes).toEqual([
-      LEGACY_STATE_WARNING,
-    ]);
+    expect(state.workflow.kind === "partial" && state.workflow.notes).toEqual([STATE_WARNING]);
     expect(state.nextStep.kind).toBe("partial");
   });
 
@@ -319,7 +319,6 @@ describe("reducer / settings navigation", () => {
       "cell",
       { type: "select", selection: { kind: "cell", unit: "reader-core", stage: "nfr-design" } },
     ],
-    ["guides", { type: "guides", open: true }],
     ["effectiveness", { type: "effectiveness", open: true }],
     ["plugins", { type: "plugins", open: true }],
     ["docs shell", { type: "docs-shell", open: true, locale: "en", path: "guide/concepts.md" }],

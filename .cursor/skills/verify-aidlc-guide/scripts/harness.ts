@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Launch, doctor, and stop a disposable AIDLC Guide dashboard-server.
+ * Launch, doctor, and stop a disposable Andon dashboard-server.
  * Invocation is documented in ../SKILL.md. Never attach to a server this
  * process did not start.
  */
@@ -19,7 +19,7 @@ const EVIDENCE_DIR = path.join(SKILL_DIR, "evidence");
 const CLI = path.join(REPO_ROOT, "packages", "dashboard-server", "src", "cli.ts");
 const DIST_INDEX = path.join(REPO_ROOT, "packages", "dashboard", "dist", "index.html");
 const DIST_DIR = path.dirname(DIST_INDEX);
-const READY = /AIDLC Guide dashboard: http:\/\/([\d.]+):(\d+)/;
+const READY = /Andon dashboard: http:\/\/([\d.]+):(\d+)/;
 const READY_MS = 30_000;
 const HEALTH_MS = 8_000;
 const KILL_WAIT_MS = 8_000;
@@ -230,7 +230,7 @@ function parseJsonBody(text: string, url: string, status: number): unknown {
 async function originLooksLikeDashboard(origin: string): Promise<boolean> {
   try {
     const page = await timedGet(origin);
-    return page.ok && page.text.includes('id="root"') && page.text.includes("AIDLC Guide");
+    return page.ok && page.text.includes('id="root"') && page.text.includes("Andon");
   } catch {
     return false;
   }
@@ -389,7 +389,7 @@ function distComplete(): boolean {
 function isHtmlFallback(asset: { contentType: string; text: string }): boolean {
   const type = asset.contentType.toLowerCase();
   if (type.includes("text/html")) return true;
-  return asset.text.includes('id="root"') && asset.text.includes("AIDLC Guide");
+  return asset.text.includes('id="root"') && asset.text.includes("Andon");
 }
 
 async function waitReady(child: ReturnType<typeof spawn>): Promise<{
@@ -558,7 +558,7 @@ async function doctor(): Promise<void> {
 
   const page = await fetchUrl(run.origin);
   if (!page.ok) fail("SPA did not answer", { status: page.status, origin: run.origin });
-  if (!page.text.includes('id="root"') || !page.text.includes("AIDLC Guide")) {
+  if (!page.text.includes('id="root"') || !page.text.includes("Andon")) {
     fail("SPA HTML is missing #root or title; dist may be stale, api-only, or a reused PID", {
       origin: run.origin,
     });

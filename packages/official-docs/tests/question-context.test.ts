@@ -88,7 +88,7 @@ describe("question source retrieval", () => {
     const guide = result.citations.find((citation) => citation.target.kind === "guide");
     expect(guide).toMatchObject({
       target: { kind: "guide", path: "browser-dashboard.md", locale: "ja" },
-      version: "AIDLC Guide 1.2.3",
+      version: "Andon 1.2.3",
       startLine: 7,
       endLine: 7,
     });
@@ -102,7 +102,7 @@ describe("question source retrieval", () => {
       root,
       request("ブラウザー", { target: guide?.target }),
     );
-    expect(packaged.citations[0]?.version).toBe("AIDLC Guide 9.8.7");
+    expect(packaged.citations[0]?.version).toBe("Andon 9.8.7");
   });
 
   it("searches release notes but keeps proposals and research out, even when scoped", async () => {
@@ -199,7 +199,7 @@ describe("common questions against the bundled extension guides", () => {
   it.each([
     "Dashboard の開き方を一文で教えてください。",
     "Dashboard はどうやって開きますか？",
-    "AIDLC Guide の Dashboard はどうやって開きますか？手順を短く教えてください。",
+    "Andon の Dashboard はどうやって開きますか？手順を短く教えてください。",
   ])("retrieves the actual opening command for %s", async (question) => {
     const root = path.resolve(import.meta.dirname, "../../..");
     const { citations } = await retrieveQuestionContext(root, request(question));
@@ -209,7 +209,7 @@ describe("common questions against the bundled extension guides", () => {
         (citation) =>
           citation.target.kind === "guide" &&
           citation.target.path === "getting-started.md" &&
-          citation.quote.includes("AIDLC Guide: Open"),
+          citation.quote.includes("Andon: Open"),
       );
     expect(opening, JSON.stringify(citations.map((citation) => citation.headings))).toBeDefined();
     if (!opening) throw new Error("opening instructions were not retrieved");

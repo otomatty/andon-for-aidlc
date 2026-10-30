@@ -41,7 +41,7 @@ function unwrap<T>(body: unknown): T {
     );
   throw new CustomizationError(
     "unavailable",
-    "カスタマイズ機能を利用できません。Guideを更新してください。",
+    "カスタマイズ機能を利用できません。Andonを更新してください。",
   );
 }
 

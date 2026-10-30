@@ -87,7 +87,7 @@ export function versionGateActionLabel(action: VersionGateAction, target: string
     case "update-project":
       return `プロジェクトを ${target} に更新`;
     case "update-guide":
-      return "AIDLC Guide を更新";
+      return "Andon を更新";
     case "install-engine":
       return `この PC に ${target} を導入`;
     case "pin-project":
@@ -138,7 +138,7 @@ export function versionGateRollbackGuide(gate: VersionGate): VersionGateRollback
         heading,
         lines: [
           `作業記録が新しい形式（State Version ${rollback.stateVersion}）で保存されているため、${gate.target} には戻せません。${gate.target} はこの形式の記録を開けません。`,
-          "このプロジェクトのバージョンに対応した AIDLC Guide が出るまでお待ちください。",
+          "このプロジェクトのバージョンに対応した Andon が出るまでお待ちください。",
         ],
         commands: [],
       };

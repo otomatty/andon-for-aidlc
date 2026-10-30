@@ -939,11 +939,11 @@ function analyzeOwnership(problem: UpdateProblem, ctx: PlanContext): Analysis {
   const rel = problem.path;
   if (rel.startsWith("aidlc/") || /\/(?:aidlc-manifest|aidlc-guide-install)\.json$/.test(rel))
     return manual(
-      "チームの記録や AI-DLC の管理記録は、Guide では書き換えません。ファイルを開いて内容を確認し、元に戻してから再チェックしてください。",
+      "チームの記録や AI-DLC の管理記録は、Andon では書き換えません。ファイルを開いて内容を確認し、元に戻してから再チェックしてください。",
     );
   if (!isRepairConfigPath(rel))
     return manual(
-      "このファイルは Guide からは書き換えません。内容を直してから再チェックしてください。",
+      "このファイルは Andon からは書き換えません。内容を直してから再チェックしてください。",
     );
   const current = ctx.before.get(rel)?.bytes;
   if (!current)

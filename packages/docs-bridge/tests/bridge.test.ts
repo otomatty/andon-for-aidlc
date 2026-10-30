@@ -26,8 +26,6 @@ describe("createBridge", () => {
     const bridge = createBridge(path.join(root, "absent.json"));
     expect(expectOk(await bridge.getConfig()).value).toEqual({
       docsRepoPath: null,
-      docsBaseUrl: null,
-      stageDocs: {},
       projectLinks: [],
     });
     expect(expectOk(await bridge.resolveStage("intent-capture")).value.excerpt).toBeNull();
@@ -58,7 +56,6 @@ describe("createBridge", () => {
     const bridge = createBridge(path.join(root, "aidlc-guide.config.json"));
     expect(expectError(await bridge.getConfig())).toBe("config-invalid");
     expect(expectError(await bridge.resolveStage("ci-pipeline"))).toBe("config-invalid");
-    expect(expectError(await bridge.resolveTerm("bolt"))).toBe("config-invalid");
     expect(expectError(await bridge.projectLinks())).toBe("config-invalid");
   });
 
@@ -73,9 +70,8 @@ describe("createBridge", () => {
     expect(expectOk(await bridge.projectLinks()).value).toHaveLength(1);
   });
 
-  it("keeps the not-found / undefined-term reasons distinct at the facade", async () => {
+  it("answers an unknown stage with not-found at the facade", async () => {
     const bridge = createBridge(path.join(root, "absent.json"));
     expect(expectError(await bridge.resolveStage("nope"))).toBe("not-found");
-    expect(expectError(await bridge.resolveTerm("nope"))).toBe("undefined-term");
   });
 });

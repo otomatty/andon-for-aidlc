@@ -27,7 +27,7 @@ function gate(overrides: Partial<VersionGate> = {}): VersionGate {
     projectVersion: "2.10.0",
     rollback: null,
     message:
-      "プロジェクトの aidlc-workflows 2.10.0 は、この Guide の対応版 2.11.0 より古いバージョンです。",
+      "プロジェクトの aidlc-workflows 2.10.0 は、Andon の対応版 2.11.0 より古いバージョンです。",
     ...overrides,
   };
 }
@@ -59,7 +59,6 @@ function stubServer(initial: VersionGate = gate()) {
       return Response.json({ ok: true, value });
     }
     if (input === "/api/guides") return Response.json({ ok: true, value: [] });
-    if (input === "/api/docs-settings") return Response.json({ ok: true, value: {} });
     if (blocked !== null) return Response.json(refusal(blocked), { status: 409 });
     if (input === "/api/workflow") return Response.json(payload());
     if (input.includes("/api/matrix")) return Response.json({ ok: true, value: matrix() });
@@ -136,7 +135,7 @@ describe("version gate screen", () => {
     expect(screen.queryByTestId("now-current-stage")).toBeNull();
     // A browser has nothing to run the update with; it says where to go instead.
     expect(screen.queryByTestId("version-gate-action")).toBeNull();
-    expect(notice.textContent).toContain("VS Code / Cursor の AIDLC Guide から行います");
+    expect(notice.textContent).toContain("VS Code / Cursor の Andon から行います");
   });
 
   it("keeps the bundled docs readable without starting document questions", async () => {
@@ -254,7 +253,7 @@ describe("version gate screen", () => {
   it.each([
     ["engine-newer", "このプロジェクトを 2.11.0 に固定"],
     ["project-older", "プロジェクトを 2.11.0 に更新"],
-    ["project-newer", "AIDLC Guide を更新"],
+    ["project-newer", "Andon を更新"],
     ["unknown", "Doctor で診断"],
     ["not-installed", "セットアップを開く"],
   ] as const)("labels the %s action", async (status, label) => {

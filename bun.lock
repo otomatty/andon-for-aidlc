@@ -43,7 +43,6 @@
       "name": "@aidlc-guide/dashboard",
       "version": "0.1.0",
       "dependencies": {
-        "@aidlc-guide/kamishibai": "workspace:*",
         "@aidlc-guide/shared-types": "workspace:*",
         "@mantine/core": "^9.7.2",
         "@mantine/hooks": "^9.7.2",
@@ -81,27 +80,11 @@
         "@aidlc-guide/shared-types": "workspace:*",
       },
     },
-    "packages/doc-video": {
-      "name": "@aidlc-guide/doc-video",
-      "version": "0.1.0",
-      "dependencies": {
-        "@aidlc-guide/kamishibai": "workspace:*",
-        "@aidlc-guide/official-docs": "workspace:*",
-        "@aidlc-guide/shared-types": "workspace:*",
-      },
-    },
     "packages/docs-bridge": {
       "name": "@aidlc-guide/docs-bridge",
       "version": "0.1.0",
       "dependencies": {
         "@aidlc-guide/core-utils": "workspace:*",
-        "@aidlc-guide/shared-types": "workspace:*",
-      },
-    },
-    "packages/kamishibai": {
-      "name": "@aidlc-guide/kamishibai",
-      "version": "1.0.0",
-      "dependencies": {
         "@aidlc-guide/shared-types": "workspace:*",
       },
     },
@@ -112,7 +95,6 @@
         "aidlc-mcp": "./src/index.ts",
       },
       "dependencies": {
-        "@aidlc-guide/docs-bridge": "workspace:*",
         "@aidlc-guide/official-docs": "workspace:*",
         "@aidlc-guide/reader-core": "workspace:*",
         "@aidlc-guide/shared-types": "workspace:*",
@@ -140,13 +122,6 @@
     "packages/shared-types": {
       "name": "@aidlc-guide/shared-types",
       "version": "0.1.0",
-    },
-    "packages/video-pack-ja": {
-      "name": "aidlc-guide-videos-ja",
-      "version": "0.1.0",
-      "devDependencies": {
-        "@vscode/vsce": "^4.0.0",
-      },
     },
     "packages/vscode-extension": {
       "name": "aidlc-guide",
@@ -192,11 +167,7 @@
 
     "@aidlc-guide/dashboard-server": ["@aidlc-guide/dashboard-server@workspace:packages/dashboard-server"],
 
-    "@aidlc-guide/doc-video": ["@aidlc-guide/doc-video@workspace:packages/doc-video"],
-
     "@aidlc-guide/docs-bridge": ["@aidlc-guide/docs-bridge@workspace:packages/docs-bridge"],
-
-    "@aidlc-guide/kamishibai": ["@aidlc-guide/kamishibai@workspace:packages/kamishibai"],
 
     "@aidlc-guide/mcp-server": ["@aidlc-guide/mcp-server@workspace:packages/mcp-server"],
 
@@ -821,8 +792,6 @@
     "agent-base": ["agent-base@7.1.4", "", {}, "sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ=="],
 
     "aidlc-guide": ["aidlc-guide@workspace:packages/vscode-extension"],
-
-    "aidlc-guide-videos-ja": ["aidlc-guide-videos-ja@workspace:packages/video-pack-ja"],
 
     "ajv": ["ajv@8.20.0", "", { "dependencies": { "fast-deep-equal": "^3.1.3", "fast-uri": "^3.0.1", "json-schema-traverse": "^1.0.0", "require-from-string": "^2.0.2" } }, "sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA=="],
 

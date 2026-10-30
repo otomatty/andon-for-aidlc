@@ -15,13 +15,10 @@ AI-DLC ワークスペースを **読取専用** で公開する MCP stdio サ�
 | `aidlc_docs_read`     | 検索した節の原文と引用元を読む                                              | `id`、任意の `cursor` / `mode` / `max_tokens`     |
 | `aidlc_status`        | 現在のワークフロー位置（フェーズ / ステージ / ゲート / 進捗）を知りたいとき | なし                                              |
 | `aidlc_next_steps`    | 次のステージ名と、そこで人間に求められることを知りたいとき                  | なし                                              |
-| `aidlc_explain_stage` | あるステージが何をする段階かを知りたいとき                                  | `slug`                                            |
 | `aidlc_read_artifact` | 成果物ファイルの本文を読みたいとき                                          | `path`（記録ディレクトリからの相対）              |
-| `aidlc_glossary`      | AI-DLC 用語の定義を引きたいとき                                             | `term`                                            |
 
-既存5ツールの応答は日本語テキスト + 構造化 JSON の2ブロック（BR-MS-6）。`explain_stage` と
-`glossary` は docs-bridge の**原文をそのまま**返す — サーバ側で要約・言い換えを
-しない（BR-MS-4）。
+状態・次の一手・成果物の3ツールの応答は日本語テキスト + 構造化 JSON の2ブロック（BR-MS-6）。
+ステージの解説や用語は、文書ツール（`aidlc_docs_search` / `aidlc_docs_read`）で同梱ドキュメントの原文を引く。
 
 新しい文書ツールは、本文を重複させない単一の JSON テキストを返す。サーバーの instructions と参照用 Skill が、AI-DLC の質問では検索・原文取得を行い、回答に `source` の文書名・節・バージョン・リンクを表示するよう指示する。詳細は [文書への質問ガイド](../../docs/guides/asking-aidlc.md)。
 

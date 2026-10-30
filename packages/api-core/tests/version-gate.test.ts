@@ -49,19 +49,18 @@ describe("isVersionGateOpenRoute", () => {
     "/api/official-docs/toc/ja",
     "/api/guides",
     "/api/guides/getting-started",
-    "/api/docs-settings",
   ])("keeps %s open", (route) => {
     expect(isVersionGateOpenRoute(route)).toBe(true);
   });
 
   it.each([
     "/api/workflow",
+    "/api/docs-settings",
     "/api/matrix",
     "/api/docs-qa/tools",
     "/api/docs-qa/ask",
     "/api/answer",
     "/api/customization",
-    "/api/glossary/intent",
     "/api/guidesX",
     "/api/official-docs",
     "/static/app.js",

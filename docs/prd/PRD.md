@@ -1,9 +1,9 @@
-# PRD: AIDLC Guide — aidlc-workflows 可視化・ガイドツール
+# PRD: Andon for AI-DLC — aidlc-workflows 可視化・ガイドツール
 
 - **Version**: 0.2
 - **Date**: 2026-08-14
 - **Status**: 2.6.2 追従（State Version 8）
-- **仮称**: AIDLC Guide（正式名称は未決 → §12）
+- **名称**: Andon for AI-DLC（略称 Andon。旧仮称 AIDLC Guide。2026-10-29 決定 → §12）
 - **サポート対象**: aidlc-workflows **2.6.2**（State Version **8** / 5 フェーズ・**33** ステージ）。旧 State Version は解析不可（C-T3）
 
 ---
@@ -32,7 +32,7 @@ aidlc-workflows の経験が浅いエンジニアでも、**現在の状況と�
 - G-2: 各ステージの「目的・入出力・担当エージェント・次に人間へ求められること」が初学者向けの平易な解説付きで読める（公式ドキュメントへ deep-link）
 - G-3: 成果物 Markdown を WYSIWYG ビューアで閲覧できる
 - G-4: 本線のワークフローセッションを汚さず、登録済み MCP とドキュメント質問で、状態・用語・成果物を調べられる。別に起動した Claude Code からも同じ MCP を使える
-- G-5: 同じマシンの Dashboard（待受は `127.0.0.1`）でワークフロー状態と成果物を閲覧でき、ファイル変更が画面に反映される。同席できない共有は非同期の git 共有で行う
+- G-5: 同じマシンの Dashboard（VS Code / Cursor 拡張の中）でワークフロー状態と成果物を閲覧でき、ファイル変更が画面に反映される。同席できない共有は非同期の git 共有で行う
 
 ### 非ゴール
 
@@ -73,10 +73,10 @@ aidlc-workflows の経験が浅いエンジニアでも、**現在の状況と�
 `.mcp.json` に登録する。本線の Claude Code と、別に起動した Claude Code のどちらからも利用できる。製品のセッション分岐ラッパーではない。
 
 - FR-2.1: `aidlc_status` — 現在のフェーズ / ステージ / ユニット / ゲート状態 / 完了数を返す
-- FR-2.2: `aidlc_explain_stage(slug)` — ステージの目的・入出力・担当エージェントを公式 docs から要約して返す
+- FR-2.2: ~~`aidlc_explain_stage(slug)`~~ — 2026-10-29 に廃止。ステージの解説は文書ツール（`aidlc_docs_search` / `aidlc_docs_read`）で引く
 - FR-2.3: `aidlc_next_steps` — 次に来るステージと、そこで人間に求められること（ゲート / 質問）を返す
 - FR-2.4: `aidlc_read_artifact(path)` — インテント配下の成果物本文を返す
-- FR-2.5: `aidlc_glossary(term)` — Bolt / gate / unit などの用語を docs から引いて返す
+- FR-2.5: ~~`aidlc_glossary(term)`~~ — 2026-10-29 に廃止。用語は文書ツールで同梱ドキュメントの用語集から引く
 
 ### F-03: サイドセッション支援（2026-10-02 に取り下げ）
 
@@ -169,8 +169,8 @@ aidlc-workflows の経験が浅いエンジニアでも、**現在の状況と�
 
 ## 12. 未決事項
 
-- 正式名称（仮: AIDLC Guide）
-- 配布形態: **VS Code / Cursor 拡張を第一サーフェス**とする（2026-07 決定）。ブラウザ Dashboard（`bun run dashboard`）は同じマシンの `127.0.0.1` 副経路として維持する
+- 正式名称: **決定**（2026-10-29）。Andon for AI-DLC（略称 Andon）。表示名・コマンドカテゴリ・画面の文言を変え、コマンド ID `aidlc-guide.*`、パッケージ名 `@aidlc-guide/*`、`aidlc-guide.config.json`、MCP サーバー名は互換のため据え置く
+- 配布形態: **VS Code / Cursor 拡張だけ**を利用者向けのサーフェスとする（2026-07 決定、2026-10-29 改定）。ブラウザ Dashboard（`bun run dashboard`）は利用者向けには提供しない。`packages/dashboard-server` は AI による画面確認とスクリーンショット撮影のための開発用サーバーとして残す（待受は `127.0.0.1` のみ）
 - docs 対応表のメンテナンス方法: **本ツール側**（`packages/docs-bridge/data/`）。2.6.2 同期済み。次の上流破壊的変更時に `sourceVersion` とステージ一覧を更新する
 
 ## 13. 取り下げの経緯（2026-10-02）

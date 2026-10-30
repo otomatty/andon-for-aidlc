@@ -36,7 +36,7 @@ const GUIDE: DocsQaCitation = {
   target: { kind: "guide", path: "getting-started.md", locale: "ja" },
   title: "拡張機能のはじめかた",
   headings: ["初期設定"],
-  version: "AIDLC Guide 1.0.0",
+  version: "Andon 1.0.0",
   hash: "guide-revision-1",
   startLine: 7,
   endLine: 7,

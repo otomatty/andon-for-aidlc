@@ -140,7 +140,7 @@ export function DocsNavigation({
       </TabsPanel>
       <TabsPanel value="extension" className="min-h-0 overflow-y-auto px-4 pb-4">
         <p className="mb-3 text-sm text-muted-foreground">
-          AIDLC Guide 拡張機能の導入と操作方法を調べる。
+          Andon 拡張機能の導入と操作方法を調べる。
         </p>
         <DocsGuideList
           view={guidesView}

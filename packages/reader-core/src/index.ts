@@ -59,13 +59,7 @@ export {
   resolveIntents,
   resolveRecordDir,
 } from "./intents/resolve.ts";
-export {
-  CURRENT_STATE_VERSION,
-  parseState,
-  readState,
-  STATE_FILENAME,
-  SUPPORTED_STATE_VERSION,
-} from "./parse/state.ts";
+export { CURRENT_STATE_VERSION, parseState, readState, STATE_FILENAME } from "./parse/state.ts";
 /** @deprecated Legacy comparison threshold. Current timing uses DEFAULT_TIMING_POLICY. */
 export { IDLE_THRESHOLD_MS } from "./timing/attribution.ts";
 export { deriveStageTimings } from "./timing/derive.ts";

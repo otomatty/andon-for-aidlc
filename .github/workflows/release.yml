@@ -266,7 +266,7 @@ jobs:
             gh release delete "$TAG" --yes
           fi
 
-          flags=(--target "$RELEASE_SHA" --title "AIDLC Guide ${VERSION}" --generate-notes)
+          flags=(--target "$RELEASE_SHA" --title "Andon for AI-DLC ${VERSION}" --generate-notes)
           if [ "$PRERELEASE" = "true" ]; then
             flags+=(--prerelease)
           fi

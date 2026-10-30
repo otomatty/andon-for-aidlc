@@ -86,7 +86,7 @@ describe("更新コマンドの完了通知", () => {
     installation.resolve({ ok: true });
     await update;
     expect(mocks.withProgress).toHaveBeenCalledWith(
-      { location: 15, title: "AIDLC Guide 0.2.0 を更新しています…" },
+      { location: 15, title: "Andon 0.2.0 を更新しています…" },
       expect.any(Function),
     );
     expect(mocks.showInformationMessage).toHaveBeenCalledExactlyOnceWith(
@@ -148,7 +148,7 @@ describe("更新の確認ダイアログ", () => {
     await confirmWith([]);
     const options = mocks.showInformationMessage.mock.calls[0]?.[1] as { detail?: string };
     expect(options.detail).toContain(
-      `${WORKFLOWS_TARGET_VERSION} から 99.0.0 に更新するまで AIDLC Guide を使えません`,
+      `${WORKFLOWS_TARGET_VERSION} から 99.0.0 に更新するまで Andon を使えません`,
     );
   });
 
@@ -173,7 +173,7 @@ describe("更新の確認ダイアログ", () => {
   });
 });
 
-describe("更新の確認：Guide より新しいプロジェクト", () => {
+describe("更新の確認：Andon より新しいプロジェクト", () => {
   const ahead = "99.0.0";
   /** The gate as this Guide sees the project, and as a Guide on `target` would. */
   function project(current: object, under: (target: string) => string = () => "ok") {
@@ -227,7 +227,7 @@ describe("更新の確認：Guide より新しいプロジェクト", () => {
       const detail = await confirmWith();
       expect(detail).not.toContain("に対応します");
       expect(detail).toContain(`この更新の対応版は ${ahead} ですが`);
-      expect(detail).toContain("プロジェクトを整えるまで、AIDLC Guide を使えません");
+      expect(detail).toContain("プロジェクトを整えるまで、Andon を使えません");
     },
   );
 
@@ -235,7 +235,7 @@ describe("更新の確認：Guide より新しいプロジェクト", () => {
     mocks.fetchReleaseMetadata.mockResolvedValue({ version: "0.2.0", workflowsTarget: "98.0.0" });
     const detail = await confirmWith();
     expect(detail).toContain("この更新の対応版は 98.0.0 です");
-    expect(detail).toContain("更新後も AIDLC Guide を使えません");
+    expect(detail).toContain("更新後も Andon を使えません");
   });
 
   it("does not claim the project is supported when the metadata is missing", async () => {
@@ -254,7 +254,7 @@ describe("更新の確認：Guide より新しいプロジェクト", () => {
     mocks.showWarningMessage.mockResolvedValue("更新の案内を開く");
     await runUpdate();
     expect(mocks.showWarningMessage).toHaveBeenCalledExactlyOnceWith(
-      expect.stringContaining(`最新の AIDLC Guide 0.1.0 は、まだ aidlc-workflows ${ahead} に対応していません`),
+      expect.stringContaining(`最新の Andon 0.1.0 は、まだ aidlc-workflows ${ahead} に対応していません`),
       "更新の案内を開く",
     );
     expect(mocks.executeCommand).toHaveBeenCalledWith("aidlc-guide.open");

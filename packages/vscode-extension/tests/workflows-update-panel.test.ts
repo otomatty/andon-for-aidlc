@@ -308,7 +308,7 @@ describe("update screen", () => {
       expect([...document.querySelectorAll(".versions dt")].map((dt) => dt.textContent)).toEqual([
         "この PC",
         "このプロジェクト",
-        "Guide の対応版",
+        "Andon の対応版",
       ]);
       expect([...document.querySelectorAll(".versions dd")].map((dd) => dd.textContent)).toEqual([
         "2.8.0古い",

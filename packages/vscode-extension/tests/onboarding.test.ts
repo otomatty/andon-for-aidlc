@@ -224,14 +224,14 @@ describe("updateNotice", () => {
   it("names the newest change and counts the rest after an update", () => {
     const first = WHATS_NEW[0];
     expect(updateNotice({ record, updated: true }, "0.35.0")).toBe(
-      `AIDLC Guide を 0.35.0 に更新しました。新機能：${first?.title}（ほか 1 件）`,
+      `Andon を 0.35.0 に更新しました。新機能：${first?.title}（ほか 1 件）`,
     );
   });
 
   it("omits the count when one change is new", () => {
     const one = { ...record, seenNews: ALL_IDS.slice(1) };
     expect(updateNotice({ record: one, updated: true }, "0.35.0")).toBe(
-      `AIDLC Guide を 0.35.0 に更新しました。新機能：${WHATS_NEW[0]?.title}`,
+      `Andon を 0.35.0 に更新しました。新機能：${WHATS_NEW[0]?.title}`,
     );
   });
 

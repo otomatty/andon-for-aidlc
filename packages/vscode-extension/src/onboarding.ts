@@ -41,7 +41,7 @@ export function extensionVersion(context: Pick<ExtensionContext, "extension">): 
 }
 
 /**
- * Whether an earlier AIDLC Guide already ran for this person. Any value it
+ * Whether an earlier Andon already ran for this person. Any value it
  * stored counts, for the person or for this workspace, and so does its user
  * storage folder, which the in-extension update has created since 0.27. A
  * first-time user has none of them yet, because this check runs at
@@ -127,5 +127,5 @@ export function updateNotice(start: OnboardingStart, version: string): string | 
   const first = fresh[0];
   if (first === undefined) return null;
   const rest = fresh.length > 1 ? `（ほか ${fresh.length - 1} 件）` : "";
-  return `AIDLC Guide を ${version} に更新しました。新機能：${first.title}${rest}`;
+  return `Andon を ${version} に更新しました。新機能：${first.title}${rest}`;
 }

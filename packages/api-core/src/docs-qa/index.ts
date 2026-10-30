@@ -16,9 +16,9 @@ import {
   probeTool,
   publicError,
   runCli,
-} from "./process";
+} from "../ai-cli/process";
 import { answerText, citedSources, questionPrompt } from "./prompt";
-import { createScratch } from "./scratch";
+import { createScratch } from "../ai-cli/scratch";
 import { parseQuestion } from "./validation";
 
 export interface DocsQaService {

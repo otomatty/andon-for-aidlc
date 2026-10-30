@@ -58,18 +58,6 @@ export async function recordFileTarget(recordDir: string, cited: string): Promis
   return "ok" in guarded ? guarded.value : null;
 }
 
-/**
- * A webview-supplied doc path resolved against `root`, or `null` when it is
- * malformed or escapes. The `open-doc` trust boundary — the webview is not a
- * trusted caller, so its path must not reach `vscode.open` unguarded.
- */
-export function docTarget(root: string, cited: string): string | null {
-  const rel = normalizeWebviewPath(cited);
-  if (rel === null) return null;
-  const absolute = path.resolve(root, rel);
-  return isInside(root, absolute) ? absolute : null;
-}
-
 export function fileRefTarget(workspaceRoot: string, cited: string): FileRefTarget | null {
   const rel = normalizeWebviewPath(cited);
   if (rel === null) return null;

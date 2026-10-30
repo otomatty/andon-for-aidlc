@@ -1,4 +1,4 @@
-/** GitHub Releases lookup for the sideloaded AIDLC Guide VSIX. */
+/** GitHub Releases lookup for the sideloaded Andon VSIX. */
 
 export const RELEASES_LATEST_URL =
   "https://api.github.com/repos/otomatty/aidlc-guide/releases/latest";

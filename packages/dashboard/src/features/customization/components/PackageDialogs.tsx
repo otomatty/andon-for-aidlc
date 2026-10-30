@@ -211,7 +211,7 @@ export function ExportDialog({
                 setConfirmed(false);
               }}
               options={[
-                { value: "guide", label: "Guide用の設定ファイル" },
+                { value: "guide", label: "Andon用の設定ファイル" },
                 { value: "plugin", label: "標準プラグイン（ZIP）" },
               ]}
             />

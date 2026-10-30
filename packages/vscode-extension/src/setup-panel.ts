@@ -70,7 +70,7 @@ async function openSetupView(
   }
   const panel = window.createWebviewPanel(
     "aidlcGuide.setup",
-    "AIDLC Guide セットアップ",
+    "Andon セットアップ",
     ViewColumn.One,
     { enableScripts: true, retainContextWhenHidden: true },
   );
@@ -503,7 +503,7 @@ export async function maybePromptSetup(
       if (!isCurrent()) return false;
       if (registration.updated)
         void window.showInformationMessage(
-          "AIDLC Guide: 登録済みの文書参照連携を更新しました。AI セッションを再起動してください。",
+          "Andon: 登録済みの文書参照連携を更新しました。AI セッションを再起動してください。",
         );
     }
     const state = await inspectSetup(context, root);

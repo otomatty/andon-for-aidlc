@@ -471,7 +471,6 @@ describe("timing pipeline invariants (property-based)", () => {
           scope: "feature",
           depth: "practical",
           stateVersion: 8,
-          schemaCompatibility: "current",
           phase: "CONSTRUCTION",
           currentStage: current.slug,
           nextStage: null,

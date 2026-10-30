@@ -15,12 +15,6 @@ vi.mock("vscode", () => ({
     }),
   },
 }));
-// No video packs installed: discovery reads the real extension registry.
-vi.mock("../src/video-packs.ts", () => ({
-  installedVideoPacks: () => [],
-  onVideoPacksChanged: () => ({ dispose: vi.fn() }),
-  videoPackRoots: () => [],
-}));
 vi.mock("../src/commands.ts", () => ({ runInTerminal: vi.fn() }));
 vi.mock("../src/dashboard-html.ts", () => ({ loadDashboardHtml: async () => "<html></html>" }));
 vi.mock("../src/doctor.ts", () => ({ onPath: vi.fn() }));

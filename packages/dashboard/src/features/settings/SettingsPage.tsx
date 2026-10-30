@@ -66,7 +66,7 @@ export function SettingsPage(): ReactNode {
             <CardDescription>
               {inIde
                 ? "初めてAI-DLCを使う方や、既存プロジェクトに参加する方のために、このマシンのCLIと作業環境を準備します。"
-                : "セットアップはVS Code / Cursorの拡張機能で行います。IDEで対象のプロジェクトを開き、AIDLC Guideの設定からセットアップしてください。"}
+                : "セットアップはVS Code / Cursorの拡張機能で行います。IDEで対象のプロジェクトを開き、Andonの設定からセットアップしてください。"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -95,8 +95,8 @@ export function SettingsPage(): ReactNode {
             </CardTitle>
             <CardDescription>
               {inIde
-                ? "このPCとプロジェクトを、Guideの対応版にそろえます。AIDLC Guide拡張の更新確認もこちらで行います。"
-                : "更新はVS Code / Cursorの拡張機能で行います。IDEでAIDLC Guideを開き、設定から更新画面へ進んでください。"}
+                ? "このPCとプロジェクトを、Andonの対応版にそろえます。Andon拡張の更新確認もこちらで行います。"
+                : "更新はVS Code / Cursorの拡張機能で行います。IDEでAndonを開き、設定から更新画面へ進んでください。"}
             </CardDescription>
           </CardHeader>
           {inIde ? (
@@ -166,7 +166,7 @@ export function SettingsPage(): ReactNode {
             <CardDescription>
               {inIde
                 ? "設定済みのプロジェクトに、Claude CodeやCursorなどのツールを追加します。追加するツールは複数選べます。"
-                : "ツール追加はVS Code / Cursorの拡張機能で行います。IDEで対象のプロジェクトを開き、AIDLC Guideの設定から追加してください。"}
+                : "ツール追加はVS Code / Cursorの拡張機能で行います。IDEで対象のプロジェクトを開き、Andonの設定から追加してください。"}
             </CardDescription>
           </CardHeader>
           {inIde ? (

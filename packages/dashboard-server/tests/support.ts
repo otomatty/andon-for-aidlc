@@ -8,7 +8,6 @@ import type { Reader } from "@aidlc-guide/reader-core";
 import {
   type ReadResult,
   type StageDoc,
-  type TermDoc,
   WORKFLOWS_TARGET_VERSION,
 } from "@aidlc-guide/shared-types";
 
@@ -101,10 +100,6 @@ export function stageDoc(slug: string): StageDoc {
   };
 }
 
-export function termDoc(term: string): TermDoc {
-  return { term, definition: "d", deepLink: null, excerpt: null, sourceVersion: "test" };
-}
-
 /** Only the methods a test exercises need to be supplied. */
 export function stubReader(overrides: Partial<Reader> = {}): Reader {
   const unused = async (): Promise<ReadResult<never>> => ({ error: true, reason: "not-stubbed" });
@@ -127,7 +122,6 @@ export function stubBridge(overrides: Partial<Bridge> = {}): Bridge {
   return {
     getConfig: unused,
     resolveStage: unused,
-    resolveTerm: unused,
     projectLinks: unused,
     ...overrides,
   };

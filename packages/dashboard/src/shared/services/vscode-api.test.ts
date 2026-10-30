@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { editFileInIde, openDocInIde, openFileInIde } from "@/services/docs.ts";
+import { editFileInIde, openFileInIde } from "@/services/docs.ts";
 import { inVsCodeWebview, vsCodeApi } from "@/services/vscode-api.ts";
 
 /**
@@ -42,9 +42,7 @@ describe("vsCodeApi — acquired once per webview", () => {
     // repeatedly, the way a human clicking around would drive them.
     expect(vsCodeApi()).not.toBeNull();
     expect(openFileInIde({ path: "packages/mcp-server/src/index.ts", line: 20 })).toBe(true);
-    expect(openDocInIde({ docPath: "docs/guides/getting-started.md", docAnchor: "#top" })).toBe(
-      true,
-    );
+    expect(editFileInIde("construction/u/s/plan.md")).toBe(true);
     expect(openFileInIde({ path: "cli.ts", line: null })).toBe(true);
 
     expect(host.acquires()).toBe(1);
@@ -54,11 +52,17 @@ describe("vsCodeApi — acquired once per webview", () => {
   it("sends what each caller meant through that one instance", () => {
     const host = onceOnlyHost();
     openFileInIde({ path: "packages/mcp-server/src/index.ts", line: 20 });
-    openDocInIde({ docPath: "docs/guides/getting-started.md", docAnchor: "#top" });
+    editFileInIde("construction/u/s/plan.md");
 
     expect(host.posted()).toEqual([
       { type: "open-file", path: "packages/mcp-server/src/index.ts", line: 20 },
-      { type: "open-doc", path: "docs/guides/getting-started.md", anchor: "#top" },
+      {
+        type: "open-file",
+        path: "construction/u/s/plan.md",
+        line: null,
+        base: "record",
+        preview: false,
+      },
     ]);
   });
 
@@ -109,7 +113,7 @@ describe("vsCodeApi — acquired once per webview", () => {
     expect(inVsCodeWebview()).toBe(false);
     expect(vsCodeApi()).toBeNull();
     expect(openFileInIde({ path: "cli.ts", line: 1 })).toBe(false);
-    expect(openDocInIde({ docPath: "docs/x.md", docAnchor: "" })).toBe(false);
+    expect(editFileInIde("plan.md")).toBe(false);
   });
 
   it("does not acquire merely to answer whether a host exists", () => {

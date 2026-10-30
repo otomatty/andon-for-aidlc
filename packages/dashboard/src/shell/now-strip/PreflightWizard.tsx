@@ -132,7 +132,7 @@ export function PreflightWizard({
       {degraded ? (
         <div data-testid="preflight-degraded" className="flex flex-col gap-2">
           <p className="text-muted-foreground text-sm">
-            環境情報を取得できませんでした。AIDLC Guide: Setup で状態を確認してください。
+            環境情報を取得できませんでした。Andon: Setup で状態を確認してください。
           </p>
           {scopes.length === 0 ? null : (
             <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm">

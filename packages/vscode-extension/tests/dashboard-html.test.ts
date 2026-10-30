@@ -31,11 +31,11 @@ const webview = {
 } as unknown as Webview;
 
 describe("loadDashboardHtml", () => {
-  it("rewrites asset URLs and allows only local media (doc video narration)", async () => {
+  it("rewrites asset URLs and allows no media sources", async () => {
     const html = await loadDashboardHtml(webview, { extensionPath } as ExtensionContext);
     expect(html).toContain(`src="webview:${path.join(extensionPath, "media", "dashboard", "assets", "index.js")}"`);
     const csp = /content="([^"]+)"/.exec(html)?.[1] ?? "";
-    expect(csp.split("; ")).toContain("media-src vscode-resource:");
+    expect(csp).not.toContain("media-src");
     expect(csp).toContain("default-src 'none'");
   });
 });

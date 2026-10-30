@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   pluginsReceive: vi.fn(),
   pluginsDeps: [] as unknown[],
   folders: [] as Array<{ uri: { fsPath: string } }>,
+  panels: [] as Array<{ iconPath?: unknown }>,
 }));
 vi.mock("vscode", () => ({
   commands: { executeCommand: mocks.execute },
@@ -21,17 +22,15 @@ vi.mock("vscode", () => ({
     },
   },
   window: {
-    createWebviewPanel: () => ({
-      webview: { html: "", onDidReceiveMessage: mocks.receive },
-      onDidDispose: vi.fn(),
-    }),
+    createWebviewPanel: () => {
+      const panel = {
+        webview: { html: "", onDidReceiveMessage: mocks.receive },
+        onDidDispose: vi.fn(),
+      };
+      mocks.panels.push(panel);
+      return panel;
+    },
   },
-}));
-// No video packs installed: discovery reads the real extension registry.
-vi.mock("../src/video-packs.ts", () => ({
-  installedVideoPacks: () => [],
-  onVideoPacksChanged: () => ({ dispose: vi.fn() }),
-  videoPackRoots: () => [],
 }));
 vi.mock("../src/commands.ts", () => ({ runInTerminal: vi.fn() }));
 vi.mock("../src/dashboard-html.ts", () => ({ loadDashboardHtml: async () => "<html></html>" }));
@@ -66,6 +65,18 @@ vi.mock("../src/plugins-controller.ts", () => ({
 import { openDashboardPanel } from "../src/dashboard-panel.ts";
 
 beforeEach(() => vi.clearAllMocks());
+
+describe("dashboard panel tab", () => {
+  it("shows the Andon icon on the editor tab", () => {
+    openDashboardPanel(
+      { extensionPath: "extension", subscriptions: [] } as unknown as ExtensionContext,
+      "dashboard-project",
+    );
+    expect(mocks.panels.at(-1)?.iconPath).toEqual({
+      fsPath: path.join("extension", "media", "icon.png"),
+    });
+  });
+});
 
 describe("dashboard workflows installation", () => {
   it("opens setup for the host's dashboard root without accepting a webview path", async () => {

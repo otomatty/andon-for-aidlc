@@ -3,7 +3,6 @@ import { AgentPanel } from "@/features/agent/AgentPage.tsx";
 import { AreaBoundary } from "@/shell/AreaBoundary.tsx";
 import { DetailPanel } from "@/features/stage/StagePage.tsx";
 import { DocsShell } from "@/features/docs/DocsPage.tsx";
-import { GuidesPanel } from "@/features/guides/GuidesPage.tsx";
 import { CustomizationSkeleton } from "@/features/customization/components/CustomizationSkeleton.tsx";
 import { EffectivenessSkeleton } from "@/features/effectiveness/components/EffectivenessSkeleton.tsx";
 import { OnboardingTip } from "@/features/onboarding/components/OnboardingTip.tsx";
@@ -46,9 +45,6 @@ export function RouteOutlet({
     <>
       <AreaBoundary name="detail-panel">
         <DetailPanel />
-      </AreaBoundary>
-      <AreaBoundary name="guides-panel">
-        <GuidesPanel />
       </AreaBoundary>
       <AreaBoundary name="docs-shell">
         <DocsShell />

@@ -26,7 +26,6 @@ import {
   saveDocsConversation,
 } from "./docs-conversation.ts";
 import { onPath } from "./doctor.ts";
-import { docTarget } from "./file-ref-target.ts";
 import { acquireSession, persistSelectedIntent } from "./guide-session.ts";
 import { resolveOfficialDocsRoot } from "./official-docs-root.ts";
 import { extensionVersion, onboardingSnapshot, recordOnboardingEvent } from "./onboarding.ts";
@@ -38,7 +37,6 @@ import {
   OFFICIAL_DOCS_LOCALE_KEY,
 } from "./open-official-doc.ts";
 import { inspectWorkflowsManagement } from "./workflows-management.ts";
-import { installedVideoPacks, onVideoPacksChanged, videoPackRoots } from "./video-packs.ts";
 import { onWorkflowsChanged, workflowsRepairKey } from "./workflows-operation.ts";
 import { maybePromptWorkflowsUpdate, runVersionGateAction } from "./workflows-update-panel.ts";
 import { readNativeInstall } from "./native-setup.ts";
@@ -86,7 +84,7 @@ function wireWebview(
       pendingView = undefined;
       void webview.postMessage({ type: "onboarding", state });
     } catch (cause) {
-      console.warn("AIDLC Guide: オンボーディングの状態を読み込めませんでした。", cause);
+      console.warn("Andon: オンボーディングの状態を読み込めませんでした。", cause);
     }
   };
   const sendWorkflowsState = () => {
@@ -177,7 +175,7 @@ function wireWebview(
         await recordOnboardingEvent(context, extensionVersion(context), msg.event);
       } catch (cause) {
         // A lost flag only shows a tip or the change list once more.
-        console.warn("AIDLC Guide: オンボーディングの状態を保存できませんでした。", cause);
+        console.warn("Andon: オンボーディングの状態を保存できませんでした。", cause);
       }
       return;
     }
@@ -196,11 +194,6 @@ function wireWebview(
     // LocaleControl → host persist (reload / ready bootstrap must keep choice).
     if (msg.type === "official-docs-locale" && (msg.locale === "en" || msg.locale === "ja")) {
       void context.globalState.update(OFFICIAL_DOCS_LOCALE_KEY, msg.locale);
-      return;
-    }
-
-    if (msg.type === "check-update") {
-      void commands.executeCommand("aidlc-guide.checkUpdate");
       return;
     }
 
@@ -257,9 +250,7 @@ function wireWebview(
     }
 
     if (msg.type === "get" && typeof msg.id === "string" && typeof msg.path === "string") {
-      const result = await session.handleGet(msg.path, (file) =>
-        webview.asWebviewUri(Uri.file(file)).toString(),
-      );
+      const result = await session.handleGet(msg.path);
       void webview.postMessage({
         type: "get-response",
         id: msg.id,
@@ -308,36 +299,6 @@ function wireWebview(
       }
       return;
     }
-
-    if (msg.type === "open-doc" && typeof msg.path === "string") {
-      const cfg = await session.service.readContext.bridge.getConfig();
-      const root =
-        "ok" in cfg && cfg.value.docsRepoPath !== null ? cfg.value.docsRepoPath : workspaceRoot;
-      // Trust boundary: the webview's path goes through the same
-      // normalise-and-contain gate as `open-file`, never straight to resolve.
-      const target = docTarget(root, msg.path);
-      if (target === null) {
-        void window.showErrorMessage(`docs を開けませんでした: ${msg.path}`);
-        return;
-      }
-      const file = Uri.file(target);
-      const fragment =
-        typeof msg.anchor === "string" && msg.anchor !== "" && msg.anchor !== "#"
-          ? msg.anchor.startsWith("#")
-            ? msg.anchor.slice(1)
-            : msg.anchor
-          : undefined;
-      try {
-        await commands.executeCommand(
-          "vscode.open",
-          fragment === undefined ? file : file.with({ fragment }),
-        );
-      } catch (cause) {
-        void window.showErrorMessage(
-          `docs を開けませんでした: ${file.fsPath}${cause instanceof Error ? ` (${cause.message})` : ""}`,
-        );
-      }
-    }
   });
 
   return () => {
@@ -356,20 +317,13 @@ export function openDashboardPanel(
 ): void {
   registerApplyLatestCommand(context);
   void maybePromptWorkflowsUpdate(context, workspaceRoot);
-  // The webview may load the dashboard bundle and each installed video pack's
-  // media folder, nothing else; packs installed later widen this in place.
-  const resourceRoots = () =>
-    [mediaRoot(context), ...videoPackRoots(installedVideoPacks())].map((root) => Uri.file(root));
-  const panel = window.createWebviewPanel(PANEL_VIEW_TYPE, "AIDLC Guide", ViewColumn.One, {
+  // The webview may load the dashboard bundle, nothing else.
+  const panel = window.createWebviewPanel(PANEL_VIEW_TYPE, "Andon", ViewColumn.One, {
     enableScripts: true,
     retainContextWhenHidden: true,
-    localResourceRoots: resourceRoots(),
+    localResourceRoots: [Uri.file(mediaRoot(context))],
   });
-  const packWatch = onVideoPacksChanged(() => {
-    panel.webview.options = { ...panel.webview.options, localResourceRoots: resourceRoots() };
-    // The open docs page asks again, so a pack installed while it is shown appears at once.
-    void panel.webview.postMessage({ type: "video-packs-changed" });
-  });
+  panel.iconPath = Uri.file(path.join(context.extensionPath, "media", "icon.png"));
 
   void loadDashboardHtml(panel.webview, context).then((html) => {
     panel.webview.html = html;
@@ -383,8 +337,5 @@ export function openDashboardPanel(
     context,
     options.open,
   );
-  panel.onDidDispose(() => {
-    packWatch.dispose();
-    teardown();
-  });
+  panel.onDidDispose(teardown);
 }

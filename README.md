@@ -1,10 +1,10 @@
-# AIDLC Guide
+# Andon for AI-DLC
 
 AI-DLC の現在地・成果物・次の一手を、VS Code / Cursor の中で確認するローカル開発者ツールです。
 
 **対応 aidlc-workflows バージョン: 2.11.1**（State Version **8** / **33** ステージ、`docs/official-docs.manifest.json` のピンと同期）。版の更新漏れは `bun run check` で検出します（[互換性チェック](docs/maintenance/release-and-sync.md#互換性チェックdocs-以外の追随)）。
 
-> 名称は仮称です。要件は[PRD](docs/prd/PRD.md)、社内向けの紹介は[紹介資料](docs/introducing/README.md)を参照してください。
+> 2026-10 に「AIDLC Guide」から「Andon for AI-DLC」（略称 Andon）へ名称を変えました。アンドンは、現場の状態を一目で示し、人の判断が要るときに人を呼ぶ表示灯です。コマンド ID（`aidlc-guide.*`）、パッケージ名（`@aidlc-guide/*`）、設定ファイル名は互換のため変えていません。要件は[PRD](docs/prd/PRD.md)、社内向けの紹介は[紹介資料](docs/introducing/README.md)を参照してください。
 
 ## 全体像
 
@@ -13,20 +13,19 @@ flowchart LR
   dev(["開発者"])
   ai["AI ツール<br/>Claude Code / Cursor など"]
   rec[("aidlc/ の記録<br/>状態・成果物・監査ログ")]
-  guide["AIDLC Guide<br/>VS Code / Cursor 拡張"]
+  guide["Andon<br/>VS Code / Cursor 拡張"]
   dev -- "/aidlc で依頼" --> ai
   ai -- "ステージを実行して<br/>書き込む" --> rec
   rec -- "読み取る" --> guide
   guide -- "現在地・成果物・次の承認" --> dev
 ```
 
-| 困りごと                         | AIDLC Guide での確認先                                                               |
+| 困りごと                         | Andon での確認先                                                                     |
 | -------------------------------- | ------------------------------------------------------------------------------------ |
 | 今どのステージにいるか分からない | [ステージ一覧](#ステージ一覧)                                                        |
 | 成果物が多くて全体像が見えない   | 成果物マトリクスと[成果物ビューア](#成果物ビューア)                                  |
 | 工程の時間や手戻りを比べたい     | [効果測定](#効果測定)と[時間の算出方法](docs/guides/stage-timing.md)                 |
 | 調べ物で本線のセッションが濁る   | [ドキュメント](#ドキュメント)の質問欄と[MCP サーバー](docs/guides/side-questions.md) |
-| 自分のブラウザで状態を見たい     | `bun run dashboard`（`127.0.0.1`）と[使い方ガイド](docs/guides/README.md)            |
 
 ## 画面の構成
 
@@ -41,7 +40,7 @@ flowchart TB
 
 ## 主な機能
 
-画像は、このリポジトリの開発記録（`260720-aidlc-guide-prd`）を VS Code / Cursor の拡張と同じ表示で撮影したものです。説明用の番号を書き加えています（撮影日：2026-10-29、配色は VS Code 標準のライトテーマ）。数値はこの案件の記録で、導入効果の実績値ではありません。
+画像は、このリポジトリの開発記録（`260720-aidlc-guide-prd`）を VS Code / Cursor の拡張と同じ表示で撮影したものです。説明用の番号を書き加えています（撮影日：2026-10-30、配色は VS Code 標準のライトテーマ）。数値はこの案件の記録で、導入効果の実績値ではありません。
 
 ### ステージ一覧
 
@@ -128,7 +127,7 @@ flowchart TB
 | 4    | 記録の内訳と注意点                                               |
 | 5    | 記録の読み直し                                                   |
 
-指標の読み方は[効果測定ガイド](docs/guides/effectiveness.md)を参照してください。
+State Version 7 の記録は読み込まないため、数値を出さずに並びます（画像の `260802-docs-bridge` など）。指標の読み方は[効果測定ガイド](docs/guides/effectiveness.md)を参照してください。
 
 ### カスタマイズ
 
@@ -149,12 +148,12 @@ flowchart TB
 
 ![番号付きのプラグイン画面。プラグインの概要、このプロジェクトでの状態と導入ボタン、手順を追記するステージ、追加するステージを示している](docs/images/readme/07-plugins.webp)
 
-| 番号 | 見るところ                                                                                                |
-| ---- | --------------------------------------------------------------------------------------------------------- |
-| 1    | プラグインの概要（同梱の focus は試験版）                                                                 |
-| 2    | このプロジェクトでの状態と、導入・無効化のボタン。VS Code / Cursor の拡張の中だけ（ブラウザ版は閲覧のみ） |
-| 3    | 標準のステージに手順を追記するもの（△）                                                                   |
-| 4    | プラグインが追加するステージ（＋）                                                                        |
+| 番号 | 見るところ                                       |
+| ---- | ------------------------------------------------ |
+| 1    | プラグインの概要（同梱の focus は試験版）        |
+| 2    | このプロジェクトでの状態と、導入・無効化のボタン |
+| 3    | 標準のステージに手順を追記するもの（△）          |
+| 4    | プラグインが追加するステージ（＋）               |
 
 その下に、成果物の図の見本、必要なもの（拡張の中では満たしているかも表示）、追加・変更されるファイル、始め方が続きます。
 
@@ -175,12 +174,12 @@ flowchart TB
 ```mermaid
 flowchart LR
   vsix["VSIX を<br/>インストール"] --> setup
-  subgraph setup["AIDLC Guide: Setup"]
+  subgraph setup["Andon: Setup"]
     direction TB
     s1["このマシンの CLI<br/>（CLI をインストール）"] --> s2["プロジェクトの設定<br/>（新規プロジェクト）"]
     s2 --> s3["完了<br/>（診断は任意）"]
   end
-  setup --> open["AIDLC Guide: Open"]
+  setup --> open["Andon: Open"]
   open --> dash["Dashboard"]
 ```
 
@@ -191,7 +190,7 @@ bun run package:extension   # VSIX を作成（packages/vscode-extension/*.vsix�
 code --install-extension packages/vscode-extension/aidlc-guide-*.vsix
 ```
 
-Cursor では _Extensions: Install from VSIX_ からインストールします。自分でビルドしない場合は[Releases](https://github.com/otomatty/aidlc-guide/releases)の `.vsix` を使えます。日常の操作は `AIDLC Guide: Open` か、ステータスバーの `AIDLC Guide` です。各手順の詳細は[CLI とエンジンを導入・更新する](docs/guides/installing-and-updating.md)を参照してください。
+Cursor では _Extensions: Install from VSIX_ からインストールします。自分でビルドしない場合は[Releases](https://github.com/otomatty/aidlc-guide/releases)の `.vsix` を使えます。日常の操作は `Andon: Open` か、ステータスバーの `Andon` です。各手順の詳細は[CLI とエンジンを導入・更新する](docs/guides/installing-and-updating.md)を参照してください。
 
 ## バージョンの確認と更新
 
@@ -200,7 +199,7 @@ flowchart TD
   open["プロジェクトを開く"] --> q{"ツール・固定バージョン・<br/>この PC のエンジンが<br/>対応版と一致する？"}
   q -- "一致" --> ok["Dashboard を表示"]
   q -- "プロジェクトが古い" --> old["プロジェクトの更新を案内"]
-  q -- "プロジェクトが新しい" --> new["Guide の更新を案内<br/>対応する Guide がなければ<br/>対応版に戻すコマンドを示す"]
+  q -- "プロジェクトが新しい" --> new["Andon の更新を案内<br/>対応する Andon がなければ<br/>対応版に戻すコマンドを示す"]
   q -- "この PC の<br/>エンジンだけ新しい" --> pin{"プロジェクトは<br/>バージョンを固定済み？"}
   pin -- "固定済み" --> ok
   pin -- "未固定" --> fix["対応版に固定するか<br/>PC の既定を戻す"]
@@ -224,7 +223,7 @@ flowchart LR
 ```mermaid
 flowchart TB
   ext["VS Code / Cursor 拡張<br/>vscode-extension"]
-  web["ブラウザ版<br/>dashboard-server<br/>Bun・127.0.0.1"]
+  web["開発用サーバー<br/>dashboard-server<br/>Bun・127.0.0.1"]
   mcp["チャット用 MCP<br/>mcp-server<br/>Bun・stdio"]
   ui["Dashboard UI<br/>dashboard"]
   api["api-core<br/>読取・カスタマイズ API"]
@@ -242,48 +241,43 @@ flowchart TB
 
 ### 拡張コマンド
 
-| コマンド                         | 用途                                                  |
-| -------------------------------- | ----------------------------------------------------- |
-| `AIDLC Guide: Open`              | IDE 内 Dashboard（セットアップ完了前はセットアップ）  |
-| `AIDLC Guide: Setup`             | CLI の準備・プロジェクトの環境構築・診断              |
-| `AIDLC Guide: Install Workflows` | ツール追加（AI-DLC を使うツールのインストール）       |
-| `AIDLC Guide: Update Workflows`  | このマシンの CLI とプロジェクトのエンジンの更新・修復 |
-| `AIDLC Guide: Check for Updates` | AIDLC Guide 拡張の更新を確認                          |
-| `AIDLC Guide: Open Plugins`      | 「プラグイン」画面                                    |
-| `AIDLC Guide: Show Welcome`      | 「はじめに」                                          |
-| `AIDLC Guide: Show What's New`   | 「更新情報」                                          |
-| `AIDLC Guide: Register MCP`      | Claude Code / Cursor の MCP と文書参照 Skill を登録   |
+| コマンド                   | 用途                                                  |
+| -------------------------- | ----------------------------------------------------- |
+| `Andon: Open`              | IDE 内 Dashboard（セットアップ完了前はセットアップ）  |
+| `Andon: Setup`             | CLI の準備・プロジェクトの環境構築・診断              |
+| `Andon: Install Workflows` | ツール追加（AI-DLC を使うツールのインストール）       |
+| `Andon: Update Workflows`  | このマシンの CLI とプロジェクトのエンジンの更新・修復 |
+| `Andon: Check for Updates` | Andon 拡張の更新を確認                                |
+| `Andon: Open Plugins`      | 「プラグイン」画面                                    |
+| `Andon: Show Welcome`      | 「はじめに」                                          |
+| `Andon: Show What's New`   | 「更新情報」                                          |
+| `Andon: Register MCP`      | Claude Code / Cursor の MCP と文書参照 Skill を登録   |
 
 ### パッケージ
 
-| パッケージ（`packages/`） | 役割                                                            |
-| ------------------------- | --------------------------------------------------------------- |
-| `vscode-extension`        | VS Code / Cursor 拡張（第一サーフェス）                         |
-| `dashboard`               | React UI（Webview とブラウザ版で共用）                          |
-| `api-core`                | 読取・カスタマイズ API（HTTP / postMessage 共通）               |
-| `dashboard-server`        | ブラウザ版 Dashboard のローカルサーバー（Bun、`127.0.0.1`）     |
-| `mcp-server`              | Claude Code / Cursor 向けの読取専用 MCP                         |
-| `reader-core`             | `aidlc-state.md`・成果物・監査の読取                            |
-| `docs-bridge`             | ステージ slug・用語・エージェント → 公式 docs                   |
-| `official-docs`           | 同梱した公式ドキュメントの読込・検索                            |
-| `shared-types`            | 全サーフェス共通の型と定数                                      |
-| `core-utils`              | パスの封じ込めなど、読取境界の共通処理                          |
-| `kamishibai`              | 解説動画の描画エンジン                                          |
-| `doc-video`               | 解説動画パックの作成ツール（メンテナ用。VSIX には含めない）     |
-| `video-pack-ja`           | 日本語の解説動画パック（別の拡張として配布し、Docs 画面で再生） |
+| パッケージ（`packages/`） | 役割                                                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `vscode-extension`        | VS Code / Cursor 拡張（第一サーフェス）                                                                             |
+| `dashboard`               | React UI（拡張の Webview で表示）                                                                                   |
+| `api-core`                | 読取・カスタマイズ API（HTTP / postMessage 共通）                                                                   |
+| `dashboard-server`        | 開発用のローカルサーバー（Bun、`127.0.0.1`）。AI による画面確認とスクリーンショット撮影に使い、利用者には提供しない |
+| `mcp-server`              | Claude Code / Cursor 向けの読取専用 MCP                                                                             |
+| `reader-core`             | `aidlc-state.md`・成果物・監査の読取                                                                                |
+| `docs-bridge`             | ステージ slug・用語・エージェント → 公式 docs                                                                       |
+| `official-docs`           | 同梱した公式ドキュメントの読込・検索                                                                                |
+| `shared-types`            | 全サーフェス共通の型と定数                                                                                          |
+| `core-utils`              | パスの封じ込めなど、読取境界の共通処理                                                                              |
 
 ### 設定ファイル
 
-ワークスペースルートの[`aidlc-guide.config.json`](aidlc-guide.config.json)で docs 連携を設定します。全ステージ分のキーを同梱しています。
+ワークスペースルートの[`aidlc-guide.config.json`](aidlc-guide.config.json)で docs の読み取り元とプロジェクトリンクを設定します。
 
-| キー           | 用途                                                                                          |
-| -------------- | --------------------------------------------------------------------------------------------- |
-| `docsRepoPath` | 公式 docs のルート（excerpt 読取）。相対パスは config ファイル基準                            |
-| `docsBaseUrl`  | （任意）ベース URL。`stageDocs` 未設定のステージで bridge-map の相対パスと結合                |
-| `stageDocs`    | ステージ slug → 開き先 URL（Confluence / Notion / GitHub など `http(s)://…`）。空文字は未設定 |
-| `projectLinks` | 右上のメニューの「プロジェクトリンク」に出す追加リンク `{ label, target }[]`                  |
+| キー           | 用途                                                                         |
+| -------------- | ---------------------------------------------------------------------------- |
+| `docsRepoPath` | 公式 docs のルート（excerpt 読取）。相対パスは config ファイル基準           |
+| `projectLinks` | 右上のメニューの「プロジェクトリンク」に出す追加リンク `{ label, target }[]` |
 
-「docs を開く」は `stageDocs[slug]` → `docsBaseUrl` + map パス → ワークスペース上のファイルの順に開き先を決めます。
+ステージ詳細の「Open in Docs」は、常に同梱の公式ドキュメントを開きます（開き先を差し替える `stageDocs` / `docsBaseUrl` は廃止）。
 
 ### 前提
 
@@ -291,7 +285,7 @@ flowchart TB
 | --------------------- | ------------------------------------------------------------------------------------------------- |
 | エディター            | VS Code 1.100 以上（拡張ホストの Node 20 が前提）。Cursor などのフォークも同じ下限                |
 | 対象ワークスペース    | aidlc-workflows 2.11.1（State Version **8**）。ほかの版は[更新を案内](#バージョンの確認と更新)    |
-| [Bun](https://bun.sh) | MCP、ブラウザ版の Dashboard、カスタマイズの保存などで使用                                         |
+| [Bun](https://bun.sh) | MCP やカスタマイズの保存などで使用                                                                |
 | AI ツール             | MCP は Claude Code か Cursor。ドキュメントへの質問は Claude Code / Cursor / GitHub Copilot の CLI |
 
 ## 開発
@@ -304,7 +298,7 @@ bun run format      # oxfmt の整形
 bun run check       # 品質チェック全体
 ```
 
-`bun run check` は、Lint・整形・型・文書索引・動画パック・プラグイン・互換性・テスト（カバレッジ付き）・監査ログ・依存の脆弱性を順に検査します。依存更新と main 保護は[依存更新と品質チェック](docs/maintenance/dependency-quality.md)を参照してください。
+`bun run check` は、Lint・整形・型・文書索引・プラグイン・互換性・テスト（カバレッジ付き）・監査ログ・依存の脆弱性を順に検査します。依存更新と main 保護は[依存更新と品質チェック](docs/maintenance/dependency-quality.md)を参照してください。
 
 Claude Code で開発するときは、`AGENTS.md` を読み込む設定を各自で一度有効にします（[手順](AGENTS.md#claude-code-load-this-file)）。
 
@@ -324,11 +318,11 @@ flowchart LR
 
 ## 設計上の約束
 
-| 約束                           | 内容                                                                                                     |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| 読取が基本                     | AI-DLC の記録は読むだけ。書き込みは利用者の明示的な操作に限る（下の表）                                  |
-| aidlc-workflows 本体は触らない | 導入・更新・プラグインの反映は公式のインストーラーと CLI に任せる                                        |
-| 独自のクラウドを持たない       | ブラウザ版も `127.0.0.1` だけで待ち受ける。外部への主な接続は GitHub Releases と、選んだ AI ツールの CLI |
+| 約束                           | 内容                                                                                                         |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| 読取が基本                     | AI-DLC の記録は読むだけ。書き込みは利用者の明示的な操作に限る（下の表）                                      |
+| aidlc-workflows 本体は触らない | 導入・更新・プラグインの反映は公式のインストーラーと CLI に任せる                                            |
+| 独自のクラウドを持たない       | 開発用サーバーも `127.0.0.1` だけで待ち受ける。外部への主な接続は GitHub Releases と、選んだ AI ツールの CLI |
 
 | 書き込む操作               | 書き込む先                                                     |
 | -------------------------- | -------------------------------------------------------------- |

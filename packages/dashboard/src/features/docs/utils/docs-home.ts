@@ -160,7 +160,7 @@ const SHELF_COPY: Readonly<Record<ShelfId, { title: string; audience: string }>>
   tips: { title: "運用Tips", audience: "運用で迷ったときに。テーマごとの短い記事" },
   extension: {
     title: "拡張機能の使い方",
-    audience: "AIDLC Guide の画面の読み方と設定",
+    audience: "Andon の画面の読み方と設定",
   },
   releases: { title: "更新履歴", audience: "aidlc-workflows の各バージョンの変更点" },
 };

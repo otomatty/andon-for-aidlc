@@ -9,13 +9,10 @@ import {
   type ConstructionGatePolicy,
   CURRENT_STATE_VERSION,
   isSupportedStateVersion,
-  LEGACY_STATE_WARNING,
   type Phase,
   type ReadResult,
   type StageInfo,
   type StageStatus,
-  SUPPORTED_STATE_VERSION,
-  schemaCompatibilityOf,
   type WorkflowModel,
 } from "@aidlc-guide/shared-types";
 
@@ -28,7 +25,7 @@ import {
  * `construction/reader-core/functional-design/business-rules.md`.
  */
 
-export { CURRENT_STATE_VERSION, SUPPORTED_STATE_VERSION };
+export { CURRENT_STATE_VERSION };
 export const STATE_FILENAME = "aidlc-state.md";
 
 /** G-1: `## <heading>` opens a section. */
@@ -282,7 +279,6 @@ export function parseState(text: string): ReadResult<WorkflowModel> {
 
   const unparseable: Record<string, string> = {};
   const warnings: string[] = [];
-  if (schemaCompatibilityOf(version) === "legacy") warnings.push(LEGACY_STATE_WARNING);
 
   const required = (key: keyof WorkflowModel, section: string, name: string): string => {
     const value = field(doc, section, name);
@@ -370,7 +366,6 @@ export function parseState(text: string): ReadResult<WorkflowModel> {
       : {}),
     ...(plan ? { plan } : {}),
     stateVersion: version,
-    schemaCompatibility: schemaCompatibilityOf(version),
     // `phase` stays typed as Phase; consumers must consult `unparseable.phase`
     // before trusting it (BR-RC-5 field-level degradation).
     phase: phase ?? "INITIALIZATION",

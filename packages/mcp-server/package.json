@@ -15,7 +15,6 @@
     "mcp": "bun run ./src/index.ts"
   },
   "dependencies": {
-    "@aidlc-guide/docs-bridge": "workspace:*",
     "@aidlc-guide/official-docs": "workspace:*",
     "@aidlc-guide/reader-core": "workspace:*",
     "@aidlc-guide/shared-types": "workspace:*",

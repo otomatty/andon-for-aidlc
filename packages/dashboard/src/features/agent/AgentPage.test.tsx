@@ -136,7 +136,7 @@ describe("agent route exclusivity", () => {
     expect(restored.route).toEqual({ name: "stage", slug: "code-generation" });
   });
 
-  it("clears agentOpen when guides or another stage opens", () => {
+  it("clears agentOpen when effectiveness or another stage opens", () => {
     const withAgent = reducer(
       reducer(initialState, {
         type: "select",
@@ -145,8 +145,8 @@ describe("agent route exclusivity", () => {
       { type: "open-agent", id: "aidlc-quality-agent" },
     );
 
-    const guides = reducer(withAgent, { type: "guides", open: true });
-    expect(guides.route).toEqual({ name: "guides" });
+    const effectiveness = reducer(withAgent, { type: "effectiveness", open: true });
+    expect(effectiveness.route).toEqual({ name: "effectiveness" });
 
     const withAgentAgain = reducer(
       reducer(initialState, {

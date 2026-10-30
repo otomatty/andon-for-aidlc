@@ -4,7 +4,7 @@
 
 同梱された **aidlc-workflows** ガイドの日本語ブートストラップページです。
 
-AIDLC Guide 拡張内でオフライン閲覧できます。
+Andon 拡張内でオフライン閲覧できます。
 
 ガイド本編は [イントロダクション](00-introduction.md) と [はじめに（セットアップ）](01-getting-started.md) から始まります。
 

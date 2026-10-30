@@ -4,7 +4,7 @@
  * VS Code allows it **once per webview** and throws
  * `An instance of the VS Code API has already been acquired` on every call
  * after the first. Three call sites had grown up independently — the transport
- * on boot, `openDocInIde`, and `openFileInIde` — so in a real webview the first
+ * on boot, a since-removed doc opener, and `openFileInIde` — so in a real webview the first
  * one won and the other two threw before they could post anything. Nothing
  * caught it, because a test stub is happy to be acquired twice.
  *

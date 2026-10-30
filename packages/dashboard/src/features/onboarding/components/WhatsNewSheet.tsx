@@ -54,7 +54,7 @@ function Entry({
 }
 
 /**
- * 更新情報 — AIDLC Guide's own changes, newest first. Opening it is what
+ * 更新情報 — Andon's own changes, newest first. Opening it is what
  * "seen" means: the new entries are recorded as seen right away, but keep
  * their 新着 badge until the sheet closes.
  */
@@ -91,8 +91,8 @@ export function WhatsNewSheet(): ReactNode {
           <SheetTitle>更新情報</SheetTitle>
           <SheetDescription>
             {onboarding.version === null
-              ? "AIDLC Guide の新機能と変更点です。"
-              : `AIDLC Guide ${onboarding.version} の新機能と変更点です。`}
+              ? "Andon の新機能と変更点です。"
+              : `Andon ${onboarding.version} の新機能と変更点です。`}
           </SheetDescription>
         </SheetHeader>
         <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 pb-6">

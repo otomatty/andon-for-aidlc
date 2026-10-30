@@ -1,4 +1,3 @@
-import { LEGACY_STATE_WARNING } from "@aidlc-guide/shared-types";
 import { describe, expect, it } from "vitest";
 import {
   deriveViewState,
@@ -7,6 +6,8 @@ import {
   workflowNotes,
 } from "@/store/derive-view-state.ts";
 import { matrix, payload, workflow } from "@tests/fixtures.ts";
+
+const STATE_WARNING = "成果物の一部を読めませんでした。";
 
 /** The five states of refined-mockups Q2. */
 
@@ -39,7 +40,13 @@ describe("deriveViewState", () => {
     const state = deriveViewState({ unsupported: true, version: "9" });
     expect(state.kind).toBe("error");
     expect(state.kind === "error" && state.detail).toContain("9");
-    expect(state.kind === "error" && state.detail).toContain("7 と 8");
+    expect(state.kind === "error" && state.detail).toContain("Version 8 を解析");
+  });
+
+  it("error: a State Version 7 record is refused, not browsed", () => {
+    const state = deriveViewState({ unsupported: true, version: "7" });
+    expect(state.kind).toBe("error");
+    expect(state.kind === "error" && state.detail).toContain("State Version 7 は未対応");
   });
 
   it("error: a transport failure says the server is unreachable", () => {
@@ -52,10 +59,10 @@ describe("deriveViewState", () => {
     expect(state.kind === "error" && state.detail).toContain("internal: boom");
   });
 
-  it("partial: a v7 browse-compat warning is shown, not treated as unsupported", () => {
-    const state = deriveViewState({ ok: true, value: 1, warnings: [LEGACY_STATE_WARNING] });
+  it("partial: a state-file warning is shown, not treated as unsupported", () => {
+    const state = deriveViewState({ ok: true, value: 1, warnings: [STATE_WARNING] });
     expect(state.kind).toBe("partial");
-    expect(state.kind === "partial" && state.notes).toEqual([LEGACY_STATE_WARNING]);
+    expect(state.kind === "partial" && state.notes).toEqual([STATE_WARNING]);
   });
 
   it("partial: server warnings downgrade success and are carried", () => {

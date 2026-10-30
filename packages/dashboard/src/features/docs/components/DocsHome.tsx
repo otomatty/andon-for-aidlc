@@ -372,8 +372,7 @@ export function DocsHome({
               ドキュメント
             </h1>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              aidlc-workflows の公式ドキュメント、運用Tips、AIDLC Guide
-              の使い方を、この画面から読めます。
+              aidlc-workflows の公式ドキュメント、運用Tips、Andon の使い方を、この画面から読めます。
             </p>
           </div>
           {onOpenChat ? (

@@ -2,14 +2,13 @@ import { handleRead, mapResult } from "@aidlc-guide/api-core";
 import { nextStepOf } from "@aidlc-guide/reader-core";
 import type { Matrix, WorkflowModel } from "@aidlc-guide/shared-types";
 import { describe, expect, it } from "vitest";
-import { context, ok, stageDoc, stubBridge, stubReader, termDoc, url } from "./support.ts";
+import { context, ok, stageDoc, stubBridge, stubReader, url } from "./support.ts";
 
 const WORKFLOW: WorkflowModel = {
   project: "p",
   scope: "feature",
   depth: "Standard",
   stateVersion: 8,
-  schemaCompatibility: "current",
   phase: "CONSTRUCTION",
   currentStage: "functional-design",
   nextStage: "code-generation",
@@ -221,13 +220,9 @@ describe("docs-bridge routes", () => {
     expect(body.value.slug).toBe("code generation");
   });
 
-  it("GET /api/glossary/:term resolves the term", async () => {
-    const ctx = context({
-      bridge: stubBridge({ resolveTerm: async (term) => ok(termDoc(term)) }),
-    });
-    const response = await handleRead(ctx, url("/api/glossary/Bolt"));
-    const body = (await response?.json()) as { value: { term: string } };
-    expect(body.value.term).toBe("Bolt");
+  it("no longer serves GET /api/glossary/:term (MCP resolves terms directly)", async () => {
+    const response = await handleRead(context(), url("/api/glossary/Bolt"));
+    expect(response?.status).toBe(404);
   });
 
   it("GET /api/links returns the project links", async () => {

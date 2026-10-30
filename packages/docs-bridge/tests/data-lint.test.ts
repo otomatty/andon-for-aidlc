@@ -1,18 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import type { BridgeConfig } from "@aidlc-guide/shared-types";
 import { describe, expect, it } from "vitest";
 import { readFrom, workflowsTarget } from "../../../scripts/check-workflows-compatibility.ts";
 import { readExcerpt } from "../src/excerpt.ts";
-import { agentMap, bridgeMap, resolveTerm } from "../src/resolve.ts";
-import { expectOk, REPO_ROOT } from "./paths.ts";
-
-const noDocs: BridgeConfig = {
-  docsRepoPath: null,
-  docsBaseUrl: null,
-  stageDocs: {},
-  projectLinks: [],
-};
+import { agentMap, bridgeMap } from "../src/resolve.ts";
+import { REPO_ROOT } from "./paths.ts";
 
 const expectedVersion = workflowsTarget(readFrom(REPO_ROOT)).sourceVersion;
 
@@ -33,7 +25,6 @@ if (!docsAvailable) {
 }
 
 const stageEntries = Object.entries(bridgeMap.stages);
-const termEntries = Object.entries(bridgeMap.terms);
 
 describe.skipIf(!docsAvailable)("bridge-map data-lint", () => {
   it("covers all 33 stages of the compiled stage graph", () => {
@@ -43,12 +34,6 @@ describe.skipIf(!docsAvailable)("bridge-map data-lint", () => {
   it.each(stageEntries)("stage %s resolves to a real section", async (slug, entry) => {
     const result = await readExcerpt(REPO_ROOT, entry.docPath, entry.docAnchor);
     expect(result.warning, `${slug} -> ${entry.docPath}${entry.docAnchor}`).toBeUndefined();
-    expect(result.excerpt).not.toBeNull();
-  });
-
-  it.each(termEntries)("term %s resolves to a real section", async (term, entry) => {
-    const result = await readExcerpt(REPO_ROOT, entry.docPath, entry.docAnchor);
-    expect(result.warning, `${term} -> ${entry.docPath}${entry.docAnchor}`).toBeUndefined();
     expect(result.excerpt).not.toBeNull();
   });
 
@@ -66,42 +51,12 @@ describe("bridge-map shape (no docs tree required)", () => {
     expect(bridgeMap.sourceVersion).toBe(expectedVersion);
   });
 
-  it("defines classic and express scopes with non-empty Japanese definitions", () => {
-    expect(bridgeMap.terms.classic?.definition.trim()).not.toBe("");
-    expect(bridgeMap.terms.express?.definition.trim()).not.toBe("");
-    expect(bridgeMap.terms.classic?.definition).toMatch(/[ぁ-んァ-ヶ一-龯]/);
-    expect(bridgeMap.terms.express?.definition).toMatch(/[ぁ-んァ-ヶ一-龯]/);
-  });
-
-  it("resolves classic scope term without docs", async () => {
-    const { value } = expectOk(await resolveTerm(noDocs, "classic"));
-    expect(value.term).toBe("classic");
-    expect(value.definition).toMatch(/18 ステージ/);
-    expect(value.deepLink?.docPath).toBe(".claude/scopes/aidlc-classic.md");
-    expect(value.deepLink?.docAnchor).toBe("#classic-scope");
-    expect(value.sourceVersion).toBe(expectedVersion);
-  });
-
-  it("resolves express scope term without docs", async () => {
-    const { value } = expectOk(await resolveTerm(noDocs, "express"));
-    expect(value.term).toBe("express");
-    expect(value.definition).toMatch(/最軽量|要件/);
-    expect(value.deepLink?.docPath).toBe(".claude/scopes/aidlc-express.md");
-    expect(value.deepLink?.docAnchor).toBe("#express-scope");
-    expect(value.sourceVersion).toBe(expectedVersion);
-  });
-
   it.each(stageEntries)("stage %s has all four US-03 fields populated", (_slug, entry) => {
     expect(entry.purpose.trim()).not.toBe("");
     expect(entry.agent.trim()).not.toBe("");
     expect(entry.gateRequirement.trim()).not.toBe("");
     expect(Array.isArray(entry.inputs)).toBe(true);
     expect(Array.isArray(entry.outputs)).toBe(true);
-  });
-
-  it.each(termEntries)("term %s is lowercase-normalised and defined", (term, entry) => {
-    expect(term).toBe(term.trim().toLowerCase());
-    expect(entry.definition.trim()).not.toBe("");
   });
 });
 
