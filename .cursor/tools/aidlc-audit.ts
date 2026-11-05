@@ -1123,10 +1123,16 @@ export function appendAuditEntryUnlocked(
 function writeAll(fd: number, content: string): void {
   const bytes = Buffer.from(content, "utf-8");
   let offset = 0;
+  // writeSync without a position uses the fd offset. On Windows that offset
+  // stays 0 for an O_APPEND handle, so the write replaces the head of the
+  // shard and leaves a torn tail. Pin every chunk to the current end. Linux
+  // still appends when O_APPEND is set, ignoring the position.
+  let position = fstatSync(fd).size;
   while (offset < bytes.length) {
-    const written = writeSync(fd, bytes, offset, bytes.length - offset);
+    const written = writeSync(fd, bytes, offset, bytes.length - offset, position);
     if (written <= 0) throw new Error("Audit append made no write progress");
     offset += written;
+    position += written;
   }
 }
 
