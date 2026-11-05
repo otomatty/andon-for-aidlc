@@ -11,7 +11,7 @@
 ## 前提条件
 
 - **Claude Code** -- ネイティブインストール（推奨、自動更新）: macOS / Linux / WSL では `curl -fsSL https://claude.ai/install.sh | bash`、Windows PowerShell では `irm https://claude.ai/install.ps1 | iex`。または `brew install --cask claude-code`。（[Claude Code のドキュメント](https://code.claude.com/docs/en/quickstart) を参照）
-- **bun** -- ビルド、パッケージ生成、テスト、作成した TypeScript ソースの直接実行、ローカル生成した `dist/<harness>/` の利用に必須です。ネイティブリリースのランタイムは、インストール済みの `aidlc` コマンドを使います。`curl -fsSL https://bun.sh/install | bash` でインストールします。Windows では `powershell -c "irm bun.sh/install.ps1 | iex"` を使います。
+- **bun 1.4.4 以降** -- ビルド、パッケージ生成、テスト、作成した TypeScript ソースの直接実行、ローカル生成した `dist/<harness>/` の利用に必須です。Bun 1.4.4 には CVE-2026-111497 向けの Brotli デコーダの修正が含まれます。ネイティブリリースのランタイムは、インストール済みの `aidlc` コマンドを使います。`curl -fsSL https://bun.sh/install | bash` でインストールします。Windows では `powershell -c "irm bun.sh/install.ps1 | iex"` を使います。
 - **timeout**（GNU coreutils）-- テストスイートの LLM テストのタイムアウト（L2/L3）に必須です。Linux には標準で入っています。macOS: `brew install coreutils` のあと gnubin を PATH に追加します: `export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"`（`~/.zshenv` または `~/.zshrc`）。
 - **Bash** -- POSIX 互換ラッパー（`tests/run-tests.sh`）用の任意依存です。主テストランナーは `bun tests/run-tests.ts` です。実行時、配布フックはどれも Bash を必要としません。
 - **Bedrock アクセス** -- ライブ統合テストと e2e テスト（L2/L3）の実行に必須です。L1 プロトコルテストには不要です。
@@ -140,7 +140,7 @@ LLM 推論が不要なハンドラ向け（テキスト表示、ファイルの�
 | `aidlc engine config get <key>` | `config-get` | `depth`、`test-strategy`、`review`、`guard-policy`、`sensors`、`learnings`、`summary-confirmation`、`collaborators`、または 4 つの `guard.<fence>` キーのいずれかを読む。廃止されたキー `change-control` は `guard-policy` に解決される |
 | `aidlc engine config list [--json]` | `config-list` | 13 個の設定すべてをこの順に読む。Guard Policy、フェンス、儀式の値には実効値の出所が含まれる |
 | `aidlc engine config set <key> <value> [--key value ...]` | `config-change --<key> <value> ...` | 与えられた設定フラグをすべて 1 つのトランザクションで適用する。どのキーもこのルートを使う |
-| `aidlc engine scope change --scope <name> [--key value ...] [--message <id>]` | `scope-change --scope <name> ...` | スコープを再計画し、同じ 12 個の設定のいずれかを同じトランザクションで適用する。要求したスコープがすでに現在のスコープである場合も含む |
+| `aidlc engine scope change --scope <name> [--key value ...] [--message <id>] [--skip <slug,...>]` | `scope-change --scope <name> ...` | スコープを再計画し、同じ 12 個の設定のいずれかを同じトランザクションで適用する。要求したスコープがすでに現在のスコープである場合も含む。完了した作業では `--skip` が、スイッチがそこで作業を開き直すステージを計画から外す |
 
 `config-change` は 12 個の設定フラグと `--message`（およびそれ以前の `--person-words` の形。これは何も証明しません）、`--intent`、`--space`、`--project-dir` だけを受理し、最低 1 つの設定が必要です。未知のフラグは名前を示して拒否し、どの変更よりも前にすべての値を検証します。共有のユーティリティ applier は、候補の内容、`AuditEntryInput[]`、出力行を正規のキー順で返し、書き込みはしません。どちらの変更ハンドラも、状態の読み取り、適用、呼び出し側保持ロックモードでの `appendAuditEntries`、1 回の状態書き込みにわたって 1 つの `withAuditLock` を保持します。Guard Policy の値が動く場合は、どの書き込みよりも前に `assertChangeControlLedgerWritable` を呼びます。メモリ層の `Mode: strict` は、明示的な `--guard-policy relaxed` や `--guard-policy off` を、併記の設定やスコープ変更を含めてコマンド全体で拒否します。
 スコープ変更は、スコープが所有する Guard Policy を自動で引き上げることがあります。より低い既定値が新しいスコープに従うのは、その人がスコープ変更を求めた場合だけです。それ以外の場合は現在の保存値が残り、出力がその旨を 1 行で伝えます。実効値は引き続きメモリが制御します。
@@ -211,7 +211,7 @@ LLM 推論が不要なハンドラ向け（テキスト表示、ファイルの�
 
 5. **`doctor` が環境既定として受け入れることを検証** — `AWS_AIDLC_DEFAULT_SCOPE=hotfix aidlc doctor` がその環境変数を有効と報告すること。
 
-6. **プランのヒントが読みやすいか確認する**（`keywords` がある場合） - エンジンはもうこれを照合しない。エージェントがプラン提案の手順でこれを読む（`next "<a request your plan is for>" --project-dir /tmp/scope-smoke` が、すべてのプランをそのヒントとともに表示する）。自分のプランの行が、そのプランの用途を平易な言葉で述べていることを確かめる。
+6. **プランのヒントが読みやすいか確認する**（`keywords` がある場合） - エンジンはもうこれを照合しない。エージェントがプラン提案の手順でこれを読む（`next '<a request your plan is for>' --project-dir /tmp/scope-smoke` が、すべてのプランをそのヒントとともに表示する）。自分のプランの行が、そのプランの用途を平易な言葉で述べていることを確かめる。
 
 7. **計画の一致を検証**（任意だが推奨） — `AIDLC_GRAPH_RESOLVE=1 aidlc engine graph resolve hotfix --stdout` がそのスコープの計画を出力するので、EXECUTE 集合がタグ付けと一致するか目視する。
 
