@@ -577,4 +577,57 @@ describe("translateDoctorText", () => {
       expect(translated, source).toContain(expected);
     }
   });
+
+  it("translates the 2.11.3 Doctor lines and still translates the older forms", () => {
+    const hooksTail =
+      "AI-DLC cannot run (audit, state sync, sensors, and stage-graph rebuild are all silently skipped even though the hook files are present)";
+    const hooksEm = `Hooks DISABLED via "disableAllHooks": true in .claude/settings.local.json — ${hooksTail}`;
+    const hooksHyphen = `Hooks DISABLED via "disableAllHooks": true in .claude/settings.local.json - ${hooksTail}`;
+    const hooksJa = translateDoctorText(hooksEm, "label");
+    expect(hooksJa).not.toBeNull();
+    expect(hooksJa).toContain(".claude/settings.local.json");
+    expect(translateDoctorText(hooksHyphen, "label")).toBe(hooksJa);
+
+    const kept: [string, "label" | "fix", string[]][] = [
+      [
+        'settings/cli.json sets "chat.agentEngine": "v3" and "chat.defaultAgent": "aidlc" (Kiro CLI hooks run only on v3: start it with `kiro-cli --v3`)',
+        "label",
+        ["`kiro-cli --v3`"],
+      ],
+      [
+        'This is expected before your first Kiro CLI chat in this folder. If you already started one, type /agent and pick aidlc; if Kiro says agent "aidlc" needs upgrading for this agent engine, quit Kiro and start it again in this folder with: kiro-cli --v2 --agent aidlc (Kiro CLI 2.21.4 or later; for an older one, see the AI-DLC Kiro CLI guide). Then run doctor again.',
+        "fix",
+        ["kiro-cli --v2 --agent aidlc", "2.21.4"],
+      ],
+      [
+        "This is expected before your first chat message here. If you already sent one, trust this folder in Kiro IDE: choose Trust Folder & Continue when Kiro asks whether you trust it, or select Manage on the Restricted Mode banner, then Trust. Then run Developer: Reload Window from the Command Palette (Ctrl+Shift+P, or Cmd+Shift+P on macOS), send a message and run doctor again. If AI-DLC was installed while Kiro IDE was open, quit Kiro IDE fully and reopen it instead: it keeps the PATH it started with, so its hooks cannot find aidlc, and Reload Window does not change that. In Kiro CLI, quit Kiro and start `kiro-cli` again in this folder.",
+        "fix",
+        ["`kiro-cli`"],
+      ],
+      [
+        "This is expected before your first chat message here. If you already sent one, trust this folder in Kiro IDE: choose Trust Folder & Continue when Kiro asks whether you trust it, or select Manage on the Restricted Mode banner, then Trust. Then run Developer: Reload Window from the Command Palette (Ctrl+Shift+P, or Cmd+Shift+P on macOS), send a message and run doctor again. If AI-DLC was installed while Kiro IDE was open, quit Kiro IDE fully and reopen it instead: it keeps the PATH it started with, so its hooks cannot find aidlc, and Reload Window does not change that. In Kiro CLI, quit Kiro and start `kiro-cli --v3` again in this folder (if Kiro asks whether you trust this workspace and you know what is in this folder, choose 'Trust, continue').",
+        "fix",
+        ["`kiro-cli --v3`"],
+      ],
+      ["Install or upgrade opencode to 1.18.29 or later; OpenCode 2 works too.", "fix", ["1.18.29"]],
+    ];
+    for (const [source, kind, tokens] of kept) {
+      const translated = translateDoctorText(source, kind);
+      expect(translated, source).not.toBeNull();
+      for (const token of tokens) expect(translated, source).toContain(token);
+    }
+
+    expect(translateDoctorText("Kiro ignore sources: none present", "label")).toBe(
+      "Kiro の除外設定: ありません",
+    );
+    expect(
+      translateDoctorText("Kiro ignore sources: none hide .kiro/ (3 file(s) checked)", "label"),
+    ).toBe("Kiro の除外設定: .kiro/ を隠す設定はありません（3 件のファイルを確認）");
+    expect(translateDoctorText("Kiro IDE ignore sources: none present", "label")).toBe(
+      "Kiro IDE の除外設定: ありません",
+    );
+    expect(
+      translateDoctorText("Kiro IDE ignore sources: none hide .kiro/ (3 file(s) checked)", "label"),
+    ).toBe("Kiro IDE の除外設定: .kiro/ を隠す設定はありません（3 件のファイルを確認）");
+  });
 });
