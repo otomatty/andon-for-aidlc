@@ -531,8 +531,8 @@ aidlc/spaces/default/intents/261013-inventory-rest-api/
 | ハーネス | 設定値 | 起動 | 呼び出し |
 | --- | --- | --- | --- |
 | Claude Code | `claude` | `claude` | `/aidlc` |
-| Kiro（Kiro IDE、v3 の Kiro CLI） | `kiro-ide` | プロジェクトを開き、チャットパネルのエージェント選択で **aidlc** を選ぶか、プロジェクトで `kiro-cli` を実行する | `/aidlc` |
-| Kiro CLI (V2) | `kiro` | `kiro-cli chat` | `/aidlc` |
+| Kiro（Kiro IDE、v3 の Kiro CLI） | `kiro-ide` | プロジェクトを開き、チャットパネルのエージェント選択で **aidlc** を選ぶか、プロジェクトで `kiro-cli --v3` を実行する（Kiro がフォルダを信頼するかを尋ね、中身を知っているときは **Trust, continue** を選ぶ） | `/aidlc` |
+| Kiro CLI (V2) | `kiro` | `kiro-cli --v2`（Kiro CLI 2.21.4 以降。それより古い場合は [Kiro CLI](harnesses/kiro-cli.md#前提条件) を参照） | `/aidlc` |
 | Codex CLI | `codex` | `codex` | `$aidlc` |
 | Cursor | `cursor` | Cursor を開く、または `agent` を実行する | `/aidlc` |
 | opencode | `opencode` | `opencode` | `/aidlc` |
@@ -543,14 +543,14 @@ config の後は、config がツールごとに示す 1 つの手順を済ませ
 | ハーネス | 主な操作 |
 | --- | --- |
 | Claude Code | このフォルダで Claude Code をすでに開いている場合は、終了して起動し直す |
-| Kiro（Kiro IDE、v3 の Kiro CLI） | 設定済みプロジェクトを開き、チャットパネルのエージェント選択で **aidlc** を選ぶか、プロジェクトで `kiro-cli` を起動する |
-| Kiro CLI (V2) | `kiro-cli chat` を起動。プロジェクトが AI-DLC エージェントを選択する |
+| Kiro（Kiro IDE、v3 の Kiro CLI） | 設定済みプロジェクトを開き、チャットパネルのエージェント選択で **aidlc** を選ぶか、プロジェクトで `kiro-cli --v3` を起動する（Kiro がフォルダを信頼するかを尋ね、中身を知っているときは **Trust, continue** を選ぶ） |
+| Kiro CLI (V2) | `kiro-cli --v2` を起動する（Kiro CLI 2.21.4 以降。それより古い場合は [Kiro CLI](harnesses/kiro-cli.md#前提条件) を参照）。プロジェクトが AI-DLC エージェントを選択する |
 | Codex CLI | フックの信頼確認を承認するか、生成された trust seed を適用 |
 | Cursor | 設定済みプロジェクトを開く、または `agent` を起動 |
 | opencode | プロジェクト内で `opencode` を起動 |
 | GitHub Copilot | プロジェクトフォルダを信頼する |
 
-ウェルカムメッセージは Claude Code だけのものです。AI-DLC は Claude Code では独自のステータスラインを描画します。Codex では、セットアップが Codex 組み込みのステータスラインを提案し、AI-DLC がタスクの進捗を最新に保ちます。Kiro CLI 2.24.1 以降の v3 エンジンには、それを固定する `kiro-ide` を使います。`kiro` は Kiro CLI (V2) です（既存の `kiro` プロジェクトの切り替え方は [Kiro CLI](harnesses/kiro-cli.md) を参照）。
+ウェルカムメッセージは Claude Code だけのものです。AI-DLC は Claude Code では独自のステータスラインを描画します。Codex では、セットアップが Codex 組み込みのステータスラインを提案し、AI-DLC がタスクの進捗を最新に保ちます。Kiro CLI 2.24.1 以降の v3 エンジンには、`kiro-ide` を使い、`kiro-cli --v3` を起動します（フォルダを信頼するかを尋ね、中身を知っているときは **Trust, continue** を選びます）。`kiro` は Kiro CLI (V2) です（既存の `kiro` プロジェクトの切り替え方は [Kiro CLI](harnesses/kiro-cli.md) を参照）。
 
 Kiro IDE では、フォルダを信頼してウィンドウを再読み込みするまで、エージェント選択に **aidlc** エージェントは表示されません。Restricted Mode のバナーが出ている場合は、バナーの **Manage**、続いて **Trust** を選び、**Developer: Reload Window** を実行します（[初回の実行](harnesses/kiro-ide.md#初回の実行)を参照）。まだ信頼していないフォルダで Kiro IDE 自身のターミナルを使うと、Kiro はまずそのフォルダを信頼するかを尋ねます。信頼するとそのフォルダの `.kiro` フックがあなたのマシンでコマンドを実行できるようになるため、**Trust Folder & Continue** を選ぶのは自分のプロジェクトか確認済みのプロジェクトだけにしてください。
 

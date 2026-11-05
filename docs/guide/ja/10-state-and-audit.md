@@ -129,9 +129,9 @@ stateDiagram-v2
 
 監査証跡は、後のステージと復旧のために、アクティブなインテントの判断とイベントを記録します。書き込むのは AIDLC のツールとフックで、読み取りはどんな方法でもかまいません。書き込みのガードはガードレールであって、セキュリティ境界ではありません。書き込みを担うコマンドと読み取り専用の照会の契約は [Audit Trail Rules](../reference/04-stage-protocol.md#監査証跡の規則) を参照してください。
 
-### 126 種のイベント分類
+### 131 種のイベント分類
 
-イベントは 26 カテゴリです。
+イベントは 27 カテゴリです。
 
 | カテゴリ | 件数 | イベント |
 |----------|------:|--------|
@@ -143,13 +143,14 @@ stateDiagram-v2
 | **Navigation** | 9 | `SCOPE_CHANGED`, `SCOPE_DETECTED`, `DEPTH_CHANGED`, `TEST_STRATEGY_CHANGED`, `REVIEW_CLASS_CHANGED`, `RECOMPOSED`, `WORKSPACE_RECLASSIFIED`, `SCOPE_SAVED`, `PLUGIN_SELECTION_CHANGED` |
 | **Guard Policy** | 5 | `GUARD_POLICY_SET`、`CHANGE_CONTROL_SET`（旧記録）、`CHANGE_ACCEPTED`、`GUARD_RESTORED`、`GUARD_STOOD_ASIDE` |
 | **Ceremony** | 1 | `CEREMONY_SET`。`config-change` と `scope-change` の共通適用処理が記録する。`Key` は `sensors` / `learnings` / `summary_confirmation` / `plan_approval` / `collaborators`、`Old` は直前の保存値、`New` は新値、`Source` は `you` または `scope <name>`。旧値が不正なら原文、未保存ならスコープの既定値を使い、環境変数適用後の値とは区別する。保存値か設定元の実際の変更ごとに1行記録し、変更なしでは記録しない |
-| **Interaction** | 17 | `DECISION_RECORDED`, `GATE_APPROVED`, `GATE_REJECTED`, `QUESTION_ANSWERED`, `QUESTION_REPLIED`, `QUESTION_UNANSWERED`, `REQUEST_ROUTED`, `SUMMARY_CONFIRMATION_RECORDED`, `VERIFICATION_COMMAND_RECORDED`, `CONSTRUCTION_POLICY_RECORDED`, `CHECKPOINT_VERIFICATION_RECORDED`, `PLAN_APPROVAL_RECORDED`, `PLAN_APPROVAL_SKIPPED`, `PLAN_APPROVAL_OVERRIDDEN`, `REVIEW_REQUESTED`, `REVIEW_COMPLETED`, `PIPELINE_LINK_COMPLETED` |
+| **Interaction** | 19 | `DECISION_RECORDED`, `GATE_APPROVED`, `GATE_REJECTED`, `QUESTION_ANSWERED`, `QUESTION_REPLIED`, `QUESTION_UNANSWERED`, `QUESTION_ASKED`, `QUESTION_SHOWN`, `REQUEST_ROUTED`, `SUMMARY_CONFIRMATION_RECORDED`, `VERIFICATION_COMMAND_RECORDED`, `CONSTRUCTION_POLICY_RECORDED`, `CHECKPOINT_VERIFICATION_RECORDED`, `PLAN_APPROVAL_RECORDED`, `PLAN_APPROVAL_SKIPPED`, `PLAN_APPROVAL_OVERRIDDEN`, `REVIEW_REQUESTED`, `REVIEW_COMPLETED`, `PIPELINE_LINK_COMPLETED` |
 | **Unit Configuration and Lifecycle** | 9 | `UNIT_OWNERSHIP_SET`, `UNIT_GATE_RHYTHM_SET`, `CONSTRUCTION_POLICY_SET`, `UNIT_STARTED`, `UNIT_PAUSED`, `UNIT_RESUMED`, `UNIT_COMPLETED`, `UNIT_SKIPPED`, `UNIT_MERGED` |
 | **Artifact** | 3 | `ARTIFACT_CREATED`, `ARTIFACT_UPDATED`（write-audit-log フック）、`ARTIFACT_REUSED` |
 | **Subagent** | 4 | `SUBAGENT_DISPATCHED`（deliver-stage-rules フック。Cursor と Kiro IDE では log-subagent）、`SUBAGENT_COMPLETED`（log-subagent フック）、`SUBAGENT_PROMPT_UNMATCHED`（Copilot アダプタ、助言）、`REVIEW_VERDICT_DICTATED`（もう書かれない。以前のリリースの plan-approval-guard フック。レビュアー自身の `**Verdict Dictated:**` 行は現在 `REVIEW_COMPLETED` に載る） |
 | **Reviewer Enforcement** | 2 | `REVIEWER_SCOPE_BLOCKED`（reviewer-scope フック）、`REVIEW_FREEZE_BLOCKED`（review-freeze フック） |
 | **Plan Approval** | 2 | `PLAN_APPROVAL_BLOCKED`, `GUARD_DISABLED`（plan-approval-guard フック、またはこの作業でオフにしたフェンス） |
 | **Guard Refusals** | 2 | `STATE_TRANSITION_BLOCKED`（state-transition ガードが、委譲エージェントのライフサイクルまたはルーティングのコマンドを拒否した）、`STAGE_RULES_BLOCKED`（ステージのルールがサイズのため拒否された、または必要なルールファイルを読めなかった）。どちらも `Guard`、`Reason`、拒否した `Target`/`Session` を持ち、拒否 1 回につき 1 行 |
+| **System Install** | 2 | `SYSTEM_INSTALL_BLOCKED`（`sudo apt-get install` のようなシステムパッケージのインストールで、あなたが頼んでおらず、承認した計画も名指していないもの。あなたがそう言うまで保留される）、`SYSTEM_INSTALL_ALLOWED`（あなたのメッセージで通したもの。あなたの言葉付き） |
 | **Documents** | 3 | `DOCUMENT_INDEXED`, `DOCUMENT_UPDATED`, `DOCUMENT_REMOVED` — インテント範囲でもスペース単位のシャード |
 | **Utility** | 1 | `HEALTH_CHECKED` |
 | **Error/Recovery** | 3 | `ERROR_LOGGED`, `RECOVERY_COMPLETED`, `COORDINATION_STOOD_ASIDE` |
@@ -159,7 +160,7 @@ stateDiagram-v2
 | **Merge Dispatch** | 3 | `MERGE_DISPATCH_INVOKED`, `MERGE_DISPATCH_RETURNED`, `MERGE_DISPATCH_FALLBACK` |
 | **Sensors** | 6 | `SENSOR_FIRED`, `SENSOR_PASSED`, `SENSOR_FAILED`, `SENSOR_COULD_NOT_RUN`, `SENSOR_BUDGET_OVERRIDE`, `GUARDRAIL_LOADED` |
 | **Learning Loop** | 3 | `MEMORY_EMPTY`, `RULE_LEARNED`, `SENSOR_PROPOSED` |
-| **Swarm** | 7 | `SWARM_STARTED`, `SWARM_UNIT_CONVERGED`, `SWARM_SOURCE_MERGED`, `SWARM_UNIT_FAILED`, `SWARM_BATON_RETURNED`, `SWARM_COMPLETED`, `SWARM_DEGRADED` |
+| **Swarm** | 8 | `SWARM_STARTED`, `SWARM_UNIT_CONVERGED`, `SWARM_SOURCE_MERGED`, `SWARM_UNIT_FAILED`, `SWARM_BATON_RETURNED`, `SWARM_COMPLETED`, `SWARM_DEGRADED`, `MAIN_CHECKOUT_CHANGE_ALLOWED` |
 | **Commit Provenance** | 1 | `SOURCE_COMMITTED`。`aidlc attest anchor` または任意のセッション開始時走査が記録する補足情報。`resolve` は参照しない |
 
 ### 何をいつ記録するか
@@ -193,6 +194,8 @@ stateDiagram-v2
 ```
 
 イベントの時系列は `aidlc engine audit history` で JSON として、1 つのステージだけを見るなら `--stage <slug>` を付けて確認します。各イベントは時刻、種類、名前付きのフィールドを持ちます。結果は古い順です。`unordered: true` は、書き手をまたいで順序が分からない同時刻のエントリを示します。自由形式のメモは、見出しと本文を持つ `NOTE` エントリとして表示されます。`--event NOTE` はメモを選び、`--stage` はメモを除外します。
+
+`Human Turn` のエントリは、あなたが行動したことだけを記録し、あなたの言葉は記録しません。各ターンで送った内容を読むには、`aidlc engine audit turns` を実行します。各ターンを、このマシンが 1 日保持するメッセージ記録と結び付け、ターンの言葉がここにはないときはそう伝えます。
 
 以前の質問と回答の組は `aidlc engine log answers --stage <slug>`（Unit なら `--unit <unit>` を追加）で確認します。1 つの返答は、それが答えたメニューについて記録されたすべての質問と組になります。未解決の質問と、まれな曖昧な回答（前に質問がない、または書き手が同じ 1 秒で並んだもの）は別に報告されます。どちらのコマンドもファイルを変更せず、ロックも取りません。
 

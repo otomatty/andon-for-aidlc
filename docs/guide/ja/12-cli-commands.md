@@ -26,7 +26,7 @@ AI-DLC には、利用者が使うコマンドの面が 2 つあります。ハ�
 | `/aidlc [description]` | 新しいワークフローを始める。エージェントが説明文から計画を提案する（合うものがなければ compose を提案する） |
 | `/aidlc compose "<task>"` | 適応型コンポーザーを強制する。その仕事向けの EXECUTE/SKIP 計画を提案する |
 | `/aidlc compose --report <path>` | スキャン報告から compose する（所見を短い fix-and-ship 実行へ振り分ける） |
-| `/aidlc --new-scope "<task>"` | 配布スコープが当たっても、コンポーザーに独自の計画を合成させる |
+| `/aidlc --new-scope '<task>'` | 配布スコープが当たっても、コンポーザーに独自の計画を合成させる |
 | `/aidlc` | 開いているワークフローを再開する。まだ作業が無ければ、エージェントが何を作りたいかを尋ねる |
 | `/aidlc park` | 後のセッションや別の人のために、アクティブなワークフローを現在のステージ境界で保留する |
 | `/aidlc team-board [--snapshot] [--space <name>] [--intent <name>]` | 読み取り専用の Team Construction ボード（Unit の進捗、クレーム、マージの準備状況） |
@@ -76,6 +76,7 @@ AI-DLC には、利用者が使うコマンドの面が 2 つあります。ハ�
 | `/aidlc plugin sync` | 導入済みプラグインルートを、現在の導入へ compose する |
 | `/aidlc plugin validate [path]` | 書いたプラグインを検証する（`--with <base-root>` はベースプラグインのエージェントを検査する。構造化した所見は `--json`） |
 | `/aidlc plugin build <harness> [outDir]` | ホスト向けプラグイン投影をビルドする（ソースは `--plugin-root <path>`） |
+| `aidlc plugin test [path] --install <project-root>` | 端末から: 書いたプラグインがプロジェクトのコピーへ compose されることを試す。そのプロジェクトは変わらない（`--harness <name>`、`--with <base-root>`、`--json`） |
 | `/aidlc --version` | フレームワークの版を出す |
 | `/aidlc --help` | 使い方を出す |
 | `bun .claude/tools/aidlc-utility.ts select-plugins [names]` | プラグイン選択の直接ユーティリティ形 |
@@ -206,7 +207,7 @@ flowchart TD
 /aidlc compose            (mid-workflow: re-shape the pending stages)
 ```
 
-**動き:** コンダクターがコンポーザーエージェントをディスパッチします。コンポーザーは仕事（またはスキャン報告、または実行中のワークフローの状態）を読み、読み取り専用の `detect` スキャンを実行し、実装エントロピーの 5 成分（インテントの曖昧さ、構造の不確かさ、検証エントロピー、リスク、未解消の前提。CodeKB MCP が設定されていればその分析、無ければワークスペーススキャンに基づく）を見積もり、最小で足りる EXECUTE/SKIP グリッドを、スコア内訳とすべての EXECUTE / SKIP の理由付きで提案します。ゲートで承認、編集、却下します。承認すると、配布スコープに一致した場合は AI-DLC がそのままワークフローを作ります。カスタム計画の場合は、最も近い配布スコープ（新しいプロジェクトでは、合うものがあれば新規作業向けの最も近いもの）上に、計画自身のステージ変更（`--skip` / `--add`）付きで、同じターンでワークフローを作り、スコープファイルは書きません。計画はこの作業のものです。カスタム計画のゲートは **Approve and save as scope** も提示します。これは名前を尋ね、作業が作られるときに計画を再利用可能なスコープとして残します（その保存は [`scope save`](#aidlc-engine-scope-save-keep-a-plan-as-a-scope) が行います）。後で「save this plan as <name>」と言うと、`scope save` そのものが実行されます。front / report の提案には、空でない `creationDescription` が必ず付きます。渡された場合は元の仕事文そのもの、無ければ報告／計画に根ざした説明です。仕事から始めた合成では、作成時にゲートの `--request <id>` を渡し、エンジンが元の説明を取り出します。報告から始めた合成や仕事文のない合成では、説明を `--` の後にシェル安全な引数 1 つとして、その request id とともに渡します。compose の承認は、スコープだけで説明がない状態では続行できません。進行中の提案は、`recompose` 動詞で未着手ステージの接尾辞の反転として着地します（監査ロックの下、厳格検証、`RECOMPOSED` を監査）。`--new-scope` は合成を強制します。`--report <path>` は振り分けた所見をインテントへ種まきします。`/aidlc-compose` スキルは、同じ経路の入力できるショートカットです。ワークフローの途中では、チャットで言うだけでも構いません。範囲の決まっていない依頼（「what else can we cut?」）は認識され、同じゲートと動詞へ流されるので、リテラルの `compose` は不要です。一方、ステージを名指しする依頼（「can we skip market research?」）は計画をその場で変え、元に戻す方法を示します（Claude 以外のハーネスでは、リテラルの動詞が文書化された確実な経路のままです）。
+**動き:** コンダクターがコンポーザーエージェントをディスパッチします。コンポーザーは仕事（またはスキャン報告、または実行中のワークフローの状態）を読み、読み取り専用の `detect` スキャンを実行し、実装エントロピーの 5 成分（インテントの曖昧さ、構造の不確かさ、検証エントロピー、リスク、未解消の前提。CodeKB MCP が設定されていればその分析、無ければワークスペーススキャンに基づく）を見積もり、最小で足りる EXECUTE/SKIP グリッドを、スコア内訳とすべての EXECUTE / SKIP の理由付きで提案します。ゲートで承認、編集、却下します。承認すると、配布スコープに一致した場合は AI-DLC がそのままワークフローを作ります。カスタム計画の場合は、最も近い配布スコープ（新しいプロジェクトでは、合うものがあれば新規作業向けの最も近いもの）上に、計画自身のステージ変更（`--skip` / `--add`）付きで、同じターンでワークフローを作り、スコープファイルは書きません。計画はこの作業のものです。カスタム計画のゲートは **Approve and save as scope** も提示します。これは名前を尋ね、作業が作られるときに計画を再利用可能なスコープとして残します（その保存は [`scope save`](#aidlc-engine-scope-save-keep-a-plan-as-a-scope) が行います）。後で「save this plan as <name>」と言うと、`scope save` そのものが実行されます。front / report の提案には、空でない `creationDescription` が必ず付きます。渡された場合は元の仕事文そのもの、無ければ報告／計画に根ざした説明です。仕事から始めた合成では、作成時にゲートの `--request <id>` を渡し、エンジンが元の説明を取り出します。報告から始めた合成や仕事文のない合成では、説明を `--` の後にシェル安全な引数 1 つとして、その request id とともに渡します。compose の承認は、スコープだけで説明がない状態では続行できません。進行中の提案は、`recompose` 動詞で未着手ステージの接尾辞の反転として着地します（監査ロックの下、厳格検証、`RECOMPOSED` を監査）。完了した作業の上ではコンポーザーは実行されません。AI-DLC は、最後のステージより後にそれを開き直す計画を、それぞれが実行するステージとともに示し、選んだ計画がその場所で作業を開き直します。`--new-scope` は合成を強制します。`--report <path>` は振り分けた所見をインテントへ種まきします。`/aidlc-compose` スキルは、同じ経路の入力できるショートカットです。ワークフローの途中では、チャットで言うだけでも構いません。範囲の決まっていない依頼（「what else can we cut?」）は認識され、同じゲートと動詞へ流されるので、リテラルの `compose` は不要です。一方、ステージを名指しする依頼（「can we skip market research?」）は計画をその場で変え、元に戻す方法を示します（Claude 以外のハーネスでは、リテラルの動詞が文書化された確実な経路のままです）。
 
 全体の流れは [Scopes and Depth - The Adaptive Composer](05-scopes-and-depth.md#the-adaptive-composer) を参照してください。
 
@@ -285,7 +286,7 @@ Claude Code では、歓迎メッセージはセッション開始時に `.claud
 
 ### `/aidlc intent archive <name>`：完了させない仕事を終了する
 
-`/aidlc intent archive <name> [--reason "<text>"]` は、進行中または完了済みのインテントを `archived` 状態に移します。何も削除されません。レコードディレクトリ、その成果物、監査シャードは元の場所にそのまま残り、アーカイブ自体はそのインテントの監査証跡に `WORKFLOW_ARCHIVED` として（`--reason` を指定した場合はそれも添えて）記録されます。レジストリの行は `archived` に、状態ファイルの `Status` は `Archived` に変わり、既定の `/aidlc intent` の一覧にはその行が表示されなくなります。アーカイブしたインテントがアクティブだった場合は、利用者ごとのカーソルが解除されるため、次の `/aidlc` は終了したステージを再開する代わりに、どのインテントで作業するかを尋ねます（残りがなければ新しい作業を作ります）。
+`/aidlc intent archive <name> [--reason '<text>']` は、進行中または完了済みのインテントを `archived` 状態に移します。何も削除されません。レコードディレクトリ、その成果物、監査シャードは元の場所にそのまま残り、アーカイブ自体はそのインテントの監査証跡に `WORKFLOW_ARCHIVED` として（`--reason` を指定した場合はそれも添えて）記録されます。レジストリの行は `archived` に、状態ファイルの `Status` は `Archived` に変わり、既定の `/aidlc intent` の一覧にはその行が表示されなくなります。アーカイブしたインテントがアクティブだった場合は、利用者ごとのカーソルが解除されるため、次の `/aidlc` は終了したステージを再開する代わりに、どのインテントで作業するかを尋ねます（残りがなければ新しい作業を作ります）。
 
 完了済みのインテントもアーカイブできます。完了した作業を既定の一覧から隠すにはこれを使います。Bolt の worktree があるインテントもアーカイブできます。出力はその worktree を示し、インテントを戻すまで worktree はディスク上にそのまま残ります。アーカイブが拒否されるのは、Unit がクレームされたチーム所有のインテントだけです。それらの Unit はまだ別のチェックアウトで作業中だからです。
 
@@ -348,7 +349,7 @@ AI-DLC のレビューは、プロジェクトのフォルダの中のコード�
 
 **テキスト抽出** は、プロジェクトが設定した抽出器に委ねます。PDF は、設定がなければ既定の抽出器（`pdftotext`）を使います。Word（`.docx`）ファイルには組み込みの既定がありません。設定がなければカタログに載り、`unsupported_type` として引用できます。抽出器を設定した後に `sync` を実行すると、その検出タイプの変わっていない行を再試行します。**設定した** 抽出器がインストールされていない場合、文書は `extractor_unavailable` としてカタログされます。`list` に表示され、ツールをインストールして `/aidlc knowledge sync` を実行すれば直ります。同じ変わっていないパスに `onboard` を再実行すると `already` と報告し、抽出は再試行 **しません**。この状態の行を探り直すのは `sync` だけです。黙って飛ばすものはありません。
 
-**抽出には上限があります。** PDF は 50 ページ（`pdftotext -l 50`）、抽出器の出力は 200,000 文字です。上限を超えると本文は切り詰められ、行は `truncated` を記録します。`show` は本文の上に `truncated  yes` の行を出し、`--json` のペイロードは `extraction` の中にそのフラグを持ちます。切り詰められた抽出は部分的なビューとして扱ってください。それだけから「この文書は X に触れていない」と結論するのは安全ではありません。
+**抽出には上限があります。** PDF は既定の抽出器で 50 ページ（`pdftotext -l 50`、その後に 51 ページ目の確認）、抽出器の出力は 200,000 文字です。上限を超えると本文は切り詰められ、行は `truncated` を記録します。`show` は本文の上に `truncated  yes` の行を出します（ページ上限で切ったときは `after page 50`）。`--json` のペイロードは `extraction` の中にそのフラグを持ち、ページで切ったときは `pages_kept` も持ちます。切り詰められた抽出は部分的なビューとして扱ってください。それだけから「この文書は X に触れていない」と結論するのは安全ではありません。
 
 抽出器の探査にはそれぞれ 5 分の安全上限があり、抽出には文書あたり 15 分の上限があります。設定した抽出器の `timeoutMs` は抽出の時間上限を上書きします。抽出のタイムアウトは `extraction_failed` を記録し、文書が正常に読めたことにはなりません。これらの時間上限は、上記のバイト、ページ、出力の上限を変えません。
 
@@ -407,7 +408,7 @@ git switch claim/<intent-id8>/user-profile-api
 /aidlc unit adopt user-profile-api
 ```
 
-adopt は、チェックアウトしたクレームの OID とペイロード（スペース、インテント UUID、Unit、世代、nonce、結び付いた監査シャードを含む）を生きた ref と照合してから、チェックアウトローカルのスコープスタンプを書きます。以降の監査書込みはそのクレームの既存のシャードを使い続け、`publish` は同じ試行を続けます。
+adopt は、チェックアウトしたクレームの OID とペイロード（スペース、インテント UUID、Unit、世代、nonce、結び付いた監査シャードを含む）を生きた ref と照合してから、チェックアウトローカルのスコープスタンプを書きます。以降の監査書込みはそのクレームの既存のシャードを使い続け、`publish` は同じ試行を続けます。所有者のローカルな監査記録はクレームとともに来ます（publish の引き渡しコミットが、所有者のコミットの横に、main が着地するものの外でそれを運びます）。このチェックアウトがすでに書いた行と結び付くので、その人がすでに答えた質問は答えたまま残り、作業はそれらを再び尋ねずに再開します。
 
 ### `/aidlc --release <unit>` and `/aidlc unit release <unit>` — Release a claim
 
@@ -437,7 +438,7 @@ Unit を解放して再クレームした後の解放には、`aidlc-unit.ts sta
 /aidlc unit publish user-profile-api
 ```
 
-コマンドは追跡対象がクリーンな worktree を要求し、生きたクレーム ref を、クレームの履歴と実装の履歴の両方を保つ候補コミットへ CAS 更新します。
+コマンドは追跡対象がクリーンな worktree を要求し、生きたクレーム ref を、クレームの履歴と実装の履歴の両方を保つ候補コミットへ CAS 更新します。AI-DLC 自身の `.gitignore`、`AGENTS.md`、`opencode.json` の部分（新しいクローンでセッションが始まるときに書かれるもの）は、ここでは着地のときも数に入りません。未コミットのまま残り、それ以外の変更はどちらも止めます。取得したチェックアウトは、自分の監査行（セッション、ターン、回答）を、インテントのレコードの `.aidlc-engine/audit/` の下のローカルな記録に残します。AI-DLC の `.gitignore` がこれをコミットから外し、クレームの追跡対象シャードが受け取るのは、pin が受け付けるその Unit の証拠だけです。そのため候補はそのままのコミットであり、Unit が着地したあと、取得したチェックアウトで main を普通に pull すると、自分が書いたすべての行を残したまま fast-forward します。
 
 ### `/aidlc unit pin <unit>` — Pin candidate evidence
 
@@ -457,7 +458,9 @@ Unit を解放して再クレームした後の解放には、`aidlc-unit.ts sta
   --user-input "Approve pinned candidate"
 ```
 
-受け付ける判断は `approve` と `reject` です。コマンドは、ピン留め後の新しい `MERGE_DISPATCH_INVOKED` と終端のディスパッチ結果、そして型付きの人間のターンを要求します。ディスパッチの行はすべて、`--pinned-oid <oid> --attempt-generation <n> --pin-id <uuid>` を通じてピン留めの出力を運ばなければなりません。ピン留めした Unit のトランザクションは、レビュー済みの OID が直接の親のまま残るよう、マージ戦略を必要とします。ref が動いた、世代が変わった、HOLD-MERGE マーカーがある、のいずれかの場合は、承認の前に明示的な再ピン留めが必要です。
+受け付ける判断は `approve` と `reject` です。コマンドは、ピン留めの後に型付きの人間のターンが続くときに、その人の答えを記録します（ピン留めの出力は、それぞれの答えについてこのコマンドを示します）。その人の言葉は `--user-input` の代わりにファイルで渡せます。`--request-file aidlc/.aidlc-request-text/<name>.txt` です。AI-DLC はあなたのためにコマンドを表示するときにこれを書きます（ピン留めの後、エージェントはあなたの返答を、ピン留めのコマンドが示すファイルへ書きます）。途中でシェルが言葉を読むことはありません。判断が記録されるとファイルは削除されます。ピン留めした Unit は、ピン留めが fetch した統合ブランチへの通常のマージで着地するので、レビュー済みの OID は直接の親のまま残ります。ref が動いた、世代が変わった、HOLD-MERGE マーカーがある、のいずれかの場合は、承認の前に明示的な再ピン留めが必要です。承認すると、その出力は着地コマンド（`land`）を示し、エージェントは同じターンでそれを実行します。
+
+ゲートの監査行は、ステージのゲートの行と同じく、ピン留めの後にその人が言ったことと、それが届いたメッセージ（`Person Reply`、`Message Id`）を、エージェントの説明の横に残します。ピン留めより前にそのチャットへ入力した、その人自身の言葉の行が、まだ判断に使われていない場合、行はピン留めの後のメッセージを名指し、言葉をその記録に残します。human-presence ガードが off のときは、どちらも残しません。
 
 ### `/aidlc unit land <unit>` — Land the pinned transaction
 
@@ -465,7 +468,7 @@ Unit を解放して再クレームした後の解放には、`aidlc-unit.ts sta
 /aidlc unit land user-profile-api --target main
 ```
 
-着地はまず現在の統合ブランチを fetch し、承認済みの証拠を、生きた Unit DAG、Unit の種別、有効な Unit ごとのステージ列と照らして再検証します。契約のずれは Git を変更する前に拒否し、リベース、再公開、再ピン留め、新しいディスパッチのブラケット、新しいマージゲートを要求します。その後、main が所有するエンジンのメタデータを保持したままピン留めした内容をマージし、Unit の行を畳み込み、転送された監査レシートを確定します。クラッシュから復旧するには、冪等なステップを個別に実行します。
+着地はまず現在の統合ブランチを fetch し、承認済みの証拠を、生きた Unit DAG、Unit の種別、有効な Unit ごとのステージ列と照らして再検証します。契約のずれは Git を変更する前に拒否し、リベース、再公開、再ピン留め、新しいマージゲートを要求します。その後、main が所有するエンジンのメタデータを保持したままピン留めした内容をマージし、Unit の行を畳み込み、転送された監査レシートを確定します。クラッシュから復旧するには、冪等なステップを個別に実行します。
 
 内容の方針は候補と完全に一致することです。main と候補の両方が共有ファイルを変更していた場合、結果がピン留めした候補の blob と等しくない限り、きれいに通った自動マージでもコミット前に拒否します。チームのブランチを現在のターゲットへリベースし、そこで解消し、新しいピン留めのために再公開してください。
 
@@ -533,7 +536,7 @@ Unit を解放して再クレームした後の解放には、`aidlc-unit.ts sta
 | Hooks enabled (Claude Code) | Claude Code の設定層をまたいで、解決された値が `disableAllHooks: true` ではない（エンタープライズ管理ファイルとアルファベット順の `managed-settings.d/` 断片 → `.claude/settings.local.json` → `.claude/settings.json` → `~/.claude/settings.json`、最も優先度の高い定義が勝つ）。解決された `true` は存在するすべてのフックを黙って飛ばすため、目立つ形で失敗し、その層を示す |
 | Project structure | `.claude/settings.json` がある（ファイルの有無だけ。中身は検証しない） |
 | Kiro hooks switched off | Kiro ハーネスで、`.kiro/hooks/` にある AI-DLC のフックファイル（`aidlc-*.json`）のうち、`"enabled": false` を持つものすべて。これは Agent Hooks でフックをオフにしたときに Kiro が書く。ガードフック（`aidlc-guard-tool-call`）、返答の記録フック（`aidlc-record-human-turn`）、プロジェクトにまだ残っている古いガードファイルは、それぞれ何が保護されなくなったかを示して失敗する。それ以外の AI-DLC フックがオフなら警告 1 つになる。修正は、Kiro の Agent Hooks でそのフックをオンに戻すこと |
-| Kiro IDE ignore sources | IDE のコンダクター（`.kiro/agents/aidlc-aidlc.md`）を持つ Kiro ハーネスで、git のグローバル除外ファイル（git リポジトリ内の場合）、`~/.kiro/settings/kiroignore`、プロジェクトの `.gitignore`、`.kiroignore` をそれぞれ独立に、エンジンがエージェントに `fs_read` で行わせる読取りに対して評価する。対象は、コンパイル済みグラフで `harness.json` が選ぶすべてのステージについて、ステージファイルと、コンダクターがインラインで保持するペルソナとナレッジ（Standard と Minimal の深度でのエンジン自身の一覧。ディレクティブの 8 KiB の `inline_context_paths` 上限内）、そして `stage-protocol.md` とその `stage-protocol-<name>.md` モジュール、各スキルの `SKILL.md` の横にあるファイル。`stage-definition.md` のようなコントリビューター専用のプロトコルファイルは読み込まれないため数えない。プラグインはどのように compose されたかにかかわらず数える。`SKILL.md` ファイル、IDE のコンダクターエージェント（`agents/aidlc-aidlc.md`）、`aidlc-common/conductor.md`、`tools/`、`sensors/`、`hooks/`、`scopes/`、`steering/` は `fs_read` ではなく IDE やエンジンが読み込むため数えない。その一部だけを隠すルールは、件数と影響するフレームワークのフォルダとともに報告する。`.kiro/` を隠すグローバルなソースのルールは、IDE の `fs_read` ガードがすべてのステージ、エージェント、プロトコルの読取りを拒否するようになるため、ソースと行を示して失敗する。ワークスペースのソースの一致は警告になる。それが効くのは `kiroAgent.agentIgnoreFiles` がそのファイルを指定したときだけで（既定は `.gitignore` を含み、`[]` はワークスペースのソースを無効にする）、doctor はその IDE 設定を読めないため。doctor が評価できないソース（例: `git` が PATH にない。git リポジトリではこれにより独自の `core.excludesFile` も見えなくなる。あるいはディスク上に存在するリポジトリを git が拒否する）は、合格ではなく `not evaluated` として警告する。行はソースを `~/.config/git/ignore` や `.gitignore` のような固定の名前で示し、パス、ルールの本文、git のエラー本文は示さない。別のファイルの `!.kiro/` は拒否を取り消さない |
+| Kiro ignore sources | Markdown のコンダクター（`.kiro/agents/aidlc-aidlc.md`。Kiro IDE と Kiro CLI v3 が使う）を持つ Kiro ハーネスで、git のグローバル除外ファイル（git リポジトリ内の場合）、`~/.kiro/settings/kiroignore`、プロジェクトの `.gitignore`、`.kiroignore` をそれぞれ独立に、エンジンがエージェントに `fs_read` で行わせる読取りに対して評価する。対象は、コンパイル済みグラフで `harness.json` が選ぶすべてのステージについて、ステージファイルと、コンダクターがインラインで保持するペルソナとナレッジ（Standard と Minimal の深度でのエンジン自身の一覧。ディレクティブの 8 KiB の `inline_context_paths` 上限内）、そして `stage-protocol.md` とその `stage-protocol-<name>.md` モジュール、各スキルの `SKILL.md` の横にあるファイル。`stage-definition.md` のようなコントリビューター専用のプロトコルファイルは読み込まれないため数えない。プラグインはどのように compose されたかにかかわらず数える。`SKILL.md` ファイル、コンダクターエージェント（`agents/aidlc-aidlc.md`）、`aidlc-common/conductor.md`、`tools/`、`sensors/`、`hooks/`、`scopes/`、`steering/` は `fs_read` ではなく Kiro 自身やエンジンが読み込むため数えない。その一部だけを隠すルールは、件数と影響するフレームワークのフォルダとともに報告する。`.kiro/` を隠すグローバルなソースのルールは、Kiro の `fs_read` ガード（Kiro IDE と Kiro CLI v3）がすべてのステージ、エージェント、プロトコルの読取りを拒否するようになるため、ソースと行を示して失敗する。ワークスペースのソースの一致は、doctor がどの Kiro が動いているか判断できないため、警告になる。Kiro IDE では、それが効くのは `kiroAgent.agentIgnoreFiles` がそのファイルを指定したときだけで（既定は `.gitignore` を含み、`[]` はワークスペースのソースを無効にする）、doctor はその IDE 設定を読めない。Kiro CLI v3 は `.kiroignore` を適用し（そこでの一致はそれらの読取りを拒否する）、`.gitignore` は適用しない。警告はどちらであるかを示す。doctor が評価できないソース（例: `git` が PATH にない。git リポジトリではこれにより独自の `core.excludesFile` も見えなくなる。あるいはディスク上に存在するリポジトリを git が拒否する）は、合格ではなく `not evaluated` として警告する。行はソースを `~/.config/git/ignore` や `.gitignore` のような固定の名前で示し、パス、ルールの本文、git のエラー本文は示さない。別のファイルの `!.kiro/` は拒否を取り消さない |
 | Workspace shell | `.claude/` と `aidlc/spaces/default/memory/` がある（同梱のシェル） |
 | Active space method copy | `aidlc/active-memory/`（すべてのハーネスの include が読む、gitignore されたコピー）が、アクティブなスペースの `memory/` のファイルを保持している。各セッション開始時と同じように、検査はまずそれを書くので、差が残るのはそこに書けないファイルである（警告） |
 | VS Code agent request cap | Copilot のみ。`.vscode/settings.json` が `chat.agent.maxRequests` を 100 以上に設定している。未設定（VS Code の既定の 50）、それより小さい、数値でない（引用符で囲んだ数値を含む）、読めない場合は警告する。VS Code が長いステージを止めて「Continue to iterate?」と尋ね、誰かが答えるまでチャットが待つためである。修正にはファイルに書く行が示される |
@@ -711,7 +714,7 @@ slug または番号で、指定したステージへ直接ジャンプします
 /aidlc --scope enterprise
 ```
 
-**動き:** `aidlc-state.md` のスコープ設定を更新し、どのステージを実行し、どれをスキップするかを再計算し、`SCOPE_CHANGED` 監査イベントを記録します。`--depth`、`--test-strategy`、`--review`、`--guard-policy`、`--sensors`、`--learnings`、`--summary-confirmation`、`--guard.<fence>` のスイッチと組み合わせられます。あなたが自分の言葉で頼んだ設定をエージェントが加えるときは、あなたが頼んだメッセージを名指す `--message <id>` も加え、その設定は `config set` と同じく `set by you` と表示されます。スコープ由来の Guard Policy は、より厳しい新しい既定値に自動で追随します。より低い既定値に追随するのは、あなたがスコープ変更を頼んだメッセージをエージェントが名指したとき（`--message <id>`）で、それ以外は実行中のワークフローがポリシーを保ち、出力が 1 行でそう伝えます。手続きの値は新しいスコープの既定値に追随し、人間による明示的な上書きと旧記録で存在しない行は保持します。memory の strict は引き続き実効ポリシーを決めます。明示的なフラグは人間の設定元を保ち、`config-change` と同じ弱化の規則に従います。現在のスコープを選んでも、指定した設定は同じ設定の適用処理で適用し、無意味なスコープ変更イベントは出しません。不正または未知のフラグ、あるいは認可されていない `--guard-policy relaxed` や `--guard-policy off` は、CLI の更新全体を拒否します。ステージのチェックボックスは、開いている承認（`[?]`）や改訂（`[R]`）を含め、そのまま引き継がれます。例外は、新しいスコープが承認待ちのステージをスキップする場合と、まだ始まっていない現在のステージをスキップする場合です。それらのステージは変更とともにスキップされます（`[S]`。それぞれ `STAGE_SKIPPED` 行 1 つと出力 1 行で、単独で実行するための `/aidlc --stage <slug> --single` を示します）。実行中の作業で、あなたを待っているものがない場合（ステージが単に実行中だった場合）は、エージェントは同じターンで続けます。新しいスコープがそのステージをもう実行しない場合は、新しいスコープが実行する次のステージへ進みます。承認、質問、または Unit のチェックポイントや要約があなたを待っている場合は、ターンが終わります。そのステージが新しい計画に残り、作業が Unit ごとに進んでいない場合、エージェントは作業がどこから再開するかを伝えます。同じメッセージが、新しい計画でもまだ実行されるステージであなたを待っている承認にも答えていて、作業が保留中でも Unit ごとに進んでいるのでもない場合（「approve, and switch back to the poc plan」）、エージェントは切り替えの直後にその答えを記録するので、作業は新しい計画から続きます。Practices Discovery のゲートでは、変更要求は同じように記録されますが、承認は、承認したプラクティスが保存されるのを待つため、あなたの次のメッセージを待ちます。完了した作業（`Status: Completed`）では、新しいスコープが最後のステージより後のステージを実行する場合、同じ書き込みでそのステージから作業を開き直します（`Status: Running`、そのステージは `[-]`、`STAGE_STARTED` 行 1 つ、`intents.json` の行は `in-flight` に戻る）。エージェントは同じターンでそのまま進み、切り替えの行と、新しいスコープが変えた設定を、そのステージの最初の行とともに伝えます。以前に承認したものは承認済みのままで、`doctor` は開き直した実行を、以前の完了からのずれではなく実行として読みます。最後のステージより後に何も加えない新しいスコープでは、作業は完了のままです。solo でもチームの Unit Ownership でも、進行中の Unit の作業を理由に変更が拒否されることはありません。新しいスコープが Units Generation をスキップする場合、Units Generation がすでに作った Unit は Unit ごとに続行し、新しいスコープが外すステージでの Unit の承認や Unit の作業は 1 行で示されます（例: 「The beta Unit's NFR Requirements approval is no longer part of the plan.」）。逆に、作業が Units Generation を実行せずに通り過ぎたあとで、Units Generation を実行する新しいスコープを選んでも、Unit は作られません。その Construction のステージは作業全体について一度だけ実行され、開いているゲートはその作業とともに開いたままで、Units Generation に戻ると（`/aidlc --stage units-generation`）作業が Unit に分割されます。
+**動き:** `aidlc-state.md` のスコープ設定を更新し、どのステージを実行し、どれをスキップするかを再計算し、`SCOPE_CHANGED` 監査イベントを記録します。`--depth`、`--test-strategy`、`--review`、`--guard-policy`、`--sensors`、`--learnings`、`--summary-confirmation`、`--guard.<fence>` のスイッチと組み合わせられます。あなたが自分の言葉で頼んだ設定をエージェントが加えるときは、あなたが頼んだメッセージを名指す `--message <id>` も加え、その設定は `config set` と同じく `set by you` と表示されます。スコープ由来の Guard Policy は、より厳しい新しい既定値に自動で追随します。より低い既定値に追随するのは、あなたがスコープ変更を頼んだメッセージをエージェントが名指したとき（`--message <id>`）で、それ以外は実行中のワークフローがポリシーを保ち、出力が 1 行でそう伝えます。手続きの値は新しいスコープの既定値に追随し、人間による明示的な上書きと旧記録で存在しない行は保持します。memory の strict は引き続き実効ポリシーを決めます。明示的なフラグは人間の設定元を保ち、`config-change` と同じ弱化の規則に従います。現在のスコープを選んでも、指定した設定は同じ設定の適用処理で適用し、無意味なスコープ変更イベントは出しません。不正または未知のフラグ、あるいは認可されていない `--guard-policy relaxed` や `--guard-policy off` は、CLI の更新全体を拒否します。ステージのチェックボックスは、開いている承認（`[?]`）や改訂（`[R]`）を含め、そのまま引き継がれます。例外は、新しいスコープが承認待ちのステージをスキップする場合と、まだ始まっていない現在のステージをスキップする場合です。それらのステージは変更とともにスキップされます（`[S]`。それぞれ `STAGE_SKIPPED` 行 1 つと出力 1 行で、単独で実行するための `/aidlc --stage <slug> --single` を示します）。実行中の作業で、あなたを待っているものがない場合（ステージが単に実行中だった場合）は、エージェントは同じターンで続けます。新しいスコープがそのステージをもう実行しない場合は、新しいスコープが実行する次のステージへ進みます。承認、質問、または Unit のチェックポイントや要約があなたを待っている場合は、ターンが終わります。そのステージが新しい計画に残り、作業が Unit ごとに進んでいない場合、エージェントは作業がどこから再開するかを伝えます。同じメッセージが、新しい計画でもまだ実行されるステージであなたを待っている承認にも答えていて、作業が保留中でも Unit ごとに進んでいるのでもない場合（「approve, and switch back to the poc plan」）、エージェントは切り替えの直後にその答えを記録するので、作業は新しい計画から続きます。Practices Discovery のゲートでは、変更要求は同じように記録されますが、承認は、承認したプラクティスが保存されるのを待つため、あなたの次のメッセージを待ちます。完了した作業（`Status: Completed`）では、新しいスコープが最後のステージより後のステージを実行する場合、同じ書き込みでそのステージから作業を開き直します（`Status: Running`、そのステージは `[-]`、`STAGE_STARTED` 行 1 つ、`intents.json` の行は `in-flight` に戻る）。エージェントは同じターンでそのまま進み、切り替えの行と、新しいスコープが変えた設定を、そのステージの最初の行とともに伝えます。以前に承認したものは承認済みのままで、`doctor` は開き直した実行を、以前の完了からのずれではなく実行として読みます。最後のステージより後に何も加えない新しいスコープでは、作業は完了のままです。切り替えでスキップするステージ（完了した poc の作業での `/aidlc --scope feature --skip ci-pipeline`）は、開き直しがステージを選ぶ前に計画から外されるので、作業はスキップしなかった、その後の最初のステージから開き直され、エージェントは何をスキップしたかと、単独で実行する方法（`/aidlc --stage <slug> --single`）を伝えます。切り替えが加えるステージをすべてスキップした場合、作業はそれらのスキップを計画に残したまま完了のままです。solo でもチームの Unit Ownership でも、進行中の Unit の作業を理由に変更が拒否されることはありません。新しいスコープが Units Generation をスキップする場合、Units Generation がすでに作った Unit は Unit ごとに続行し、新しいスコープが外すステージでの Unit の承認や Unit の作業は 1 行で示されます（例: 「The beta Unit's NFR Requirements approval is no longer part of the plan.」）。逆に、作業が Units Generation を実行せずに通り過ぎたあとで、Units Generation を実行する新しいスコープを選んでも、Unit は作られません。その Construction のステージは作業全体について一度だけ実行され、開いているゲートはその作業とともに開いたままで、Units Generation に戻ると（`/aidlc --stage units-generation`）作業が Unit に分割されます。
 
 返答の最初の行は、新しい計画で作業が実行するステージ（完了したものと、現在のステージ以降のもの。新しい計画が現在のステージより前に加えるステージは、そこへ戻った場合にだけ実行されます）、完了した数、承認ゲートを示し、切り替え直すと残りの同じステージが戻ってくる場合には戻り方（`/aidlc --scope <old scope>`）を伝えます。作業に合わせて作った計画のあとでは、そうはなりません。続いて、変更でスキップしたステージごとに 1 行、外れた Unit の作業を示す 1 行、値が変わった設定ごとに 1 行が続きます。新しいスコープでも変わらない既定値は一覧されませんが、スコープと一緒に入力した設定は、変わったかどうかにかかわらず常に報告されます。
 
@@ -996,7 +999,7 @@ memory が保持する strict は最初に拒否し、以前に下げたガー�
 
 > Turning the review-freeze check off is the person's call. Run it with --message <id>, the message they asked in, when they ask for it.
 
-ほかのガードの拒否では、そのガードの名前に置き換わります。無人実行では、ドライバー向けの案内も受け取ります。あなたが自分の端末で入力した同じコマンドは、その理由で拒否されることはありません。本人の操作なので実行され、1 行で伝えられ（「The review freeze check (it stops edits to work you already approved) is off for this piece of work, set by you. You can turn it back on any time.」）、set by you として記録されます。エディターが自身のエージェントのために開く端末（VS Code の Copilot、Kiro IDE、Cursor）はあなたの端末ではありません。そこでの拒否は「To turn the review-freeze check off, ask for it in your Kiro chat.」のように、あなたのツールを名指しします。このコマンドは、ポリシーの語が維持しているものを含め、切り替え可能な 3 つのガードを制御します。切り替え可能なガードのメインセッションでの拒否はこのコマンドを示します。human-presence の拒否はスイッチを示しません。この作業でプロンプトフックが動いている間（そのハートビートが新しい間）は、その人がまだ答えていないことを伝え、エージェントはターンを終えます。その人に伝えることはありません。それ以外の場合は、その人がすでに送った返答がどうなったかを伝えます。その人が操作した後にだけフックを実行するハーネスでは、フックを有効にする手順を伝えます。それ以外では、その人向けに 1 行で「Your answer didn't reach AI-DLC. Please give it once more. If it happens again, type /aidlc --doctor.」と伝えます。`/agent` で選んだ別のエージェントに入力した返答が記録されない Kiro CLI では、その行は「Your answer didn't reach AI-DLC. Type /agent and pick aidlc, then give it once more.」になります。Kiro がエージェント「aidlc」の 3.0 エンジン向けのアップグレードが必要だと伝える場合、その行は「Your answer didn't reach AI-DLC. Quit Kiro and start it again in this folder with: kiro-cli chat --agent-engine v2 --agent aidlc, then give it once more.」になります。エージェントは、その人のために検査を off にすると申し出てはならないと指示されています。
+ほかのガードの拒否では、そのガードの名前に置き換わります。無人実行では、ドライバー向けの案内も受け取ります。あなたが自分の端末で入力した同じコマンドは、その理由で拒否されることはありません。本人の操作なので実行され、1 行で伝えられ（「The review freeze check (it stops edits to work you already approved) is off for this piece of work, set by you. You can turn it back on any time.」）、set by you として記録されます。エディターが自身のエージェントのために開く端末（VS Code の Copilot、Kiro IDE、Cursor）はあなたの端末ではありません。そこでの拒否は「To turn the review-freeze check off, ask for it in your Kiro chat.」のように、あなたのツールを名指しします。このコマンドは、ポリシーの語が維持しているものを含め、切り替え可能な 3 つのガードを制御します。切り替え可能なガードのメインセッションでの拒否はこのコマンドを示します。human-presence の拒否はスイッチを示しません。この作業でプロンプトフックが動いている間（そのハートビートが新しい間）は、その人がまだ答えていないことを伝え、エージェントはターンを終えます。その人に伝えることはありません。それ以外の場合は、その人がすでに送った返答がどうなったかを伝えます。その人が操作した後にだけフックを実行するハーネスでは、フックを有効にする手順を伝えます。それ以外では、その人向けに 1 行で「Your answer didn't reach AI-DLC. Please give it once more. If it happens again, type /aidlc --doctor.」と伝えます。`/agent` で選んだ別のエージェントに入力した返答が記録されない Kiro CLI では、その行は「Your answer didn't reach AI-DLC. Type /agent and pick aidlc, then give it once more.」になります。Kiro がエージェント「aidlc」の 3.0 エンジン向けのアップグレードが必要だと伝える場合、その行は「Your answer didn't reach AI-DLC. Quit Kiro and start it again in this folder with: kiro-cli --v2 --agent aidlc (Kiro CLI 2.21.4 or later; for an older one, see the AI-DLC Kiro CLI guide), then give it once more.」になります。エージェントは、その人のために検査を off にすると申し出てはならないと指示されています。
 
 その人の返答の後にエージェントが記録した質問に対する `log answer` は記録されます。ほかの回答がすでにその返答を使って記録していない限り、その返答に基づいて記録されるので、その人が再び尋ねられることはありません。
 
@@ -1065,7 +1068,7 @@ aidlc config flags --bypass AIDLC_DISABLE_SUMMARY_CONFIRMATION --local --yes
 aidlc config flags --show
 ```
 
-記録したスイッチをプロジェクトで共有するには、`--local` の代わりに `--project` を使います。実際の環境変数は記録した config フラグより優先します。
+記録したスイッチをプロジェクトで共有するには、`--local` の代わりに `--project` を使います。実際の環境変数は記録した config フラグより優先します。スイッチの変数が `1` 以外に設定されている場所（検査が実行されるエディターまたは CLI）では、記録したスイッチはそこでその検査を off にしません。`config flags --bypass` を実行する場所でそれが設定されている場合、コマンドは、センサー、学び、使用量の追跡を除く各検査について、検査が off であると言う代わりにそのことを伝えます。
 スイッチを記録またはクリアしても変わるのはその設定ファイル（と、どう設定されたかについての AI-DLC の gitignore されたメモ `aidlc/.aidlc-sessions/recorded-switches.json`）だけで、ハーネスのファイルは更新しません。そのため、ワークフローの実行中でも使え、再起動なしに次の検査がそれを読みます。AI-DLC が管理する `.gitignore` ブロックにはすでに `aidlc.settings.local.json` が載っています。それより前のインストールでは、最初の `--local` の記録が、`.gitignore` を編集する代わりにクローン自身の `.git/info/exclude` でそのファイルを git から外します。どちらの設定ファイルもあなたのコードとは数えないため、Code Generation の途中で記録してもステージの完了は妨げられません。
 コマンドは何も尋ねず（`--yes` は任意）、複数のハーネスを持つプロジェクトでも `--harness` は不要で、何を記録またはクリアしたかを、それを元に戻すコマンドとともに表示します。`--local`、`--project`、`--global` のいずれも指定しないと、`--bypass` は自分の `aidlc.settings.local.json` に記録され、自分の端末で入力した `--clear-bypass` はそのスイッチを記録しているすべてのファイルからクリアします。エージェントがチャットから実行した場合、同じクリアは設定コマンドと同じように検査を on に戻します（下記）。あなた自身のエントリはクリアされ、プロジェクトの共有の `aidlc.settings.json` とこのマシンのファイルは示されるだけで、変更されることはありません。いずれかのファイルが記録している間、スイッチは on です。無人実行（`AIDLC_UNATTENDED=1`）は、頼む人がいないため `--bypass` を記録しません。`--clear-bypass` は常に実行されます。エージェントがチャットで実行する場合、あなたから検査を取り上げる 9 つ（下記）のいずれかの `--bypass` は、検査を off にするすべての設定コマンドが従う規則により、あなたが頼んだときだけ記録されます。エージェントがあなたが頼んだメッセージを `--message <id>` で名指し、エンジンがそれを証明します。作業が存在する前も同じです。それ以外の場合は何も記録せず、それがあなたの判断であることを伝えます。たとえば「Turning the human presence check off is the person's call. Run it with --message <id>, the message they asked in, when they ask for it.」です。ほかのフラグも変えるコマンドも設定の変更であり、部分ごとに 1 行を出して同じように実行されます。ほかのリリースのファイルを取り込むコマンド（`--download`、または別のリリースに固定されたプロジェクトが先に必要とする更新）も同様です。
 
@@ -1173,9 +1176,9 @@ aidlc engine log answers --stage requirements-analysis
 aidlc engine audit history
 ```
 
-`log answers` は、対になった回答、開いている質問、まれな曖昧な回答（前に質問がないもの、または 2 つの書き手が同じ 1 秒で並んだもの）を持つ JSON を返します。1 つの返答は、それが答えたメニューについて記録されたすべての質問を閉じます。`audit history` は、イベントと自由形式のメモの JSON タイムラインを返します。
+`log answers` は、対になった回答、開いている質問、まれな曖昧な回答（前に質問がないもの、または 2 つの書き手が同じ 1 秒で並んだもの）を持つ JSON を返します。1 つの返答は、それが答えたメニューについて記録されたすべての質問を閉じます。`audit history` は、イベントと自由形式のメモの JSON タイムラインを返します。`aidlc engine audit turns` はあなた向けです。コミットされた監査が言葉を残さないため、このマシンのメッセージ記録から読んだ、各ターンで送った内容とともに、あなたのターンを一覧します。記録はそれを書いたマシンに 1 日残り、それより古いターンや別のクローンのターンは、言葉がここにはないと言います。
 
-シェルが解釈する文字（`$`、バッククォート、引用符、`%`、`&`、`|`、`<`、`>`、`^`、`!`、改行）を含む回答は、コマンドラインではなくファイル経由で `log answer` に届きます。エージェントはそれを `<record>/.aidlc-engine/answer-text/answer.txt` に書き、`--details-file .aidlc-engine/answer-text/answer.txt` を渡します。同じファイルをプロジェクトフォルダから、またはフルパスで指定しても読まれます。エンジンはそのフォルダだけを、リンクを経由せず、64 KiB まで読み、読んだらファイルを削除します。`log decision` は同じように `--decision-file` で質問を受け取り、`learnings surface` は `--correction-file` で訂正を受け取ります。
+シェルが解釈する文字（`$`、バッククォート、引用符、`%`、`&`、`|`、`<`、`>`、`^`、`!`、改行）を含む回答は、コマンドラインではなくファイル経由で `log answer` に届きます。エージェントはそれを `<record>/.aidlc-engine/answer-text/answer.txt` に書き、`--details-file .aidlc-engine/answer-text/answer.txt` を渡します。同じファイルをプロジェクトフォルダから、またはフルパスで指定しても読まれます。エンジンはそのフォルダだけを、リンクを経由せず、64 KiB まで読み、読んだらファイルを削除します。`log decision` は同じように `--decision-file` で質問を受け取り、選択は 1 行に 1 つを `--options-file` で受け取ります（カンマを含む選択は、それぞれ `--option '<choice>'` としても渡せます）。`learnings surface` は `--correction-file` で訂正を受け取ります。エージェントが `next --request-file` のために書いたファイルは回答にも使えます。`log answer --request-file aidlc/.aidlc-request-text/request.txt` は `next` と同じようにそれを読み、回答が取られると削除するので、拒否された回答はそれを残します。`--details` や `--details-file` と並べては渡しません。
 
 通常の `log answer` には、まだどの判断にも使われていない、このチャットでのその人の返答が必要です。質問が記録される前に送られたものでも、後に送られたものでも構いません。それがどの質問に答えているかは、エージェントの読み取りです。選択肢のある質問では、`--details` はエージェントが返答から読み取った選択肢で、フックがその人の言葉を保持していない場合や、返答が複数の質問に答えている場合は、その人の返答そのものです。回答の行は、そうした返答それぞれの言葉（Person Reply）を保ちます。ただし、以前の回答がすでに記録した返答は、それが最新で、かつ質問がそれより前に記録された場合を除いて保ちません。さらに最新の返答を名指し（Message Id）、複数あるときはそのすべてを古い順に名指します（Message Ids）。エンジンがチャットを名指せないときは、返答したチャットが 1 つなら id だけを保ち、複数ならどちらも保たず、いずれの場合も回答を記録します。`log decision --message <id>` と `log answer --message <id>` は、代わりに 1 つのメッセージを名指します。たとえば、エンジンの別の質問が開いている間に送られたメッセージです。エンジンは、その記録が存在し、このチャットを通じて届いたか別のチャットでこの作業について送られたものであり、後の承認や判断で使われていないことを確かめ、その言葉は何も読みません。id はエンジンからエージェントへのテキストで、その人に示されることはありません。
 対応付けの規則、順序、フィルターは [Hooks and Tools](../reference/06-hooks-and-tools.md#read-only-audit-commands) を参照してください。
@@ -1226,13 +1229,15 @@ Construction 中は、これらのどれでも自分の言葉で変えられま�
 
 ### `aidlc engine swarm prepare` — 再現可能なバッチ
 
-保護された Code Generation の最初の prepare の前に、すでに承認された親のアプリケーションソースをコミットし、選択したベースから再現できるようにします。これには、並列バッチに切り替える前の、承認済みのインラインのスケルトンのソースも含みます。Git が無視していて追跡していないファイル（`.env` やログなど）は、`.aidlc-source-paths.json` でソースとして登録していない限り、これに含まれません。それらはその場に残り、Unit の worktree には、ほかのどの Git チェックアウトとも同じく、それらがありません。この規則は、旧来の自律方式と新しいチェックポイント方式のワークフローの両方に適用されます。自律の許可が自動コミットを認可することはありません。
+保護された Code Generation の最初の prepare の前に、すでに承認された親のアプリケーションソースをコミットし、選択したベースから再現できるようにします。これには、並列バッチに切り替える前の、承認済みのインラインのスケルトンのソースも含みます。Git が無視していて追跡していないファイル（`.env` やログなど）は、`.aidlc-source-paths.json` でソースとして登録していない限り、これに含まれません。それらはその場に残り、Unit の worktree には、ほかのどの Git チェックアウトとも同じく、それらがありません。無視されたリンクの先も同様で、サブモジュールのファイルはサブモジュール自身の ignore 規則で読まれます。それらのファイルの変更（計画を承認した後に書かれたテスト実行のログ、ビルド中の開発サーバーのログ）が、計画の承認を再び求めることはなく、着地とステージの完了も、それをメインのチェックアウトへの変更としては数えません。この規則は、旧来の自律方式と新しいチェックポイント方式のワークフローの両方に適用されます。自律の許可が自動コミットを認可することはありません。
 
 ```bash
 aidlc engine swarm prepare --batch <N> --units "<exact emitted Units>"
 ```
 
 ツールは子の worktree を作る前に、すべての Unit について読み取り専用のソース／承認の事前確認を行います。ソースが未コミットなら、コミットして再試行する指示を返し、その拒否によって子が残ることはありません。明示的な認可がある場合にだけコミットし、現在の承認の証拠で再試行してください。アプリケーションのソースや計画が変わった場合は、必要な Plan Approval を提示し直してください。この要件が対象とするのはアプリケーションのソースであり、無関係なフレームワークの記録やほかのファイルを一括でコミットすることではありません。
+
+同じ事前確認は、Unit の worktree でソースファイルが空のフォルダになる入れ子のリポジトリを示します。Unit が実際に始まるコミットで、その gitlink に `.gitmodules` のエントリがないためです。それらを Git のサブモジュールとして登録し、そのエントリを持つ開始コミットを選ぶか、その Unit を直列にビルドしてください。この拒否は子の worktree を作らず、親のコミットも作りません。登録されたサブモジュールは、ネットワークにアクセスせずにメインのチェックアウトからコピーされます。選択したソース境界の外の gitlink は準備を止めません。選択したベースが承認済みの親のソースを必要とする場合、準備はその親のコミットから始まり、その登録を確認します。明示的な破棄の後の復旧は、代わりに記録された Approval Source Commit を確認します。親がその後変わっていても同じです。
 
 <a id="construction-verification-command-record-human-authorization"></a>
 
@@ -1295,7 +1300,7 @@ aidlc engine bolt checkpoint --action approve --unit "<unit>" --kind <unit|skele
 aidlc engine bolt checkpoint --action reject --unit "<unit>" --kind <unit|skeleton> --user-input 'Request Changes' --reason '<human feedback>'
 ```
 
-その人が判断の中で、レビューの所見を直すよう頼んだり、所見を却下したりしたときは、ステージのゲートと同じく、所見ごとに 1 回、承認には `--fix-finding "<review-artifact>#R-NN"` を、却下には `--reject-finding "<review-artifact>#R-NN=<their reason>"` を加えます（レビュアーが直したと印を付けたものの、その人が直っていないと言う所見には `--reopen-finding`）。
+その人が判断の中で、レビューの所見を直すよう頼んだり、所見を却下したりしたときは、ステージのゲートと同じく、所見ごとに 1 回、承認には `--fix-finding "<review-artifact>#R-NN"` を、却下には `--reject-finding '<review-artifact>#R-NN=<their reason>'` を加えます（レビュアーが直したと印を付けたものの、その人が直っていないと言う所見には `--reopen-finding`）。
 
 その人がエンジンの別の質問が画面にある間に答えた場合（その人の言葉はそちら、たとえば新しい作業の提案に属します）、その返答はチェックポイントのために保持されません。拒否がそのメッセージを示し、approve や reject に `--message <id>` を付けると、それをその人の返答として記録します。アクションは返答を消費します。`verify` を再実行すると、このインテントについて、どのセッションのものであっても、開いているチェックポイントの質問と取得したチェックポイントの返答がすべて撤回されます。新しい検証が `verified: true` を報告した後でのみ、再び尋ねてください。古い証明への返答は、フィンガープリントとコマンドが変わっていなくても、新しい証明を承認できません。`human_required: false` の検証済みの通常の Unit は、`--user-input` なしで承認され、`ask` も不要です。人間による却下には、常に上記の検証済みの質問と回答の流れが必要です。スケルトンには常に人間が必要です。欠けている、または古い証拠は `errors` で説明されます。必要に応じて人間に相談しながら、示されたレビュー／レシートを修復してください。検証を作り出したり、チェックポイントの承認の質問を早く開いたりしてはいけません。検証、承認、却下の後は `next` を再実行し、1 つの Unit のチェックポイントを Code Generation ステージ全体の承認として報告してはいけません。
 検証器は証明ファイルと並んで、ツールが所有する `CHECKPOINT_VERIFICATION_RECORDED` レシートを記録し、承認にはそのレシートが必要です。手書きの証明ファイルで Unit を検証することはできません。証明ファイルがまったくないチェックアウト（新しいクローン、別のマシン）では、そのレシートが、証拠が変わっていないすでに承認済みの Unit の証明の代わりになるため、何も再実行されません。
@@ -1316,7 +1321,15 @@ aidlc engine swarm finalize --batch <N> --units "<all Units>" --claimed "<conver
 ```
 
 `--check-cmd` は、チェックポイントの有無にかかわらず任意です。指定した場合、その正規化されたダイジェストが認可されたコマンドと一致しなければなりません。認可がない場合は実行を拒否します。合格するコマンドで代用するのではなく、[記録済みコマンドの流れ](#construction-verification-command-record-human-authorization) と `set-construction-verification-command` を完了してください。ワークフローがなければ、どちらのコマンドも拒否します。`check --show-output` は、実行中のコマンド自身の出力を stderr に送ります。stdout には判定の 1 行が残ります。並行ビルドでは、各ワーカーのブリーフと各レビュアーのレビュー依頼（`test_command`）が、プロジェクトのメインフォルダから実行する `check <Unit> --show-output` を示すので、あなたが承認したテストは AI-DLC 自身のコマンドを通して実行されます。`check` は助言用です。`finalize` はコマンドを再実行し、クレームされた各 Unit をマージする前にレビューの証拠を検証します。`finalize` を再実行すると、このインテントについて、どのセッションのものであっても、開いているチェックポイントの質問と取得したチェックポイントの返答がすべて撤回されます。新しい検証、ソースの取り込み、`ready: true` のバッチの状態の後でのみ、再び尋ねてください。検証済みのネイティブの合格だけが、認可された `Command SHA-256` とともに `SWARM_UNIT_CONVERGED` を受け取ります（以前のリリースの行にはそれがないことがあります）。`next` の前に、ネイティブの worktree のマージでそのソースを取り込みます。
-バッチのビルド中にその人がメインのチェックアウトに加えた編集は、Guard Policy が strict のもとではそのマージを止めます（拒否はステップを示します。編集を元に戻してマージを再実行するか、保つなら `guard policy relaxed` と言います）。relaxed や off のもとでは編集は保たれ、`CHANGE_ACCEPTED`（`swarm-batch`）として 1 回記録され、マージは `note:` の行を 1 つ出します。ステージの完了時に、最後のマージの後で加えられた編集についても同じです。
+バッチのビルド中にその人がメインのチェックアウトに加えた編集は、Guard Policy が strict のもとではそのマージを止めます（拒否はステップを示します。その人が変更を頼んだときは、そのメッセージ付きで `swarm allow-change` を実行し、その後同じマージがそれを保ちます。それ以外は編集を元に戻してマージを再実行するか、保つなら `guard policy relaxed` と言います）。relaxed や off のもとでは編集は保たれ、`CHANGE_ACCEPTED`（`swarm-batch`）として 1 回記録され、マージは `note:` の行を 1 つ出します。ステージの完了時に、最後のマージの後で加えられた編集についても同じです。
+
+### `aidlc engine swarm allow-change` — その人がメインのチェックアウトに頼んだ変更
+
+```bash
+aidlc engine swarm allow-change <file>... --message <id>
+```
+
+Guard Policy が strict のとき、Unit を並行してビルドしている間、メインのチェックアウトが変わるのはそれらの着地だけなので、各着地がそれを確認できます。その人がそこにある別のファイルを頼んだとき（「also fix the typo in the README」）、plan-approval ガードがその書き込みを拒否し、その拒否が、頼んだメッセージとともにこのコマンドを示します。コマンドはそのメッセージを証明し、ファイルをその人の言葉とともに、現在の Code Generation の試行について `MAIN_CHECKOUT_CHANGE_ALLOWED` として記録し、その人向けに `notice` の行を 1 つ出します。その後書き込みは入り、着地、次のバッチの prepare、ステージの完了がその変更を保ち、それぞれがそのメッセージ付きで `CHANGE_ACCEPTED` として記録されます。AI-DLC 自身のファイルと、ビルド中の Unit が計画で名指すファイルは拒否します（その変更は Unit 自身のチェックポイントを通ります）。memory でチームが保持する strict の Guard Policy のもとでは何も変えず、それがどこで設定されているかを 1 行で伝えます。
 
 ### `aidlc engine bolt swarm-checkpoint` — バッチの判断
 
@@ -1545,9 +1558,11 @@ aidlc engine plugin: Nothing synced: this tool keeps no list of your plugins, so
 
 `/aidlc plugin validate [path]` と `/aidlc plugin build <harness> [outDir]` は、同梱のスタンドアロンのオーサリングツールをトップレベルの CLI から公開します。検証の既定はカレントディレクトリです。ビルドもプラグインのルートの既定はカレントディレクトリで、別の場所から呼び出すときは `--plugin-root <path>` を渡します。どちらも `--json` を受け付けます。ベースの上に作られたプラグインの検証には、そのベースの自分のチェックアウトである `--with <base-root>` を渡します。そうすると、ベースのエージェントが主導するステージは、未確認として報告されるのではなく確認されます。
 
+端末から `aidlc plugin test [path] --install <project-root>`（コピー経路では `bun .claude/tools/aidlc.ts plugin test ...`）は、同梱の compose テストを実行します。`[path]` のプラグイン（既定はカレントディレクトリ）を、`--install` が示すプロジェクトの使い捨てのコピーへ compose し、compose の脱落、グラフの失敗、またはファイルを変える 2 回目の compose で `1` で終了します。プロジェクト自体は決して変わりません。そのプロジェクトが複数のハーネスを持つときは `--harness <name>` を、ベースの上に作られたプラグインには `--with <base-root>` を、結果オブジェクト 1 つには `--json` を渡します。
+
 ### `aidlc-utility recompose` - in-flight plan flips
 
-`aidlc engine recompose [--skip <slug,...>] [--add <slug,...>] [--sensors <on|off>] [--learnings <on|off>] [--summary-confirmation <on|off>] [--collaborators <on|off>] [--review <adversarial|advisory|none>] [--message <id>] [--reason <text>]` は、生きた状態ファイル上で、PENDING かつカーソルより先にあるステージの計画の接尾辞を反転します。どちらのフラグもカンマ区切りの一覧を受け付け、繰り返し指定できます。すべての出現が累積され、重複した slug は 1 回として数えます。反転を少なくとも 1 つ指定し、一覧が空のフラグは省いてください。値のないフラグ、空白の値、空の CSV の要素、未知のフラグ、余分な位置引数は使い方のエラーで、反転は一切適用されません。設定のフラグは、反転と一緒に承認された設定を運びます。それらは同じ状態の書込みで適用され、`RECOMPOSED` の後に `CEREMONY_SET` や `REVIEW_CLASS_CHANGED` の行が続くため、1 回の承認で計画が中途半端に変わることはありません。`--message <id>` でそれらを承認したその人のメッセージを名指すと、エンジンがそのメッセージを証明した時点で、`config set` と同じく設定は `set by you` と表示されます。設定だけの変更は `config set` を通します。`--reason <text>` は、計画が変わった理由を `RECOMPOSED` の行に記録します。ジャンプがスキップしたステージを計画に戻すとき、エンジンがこれを渡します。
+`aidlc engine recompose [--skip <slug,...>] [--add <slug,...>] [--sensors <on|off>] [--learnings <on|off>] [--summary-confirmation <on|off>] [--collaborators <on|off>] [--review <adversarial|advisory|none>] [--message <id>] [--reason <text>]` は、生きた状態ファイル上で、PENDING かつカーソルより先にあるステージの計画の接尾辞を反転します。どちらのフラグもカンマ区切りの一覧を受け付け、繰り返し指定できます。すべての出現が累積され、重複した slug は 1 回として数えます。反転を少なくとも 1 つ指定し、一覧が空のフラグは省いてください。値のないフラグ、空白の値、空の CSV の要素、未知のフラグ、余分な位置引数は使い方のエラーで、反転は一切適用されません。設定のフラグは、反転と一緒に承認された設定を運びます。それらは同じ状態の書込みで適用され、`RECOMPOSED` の後に `CEREMONY_SET` や `REVIEW_CLASS_CHANGED` の行が続くため、1 回の承認で計画が中途半端に変わることはありません。`--message <id>` でそれらを承認したその人のメッセージを名指すと、エンジンがそのメッセージを証明した時点で、`config set` と同じく設定は `set by you` と表示されます。設定だけの変更は `config set` を通します。`--reason <text>` は、計画が変わった理由を `RECOMPOSED` の行に記録します。ジャンプがスキップしたステージを計画に戻すとき、エンジンがこれを渡します。完了した作業（`Status: Completed`）では何も変えません。拒否は、最後のステージより後に頼んだステージを実行する計画を示し、その一つへ切り替えると（`/aidlc --scope <plan>`）そこで作業を開き直します。
 
 ```bash
 # Equivalent ways to skip both stages after approval:
