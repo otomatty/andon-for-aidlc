@@ -162,7 +162,7 @@ describe("local audit record", () => {
     expect(value.map((event) => event.event)).toEqual(["TRACKED_ONLY"]);
   });
 
-  it.each(["audit", ".aidlc-engine"])(
+  it.each(["audit", path.join(".aidlc-engine", "audit")])(
     "reports an unreadable %s directory the same way and returns no rows",
     async (directory) => {
       const root = await record();
@@ -171,6 +171,8 @@ describe("local audit record", () => {
         shard(auditRow("TRACKED_ONLY", "2026-11-05T00:00:04Z")),
       );
       await rm(path.join(root, directory), { recursive: true, force: true });
+      // A path through a file is ENOENT on Windows, so the directory itself is replaced by a file.
+      await mkdir(path.dirname(path.join(root, directory)), { recursive: true });
       await writeFile(path.join(root, directory), "not a directory");
       expect(await readAllAuditEvents(root)).toEqual({
         ok: true,

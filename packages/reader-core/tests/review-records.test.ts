@@ -749,7 +749,9 @@ describe("team unit local audit record", () => {
       path.join(record, "audit", "clone.md"),
       reviewAudit("BOLT_STARTED", { "Bolt names": "unit-alpha" }, 3),
     );
-    await writeFile(path.join(record, ".aidlc-engine"), "not a directory");
+    // A path through a file is ENOENT on Windows, so the directory itself is replaced by a file.
+    await mkdir(path.join(record, ".aidlc-engine"), { recursive: true });
+    await writeFile(path.join(record, ".aidlc-engine", "audit"), "not a directory");
     expect((await readReviewVerdicts(record)).unavailable).toBe(true);
     expect(
       await reviewUnitsInAuditShard(record, path.join(record, "audit", "clone.md")),

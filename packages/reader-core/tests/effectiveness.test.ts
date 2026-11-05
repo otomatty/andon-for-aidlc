@@ -1562,7 +1562,9 @@ describe("effectiveness reader boundaries", () => {
 
   it("withholds measurements when the local audit directory is unreadable", async () => {
     const { root, record } = await workspace();
-    await writeFile(path.join(record, ".aidlc-engine"), "not a directory");
+    // A path through a file is ENOENT on Windows, so the directory itself is replaced by a file.
+    await mkdir(path.join(record, ".aidlc-engine"), { recursive: true });
+    await writeFile(path.join(record, ".aidlc-engine", "audit"), "not a directory");
     const result = await getEffectiveness(root, BASE + 20_000);
     expect("ok" in result && result.value.intents[0]?.auditEventCount).toBeNull();
     expect("ok" in result && result.value.intents[0]?.warnings.join(" ")).toContain(
