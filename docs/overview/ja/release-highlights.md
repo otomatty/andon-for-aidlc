@@ -1,10 +1,32 @@
 # aidlc-workflows の更新履歴と改善点
 
-最新の [2.11.2 の更新履歴](releases/2.11.2.md)と [2.11.1](releases/2.11.1.md)・[2.11.0](releases/2.11.0.md)・[2.10.0](releases/2.10.0.md)・[2.9.0](releases/2.9.0.md) は全文を日本語で収録しています。過去版の履歴原文は英語を維持しています。
+最新の [2.11.3 の更新履歴](releases/2.11.3.md)と [2.11.2](releases/2.11.2.md)・[2.11.1](releases/2.11.1.md)・[2.11.0](releases/2.11.0.md)・[2.10.0](releases/2.10.0.md)・[2.9.0](releases/2.9.0.md) は全文を日本語で収録しています。過去版の履歴原文は英語を維持しています。
 
 このページは AIDLC Guide がまとめた日本語の改善点ガイドです。公式 CHANGELOG の全文訳ではありません。各版のリンクから、同梱した原文の変更内容・修正・移行手順を確認できます。
 
 [すべての更新履歴を開く](changelog.md)
+
+## 2.11.3 で変わったこと
+
+[2.11.3](releases/2.11.3.md) は2026年11月4日公開です。State Version 8 と基本 33 ステージは維持します。
+
+| 変更 | 利用時の動作 |
+| --- | --- |
+| セキュリティ | ネイティブの `aidlc` は Bun 1.4.4 でビルドされ、同梱の Brotli デコーダーの CVE-2026-111497 を修正します。2.11.2 以前のネイティブ版には影響を受けるデコーダーが組み込まれているため、`aidlc update` を実行し、古いリリースにピンしたプロジェクトは `aidlc config --pin 2.11.3` で移します。`http://` のメトリクス収集先（`AIDLC_METRICS_ENDPOINT`）は `https://` へ移します。手動コピーでは、自身の Bun を 1.4.4 以降に更新します |
+| 入力した言葉の保持 | 計画の質問と記録は、引用符、バックスラッシュ、`$`、バッククォートを入力したまま残します。Windows の Claude Code（Git Bash）では、`!`、`$`、引用符、バッククォートの隣のアポストロフィも残ります。別の Claude セッションが送ったメッセージはゲートに答えません。番号付きの選択肢は、長いダッシュではなく平易な ` - ` です |
+| ゲートと計画の再承認 | Request Changes の後の再レビューは、最初の一回で通ります。ビルド中に計画のステップへチェックを入れても、計画の再承認は求めません。Code Generation で保留した作業が、プロジェクトのほかの依頼を止めることはありません。Approval & Handoff と Feedback & Optimization のゲートは、何も実行していなかった選択肢を出さなくなりました |
+| 完了した作業の延長 | 完了した作業にさらにステージを求めると、それらを実行する計画を示します。選ぶと、その計画へ切り替わり、承認済みのものを残したまま、新しい最初のステージを始めます |
+| 並行ビルド | Guard Policy strict では、Unit のビルド中にメインのチェックアウトで求めた変更を取り込み、着地のときも残します。Git が無視し、追跡していないファイルは、計画の再承認を求めたり、着地やステージの完了を止めたりしません |
+| チームの Unit | エージェントとともに、クレームから `/aidlc unit publish`、`/aidlc unit pin`、一つのマージの質問、着地、通常の `git pull` まで、最後まで動作します |
+| システムパッケージ | 誰も求めていないシステムパッケージのインストールは、どの Guard Policy でも、コマンドと目的を伝えて了承を待ちます。了承すると一度だけ実行し、本人の言葉とともに記録します |
+| exFAT | ハードリンクを作らないため、exFAT ドライブ（Linux または Windows）でも `aidlc config --harness <name> --yes`、`/aidlc knowledge onboard`、`aidlc system workspace-sync`、`/aidlc intent add-repo` がローカルディスクと同じように動作します |
+| opencode | opencode 1.18.29 以降、または OpenCode 2 を求めます（以前は 1.17）。それより古い opencode 1 は、`aidlc doctor` が警告します |
+| Kiro CLI の起動 | Kiro CLI を起動または再起動する行は、エンジンを名指しします。`kiro-cli --v3`、`--harness kiro` でセットアップしたプロジェクトでは `kiro-cli --v2` です |
+| Windows の `aidlc.exe` | ネイティブ導入は bin フォルダーに `aidlc.exe` を加え、PowerShell、CMD、Git Bash が `aidlc.cmd` より先に実行します。引数は、入力したとおりに `aidlc` へ渡されます |
+
+更新は `aidlc update` の後、各プロジェクトで `aidlc config --yes` を実行します（進行中の作業はそのまま続きます）。手動コピーでは `aidlc-copy-runtime-2.11.3.tar.gz` の `runtime/<harness>/` 全体を置き換えます。スクリプトに影響する変更は 3 つです。Windows では `aidlc.exe` が書かれた後、以前のリリースの `install.ps1` や `aidlc uninstall` では、そのリリースのインストールや完全な削除ができなくなるため、切り替えは `aidlc use <version>` を使います。承認した計画が名指ししていないシステムパッケージのインストールは、無人の実行でも保留されるため、CI のツールは AI-DLC が始まる前にインストールします。opencode 向けの `aidlc config runtime --check` は、1.18.29 より古い opencode 1 で失敗します。
+
+Andon では、プロジェクトやエンジンの版が対応版（2.11.3）と違うと「バージョン確認」の画面を表示し、必要な更新を案内します。
 
 ## 2.11.2 で変わったこと
 

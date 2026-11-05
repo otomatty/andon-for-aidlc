@@ -2,6 +2,18 @@
 
 This guide summarizes selected improvements from the upstream CHANGELOG. [All releases](changelog.md) includes the complete entries, with fixes and upgrade instructions, from the bundled source revision.
 
+## 2.11.3
+
+[2.11.3, released November 4, 2026](releases/2.11.3.md), retains State Version 8 and the 33-stage base graph.
+
+The native `aidlc` is built with Bun 1.4.4, which fixes CVE-2026-111497, an out-of-bounds write in the Brotli decoder Bun bundles. A native `aidlc` 2.11.2 or earlier has that decoder built in, and upgrading Bun on its own does not replace it: run `aidlc update`, and move a project pinned to an older release with `aidlc config --pin 2.11.3`. With the default settings, AI-DLC hands the decoder only its own release downloads over HTTPS. A team that sends metrics to an `http://` collector (`AIDLC_METRICS_ENDPOINT`) should move that collector to `https://`. On the copy channel, update Bun to 1.4.4 or newer.
+
+Words stay as they were typed. The plan question and the record keep quote marks and backslashes, and a `$` or a backtick in a reason, a pick or a request is recorded as written. On Windows, with Claude Code's Git Bash, apostrophes stay beside a `!`, `$`, quote or backtick. A message another Claude session sends into the chat no longer answers a gate, and numbered choices use a plain ` - `. After Request Changes, the re-review goes through the first time. Ticking plan steps during the build no longer asks for plan approval again. Work parked at Code Generation no longer holds up other requests in the project. The Approval & Handoff and Feedback & Optimization gates no longer offer the choices nothing carried out. Finished work can take further stages by switching plan, and everything already approved stays approved.
+
+Side-by-side builds, under Guard Policy strict, take a change asked for in the main checkout and keep it when the Units land. A file Git ignores and does not track no longer asks for the plans again, and no longer stops a landing or the stage's completion. Team Units work end to end with an agent, from a claim through publish, pin, one merge question, landing and a plain `git pull`. A system package install nobody asked for waits for a go-ahead before it runs. AI-DLC makes no hard links, so the same commands work on an exFAT drive. It asks for opencode 1.18.29 or newer, or OpenCode 2. Every line that starts or restarts Kiro CLI names the engine (`kiro-cli --v3`, or `kiro-cli --v2` in a project set up with `--harness kiro`). On Windows, a native install adds `aidlc.exe`, and `aidlc` hands arguments on as they were typed.
+
+Run `aidlc update`, then `aidlc config --yes` per project; open work carries on. Copy users replace the complete `runtime/<harness>/` tree from `aidlc-copy-runtime-2.11.3.tar.gz`. Three changes affect scripts: on Windows, once 2.11.3 has written `aidlc.exe`, an earlier release's `install.ps1` or `aidlc uninstall` no longer installs or fully removes that release, so switch with `aidlc use <version>`; a system package install that no approved plan names is held in unattended runs too, so install those CI tools before AI-DLC starts; and `aidlc config runtime --check` for opencode fails with an opencode 1 older than 1.18.29.
+
 ## 2.11.2
 
 [2.11.2, released October 28, 2026](releases/2.11.2.md), retains State Version 8 and the 33-stage base graph.
