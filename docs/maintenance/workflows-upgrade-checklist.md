@@ -22,6 +22,26 @@ AI は版上げの調査・実装前にこのファイルを読み、確認し�
 - [x] docs / shell の同期を `aidlc-workflows-update.yml` に統合。書き込み権限は PR 公開ジョブだけに限定し、検査結果と採取物を保存。
 - [ ] GitHub の required checks を有効化。テンプレートは更新済み。専用 Release App の variable / secret が未登録のため、既存リリースを止めないよう適用を保留。設定後に main 上で統合同期の初回実行と保護ルールの有効性を確認する。
 
+v2.11.3 対応作業（2026-11-05）:
+
+対象は公式 v2.11.3、タグが指すコミット `a8721be3631e6a254cf524ea57e5932aa56b4149`。比較元は manifest の公式 v2.11.2 `10a9bc9d85395a601de2624cf5bdd35292c10db4`。公式タグの独立 checkout から配布物を生成し、drift は blocking 0 / findings 5。State Version 8・基本33ステージ・14エージェントは維持。
+
+- [x] シェル同期: audit の Windows 追記修正（O_APPEND の位置指定）と Cursor adapter の PR #43 パッチを 2.11.3 の元ファイルへ再適用し、override のハッシュを更新する。`.aidlc-version` を 2.11.3 に揃える。シェルは 285 ファイルを書き（Claude 142、Cursor 143）、削除 0、維持 14。`check-bundled-shells` は通過。
+- [x] `packageManager` を `bun@1.4.4` に上げた（lockfile 変更なし）。上流の CI と揃える。Bun 1.4.4 は CVE-2026-111497（Brotli デコーダ。実際に悪用されている）を修正する。
+- [x] Doctor: フック無効の表示（両方の形）と、Kiro CLI（`kiro-cli --v3`、初回チャットは `kiro-cli --v2 --agent aidlc`）・Kiro IDE（2.11.2 と 2.11.3）・`Kiro ignore sources:`・opencode 1.18.29 の診断を訳す。翻訳キーとパターン 442 件の古いアンカーを走査し、文言が変わった 3 件は訳で覆う。2.11.3 の契約（`core/tools` 115 ファイルの指紋。57 変化、8 新規）を登録した。
+- [x] Doctor: CI 実行 42033219711 で 3 OS × 9 ケースを登録した（`951760c`）。採取の脚が登録前に出した失敗は「recorded capture missing」だけで、設計どおり。
+- [x] reader: チームの Unit をクレームしたチェックアウトの監査は、エンジン内の shard と追跡対象の shard の両方を読み、両方にある行は一度だけ読む。ローカルのフォルダーも監視する。`SENSOR_COULD_NOT_RUN` は証跡不足として数える。
+- [x] bridge-map: Approval & Handoff と Feedback & Optimization は Approve / Request Changes のみ。Code Generation（計画の手順に印を付けても承認を聞き直さない。Acceptance Red は失敗した出力を記録する）と Build and Test（頼まれていないシステムパッケージの導入は確認を待つ）の説明を合わせる。
+- [x] 英語 45 ページと新規 1 ページ（2.11.3 の更新履歴）、版宣言を同期する。
+- [x] 日本語は変更のあった全ページを英語の差分と照合し、2.11.3 の更新履歴と改善点ガイドを追加する。
+- [x] `bun audit` が `@vscode/vsce > minimatch@10.2.6` の GHSA-g3hv-75wg-m249（moderate）で失敗したため、ルートの `overrides` に `"minimatch": "^11.0.4"` を加えた（vsce 4.1.0 も `^10.2.6` を要求する）。前後の VSIX は 712 ファイルで中身が一致。
+- [x] `bun run check`（277 ファイル・4,996 件成功・1 件 skip）と `bun run package:extension`（712 ファイル、10.55 MB）が成功。
+- [ ] 承認後の成果物補正（`STAGE_OUTPUT_AMENDED`）と `Review Kept` のレビュー判定への反映。現状は判定を保留する側に倒れる。
+- [ ] 上流の `copiedAuditBlocks` のうち、同期ツールが写した監査 shard の競合コピーをまとめる部分。Andon は再現していない。
+- [ ] 実拡張ホストでの操作（バージョン確認画面、更新後のプロジェクト更新）。
+
+実施内容は[2.11.3 更新記録](../reviews/workflows-2.11.3-update.md)。
+
 v2.11.2 対応作業（2026-10-30）:
 
 対象は公式 v2.11.2、タグが指すコミット `10a9bc9d85395a601de2624cf5bdd35292c10db4`。比較元は manifest の公式 v2.11.1 `895a35d86d20336d9b7bc4aedc9440e4a12c83ab`。公式タグの独立 checkout から配布物を生成し、drift は blocking 0 / findings 5。State Version 8・基本33ステージ・14エージェントは維持。
