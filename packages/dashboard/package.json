@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@andon/shared-types": "workspace:*",
-    "@mantine/core": "^9.7.2",
+    "@mantine/core": "^9.7.3",
     "@mantine/hooks": "^9.7.2",
     "@tailwindcss/vite": "^4.3.3",
     "@tiptap/extension-list": "^3.32.0",
