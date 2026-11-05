@@ -205,7 +205,7 @@ Practices Discovery は、AI-DLC で二軸設定モデルの両行へ書く唯�
    aidlc engine state practices-promote \
      --team-practices <record>/inception/practices-discovery/team-practices.md \
      --discovered-rules <record>/inception/practices-discovery/discovered-rules.md \
-     --affirming-user "<user>"
+     --affirming-user '<user>'
    ```
 
    先に `project.md`、続けて `team.md` を書き、`PRACTICES_AFFIRMED` を出します。昇格が失敗したら `PRACTICES_OVERRIDE` を出し、ステージを `[?]` のままゲートを開け、承認は報告しません。
@@ -368,7 +368,7 @@ User Stories は、正式な要件を、各機能の「誰が、何を、なぜ�
 
    `<record>/inception/user-stories/user-stories-assessment.md` を作り、次を残します: 判断（Execute または Skip）、根拠、考慮した要因、走るなら主な価値領域、飛ばすなら代替のカバレッジ。
 
-   飛ばすなら `aidlc engine orchestrate report --stage user-stories --result skipped --reason "<reason from the assessment>"` を呼びます。エンジンは成果物やアンサンブル証拠の検査の前に `[S]` を記録し、回します。
+   飛ばすなら `aidlc engine orchestrate report --stage user-stories --result skipped --reason '<reason from the assessment>'` を呼びます。エンジンは成果物やアンサンブル証拠の検査の前に `[S]` を記録し、回します。
 
 3. **Load Prior Context** -- `<record>/inception/requirements-analysis/requirements.md` を読みます。brownfield なら、関連する RE 成果物を `aidlc/spaces/<active-space>/codekb/<repo>/` から読みます。
 
