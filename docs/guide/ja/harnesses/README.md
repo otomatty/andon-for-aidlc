@@ -43,7 +43,7 @@ Windows では `install.ps1` をダウンロードし、`& $installer` で起動
 | **Kiro CLI** (≥ 2.6)、セットアップでは Kiro CLI (V2) として表示 | `/aidlc` | [Kiro CLI で AI-DLC を動かす](kiro-cli.md) — エンジンを固定しないハーネス: 前提、導入、Kiro で違うところ。Kiro CLI ≥ 2.24.1 で Kiro の v3 エンジンを使う場合は、上の Kiro を使ってください。 |
 | **Codex CLI** (≥ 0.145.0) | `$aidlc` | [Codex CLI で AI-DLC を動かす](codex-cli.md) — 前提、信頼の事前シード、Bedrock 設定、git リポジトリ必須。 |
 | **Cursor** | `/aidlc` | [Cursor で AI-DLC を動かす](cursor.md) — Cursor IDE と CLI で同じディレクトリツリー、ネイティブのサブエージェントとスキル、hooks.json アダプタ、Cursor で違うところ。 |
-| **opencode** (≥ 1.17) | `/aidlc` | [opencode で AI-DLC を動かす](opencode.md) — `.aidlc/` と `.opencode/` の分割、アダプタプラグイン、opencode で違うところ。 |
+| **opencode**（1.18.29 以降、または OpenCode 2） | `/aidlc` | [opencode で AI-DLC を動かす](opencode.md) — `.aidlc/` と `.opencode/` の分割、アダプタプラグイン、opencode で違うところ。 |
 | **GitHub Copilot** (CLI ≥ 1.0.74 / VS Code ≥ 1.130) | `/aidlc` | [GitHub Copilot で AI-DLC を動かす](copilot.md) — 両面で 1 回の導入、`.github/` へのマージ、フォルダ信頼、Copilot で違うところ。 |
 
 Kiro（IDE でも CLI でも）では **Claude Opus 4.8** がいちばん安定します。**有料の Kiro プラン** が必要です。
