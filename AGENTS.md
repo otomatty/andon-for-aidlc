@@ -1,6 +1,6 @@
 # AI-DLC on Cursor
 
-This project uses **AI-DLC Workflows 2.11.2** (State Version **8**, 33 stages) in lockstep on two harnesses: Cursor (`.cursor/`) and Claude Code (`.claude/`). Both share the `aidlc/` workspace shell. Andon's (formerly AIDLC Guide) reader / docs-bridge target this same graph. Method files live in `aidlc/spaces/default/memory/` — edit those, not the harness trees. Do not install v1 `.aidlc-rule-details` alongside this tree.
+This project uses **AI-DLC Workflows 2.11.3** (State Version **8**, 33 stages) in lockstep on two harnesses: Cursor (`.cursor/`) and Claude Code (`.claude/`). Both share the `aidlc/` workspace shell. Andon's (formerly AIDLC Guide) reader / docs-bridge target this same graph. Method files live in `aidlc/spaces/default/memory/` — edit those, not the harness trees. Do not install v1 `.aidlc-rule-details` alongside this tree.
 
 ## How to run
 
@@ -200,7 +200,7 @@ For full documentation, see `docs/guide/` (User Guide), `docs/harness-engineerin
 
 ## Session Resumption
 
-On startup, resolve the active intent (the `aidlc/spaces/<active-space>/intents/active-intent` cursor) and check for its `<record>/aidlc-state.md`. If found, load prior context and offer to resume from last checkpoint. (A brand-new project has no work recorded yet; the first AI-DLC run creates that record for you.)
+On startup, resolve the active intent (the `aidlc/spaces/<active-space>/intents/active-intent` cursor) and check for its `<record>/aidlc-state.md`. If found, load prior context and wait for the person: when they invoke AI-DLC, the work carries on from the last checkpoint with no resume menu, and they can ask to redo, jump to a stage, or start fresh. (A brand-new project has no work recorded yet; the first AI-DLC run creates that record for you.)
 
 ## Git Integration
 

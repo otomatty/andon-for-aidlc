@@ -94,6 +94,30 @@ describe("watch — review inputs outside the record", () => {
     );
   });
 
+  it("emits an audit change for a local record append and ignores other engine files", async () => {
+    const relative = `${recordRel}/.aidlc-engine/audit/x.md`;
+    events.length = 0;
+    await write(relative, "log\n");
+    await vi.waitFor(
+      () =>
+        expect(
+          events.some(
+            (event) =>
+              event.type === "change" &&
+              event.scope === "audit" &&
+              path.relative(root, event.path).split(path.sep).join("/").includes(
+                `${recordRel}/.aidlc-engine/audit`,
+              ),
+          ),
+        ).toBe(true),
+      { timeout: 20_000, interval: 20 },
+    );
+    events.length = 0;
+    await write(`${recordRel}/.aidlc-engine/plan.json`, "{}");
+    await pause(200);
+    expect(events).toEqual([]);
+  });
+
   it("watches the recorded source checkouts but no other engine file", async () => {
     const checkouts = `${recordRel}/.aidlc-engine/source-checkouts.json`;
     await expectChange(checkouts, () => write(checkouts, '{"version":1,"checkouts":[]}'));

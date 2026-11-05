@@ -1,5 +1,5 @@
 {
-  "sourceVersion": "aidlc 2.11.2 (State Version 8)",
+  "sourceVersion": "aidlc 2.11.3 (State Version 8)",
   "stages": {
     "workspace-scaffold": {
       "purpose": "ワークフローが書き込む先のディレクトリ構造（intent レコード・空間ナレッジ・ステージ成果物置き場）を先に用意する。初期化フェーズの最初のステージで、人間の入力は不要。",
@@ -107,7 +107,7 @@
       ],
       "outputs": ["initiative-brief", "decision-log", "approval-handoff-questions"],
       "agent": "aidlc-delivery-agent",
-      "gateRequirement": "企画ブリーフと意思決定ログを読み、この内容で Inception フェーズに投資して良いかを判断してください（フェーズ境界の承認）。",
+      "gateRequirement": "企画ブリーフと意思決定ログを読み、この内容で Inception フェーズに投資して良いかを判断してください（フェーズ境界の承認）。選択肢は Approve と Request Changes の 2 つです。「Reject Initiative (end workflow)」はもう出ません。作業を終える、または別の作業を始めるときは、自分の言葉でそう伝えます。",
       "docPath": ".claude/aidlc-common/stages/ideation/approval-handoff.md",
       "docAnchor": "#initiative-approval--handoff"
     },
@@ -358,7 +358,7 @@
       ],
       "outputs": ["code-generation-plan", "unit-test-instructions", "code-summary", "traceability"],
       "agent": "aidlc-developer-agent",
-      "gateRequirement": "計画承認が有効なら、最初に実装計画を承認します。計画の質問はあなたの返答を待ってから作業を始め、ステージは承認済みの計画からのみ完了します（承認済みの計画は会話の圧縮や中断、AI-DLC の更新の後も再び尋ねられません）。コードが worktree やクローンなどプロジェクトの git から見えない場所にあってもコードの承認の質問は開き、レビューがコードを見られない場所では `AI-DLC found no source changes under …` と一度示したうえで承認または差し戻しを選べます。完了時の要約には、書いたが実行しなかったテストとその理由が載るので確認してください。承認の質問（Unit チェックポイントでは各 Unit）には、作業前からあったファイルのうちビルドが変更・削除したものが、git に控えがあれば元に戻すコマンドとともに示されます。Unitチェックポイントを使う場合は、許可したコマンドの検証結果とレビューを確認してUnitまたはバッチを承認・差し戻しします。既存ワークフローは記録済みの承認方式に従います。",
+      "gateRequirement": "計画承認が有効なら、最初に実装計画を承認します。計画の質問はあなたの返答を待ってから作業を始め、ステージは承認済みの計画からのみ完了します（承認済みの計画は会話の圧縮や中断、AI-DLC の更新の後も再び尋ねられません）。コードが worktree やクローンなどプロジェクトの git から見えない場所にあってもコードの承認の質問は開き、レビューがコードを見られない場所では `AI-DLC found no source changes under …` と一度示したうえで承認または差し戻しを選べます。完了時の要約には、書いたが実行しなかったテストとその理由が載るので確認してください。承認の質問（Unit チェックポイントでは各 Unit）には、作業前からあったファイルのうちビルドが変更・削除したものが、git に控えがあれば元に戻すコマンドとともに示されます。Unitチェックポイントを使う場合は、許可したコマンドの検証結果とレビューを確認してUnitまたはバッチを承認・差し戻しします。既存ワークフローは記録済みの承認方式に従います。ビルドの途中で計画の手順にチェックを付けること（`Step 1. [x]` のようにチェックがラベルの後にある場合や、見出しの中、表のセルの中にある場合も含む）では、計画を改めて承認するよう求められません。改めて尋ねられるのは、計画が本当に変わったときだけです。ATDD の方法論では、計画の Acceptance Red の手順が、機能を作る前に受入テストを実行し、その失敗した出力を記録します。",
       "docPath": ".claude/aidlc-common/stages/construction/code-generation.md",
       "docAnchor": "#code-generation"
     },
@@ -372,7 +372,7 @@
         "cross-unit-traceability"
       ],
       "agent": "aidlc-quality-agent",
-      "gateRequirement": "テストが実際に green か、カバレッジ床を満たしているか、失敗を握り潰していないかを確認し、承認または差し戻しを返してください。プロジェクト全体のカバレッジ床は 1 つの Unit のテストではなく全テストの実行で判定し、実際のブラウザで実行していない画面確認は `Unverified` のまま残ります。CI Pipeline を実行しない計画（または CI Pipeline がこの後に控える計画）では、「マージ前に CI で実行」の目標はここでは理由付きの N/A になり、失敗にはなりません。横断トレーサビリティは、理由付きで N/A とした要件やユーザーストーリー経由で実装した要件を未実装と数えず、サブ要件（FRn.m）は親要件の下で追跡します。",
+      "gateRequirement": "テストが実際に green か、カバレッジ床を満たしているか、失敗を握り潰していないかを確認し、承認または差し戻しを返してください。プロジェクト全体のカバレッジ床は 1 つの Unit のテストではなく全テストの実行で判定し、実際のブラウザで実行していない画面確認は `Unverified` のまま残ります。CI Pipeline を実行しない計画（または CI Pipeline がこの後に控える計画）では、「マージ前に CI で実行」の目標はここでは理由付きの N/A になり、失敗にはなりません。横断トレーサビリティは、理由付きで N/A とした要件やユーザーストーリー経由で実装した要件を未実装と数えず、サブ要件（FRn.m）は親要件の下で追跡します。エージェントが頼んでいないシステムパッケージを入れようとするとき（例えば `sudo apt-get install -y python3-pytest`）は、コマンドとそれが何のためかを伝えて了承を待ちます（どのステージでも、どの Guard Policy でも、無人実行でも同じです）。",
       "docPath": ".claude/aidlc-common/stages/construction/build-and-test.md",
       "docAnchor": "#build-and-test"
     },
@@ -502,7 +502,7 @@
         "feedback-optimization-questions"
       ],
       "agent": "aidlc-operations-agent",
-      "gateRequirement": "SLO レポートとコスト分析を読み、次に手を入れるべき優先順位に合意できるかを判断してください。",
+      "gateRequirement": "SLO レポートとコスト分析を読み、次に手を入れるべき優先順位に合意できるかを判断してください。選択肢は Approve と Request Changes の 2 つです。「Start New Ideation Cycle」はもう出ません。Approve でワークフローは完了します。作業を終える、または別の作業を始めるときは、自分の言葉でそう伝えます。",
       "docPath": ".claude/aidlc-common/stages/operation/feedback-optimization.md",
       "docAnchor": "#continuous-feedback--optimization"
     }

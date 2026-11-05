@@ -11,7 +11,7 @@ User Guide と Developer Reference で揃えている定義です。
 | **自律モード (Autonomy mode)** | `Construction Autonomy Mode` に保存するunset / gated / autonomous。対象ワークフローのContinue automaticallyはautonomous、Review each checkpointはgated。通常の完了承認を制御し、実行順とswarmの選択とは別。Plan Approval、有効な要約確認、検証コマンド、スケルトン、失敗の判断は人間に残る。既存作業は従来の方針を維持。 |
 | **ボルト (Bolt)** | 依存関係でつながる 1 つ以上の Unit にまたがる、Construction の計画上のデリバリースライス。Unit、その worktree、swarm バッチとは別物。Delivery Planning がグループ化、完了の定義（Definition of Done）、確信の仮説、所有者を記録する。実行時の順序は Unit DAG と記録済みの反復の選択に従い、`bolt-plan.md` はそれらを置き換えない。Build and Test と CI Pipeline は、完了した Unit の作業全体に対して 1 回だけ実行する。 |
 | **成果物 (Artifact)** | ステージが作り、インテントのレコードディレクトリ（`aidlc/spaces/<space>/intents/<YYMMDD>-<label>/`）に置くファイル。大半は `requirements.md`、`code-summary.md`、`initiative-brief.md` のような Markdown 文書で、`traceability.json` のような JSON も少しある。 |
-| **監査証跡 (Audit trail)** | レコードディレクトリの `audit/` にある追記専用ログ。クローンごとのシャード（`<host>-<clone>.md`）を、読む側がグロブして時刻順にマージする。イベント種別は 126。ISO 時刻付きで、意図から本番まで追える。 |
+| **監査証跡 (Audit trail)** | レコードディレクトリの `audit/` にある追記専用ログ。クローンごとのシャード（`<host>-<clone>.md`）を、読む側がグロブして時刻順にマージする。イベント種別は 131。ISO 時刻付きで、意図から本番まで追える。 |
 | **CLI ツール (CLI tool)** | この実装が実行する外部コマンド。ネイティブインストールでは何も要らない（**ネイティブチャネル** を参照）。コピー経路には `bun` が要る。Claude Code のツールとは区別する。 |
 | **Claude Code ツール (Claude Code tool)** | Read、Write、Edit、Bash、Glob、Grep、Task、AskUserQuestion など、Claude Code 本体の能力。エージェントは既定でセッションのツール一式を継ぐ。任意の `tools:` 許可リストで狭められる。配布で禁じているのは `disallowedTools: Task` だけ。 |
 | **Codex** | OpenAI Codex CLI ハーネス。現在の AI-DLC ハーネス配布の一つ。ソースビルドは `core/` + `harness/codex/` から無視されるローカル投影 `dist/codex/` を生成する。リリースは `runtime/codex/` に載せる。起動は `$aidlc`。[AI-DLC on Codex CLI](harnesses/codex-cli.md) を参照。 |

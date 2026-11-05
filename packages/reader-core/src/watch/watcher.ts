@@ -11,6 +11,7 @@ import path from "node:path";
 import type { ChangeEvent, WatchEvent } from "@andon/shared-types";
 import { watch as chokidarWatch, type FSWatcher } from "chokidar";
 import { AUDIT_DIRNAME } from "../audit/events.ts";
+import { LOCAL_AUDIT_DIRNAME } from "../audit/local-record.ts";
 import { STATE_FILENAME } from "../parse/state.ts";
 import { CONSTRUCTION_DIRNAME } from "../tree/matrix.ts";
 import { REVIEW_DIRNAMES } from "../tree/review-records.ts";
@@ -177,7 +178,10 @@ function sourceWatchPolicy(recordDir: string) {
       return !permits(
         rel,
         [`${layout.record}/${SOURCE_CHECKOUTS_RECORD}`],
-        REVIEW_DIRNAMES.map((name) => `${layout.record}/${name}`),
+        [
+          ...REVIEW_DIRNAMES.map((name) => `${layout.record}/${name}`),
+          `${layout.record}/${LOCAL_AUDIT_DIRNAME}`,
+        ],
       );
     }
     const head = segments[0] as string;
@@ -256,7 +260,7 @@ export function classifyScope(recordDir: string, changed: string): Scope | null 
   const [head, next] = segments;
   if (segments.length === 1 && head === STATE_FILENAME) return "state";
   if (head === CONSTRUCTION_DIRNAME && next !== undefined) return `matrix:${next}`;
-  if (head === AUDIT_DIRNAME) return "audit";
+  if (head === AUDIT_DIRNAME || `${head}/${next}` === LOCAL_AUDIT_DIRNAME) return "audit";
   const reviewDirectory = REVIEW_DIRNAMES.find((dir) => segments.join("/").startsWith(`${dir}/`));
   if (reviewDirectory !== undefined) {
     const reviewParts = segments
@@ -343,6 +347,7 @@ export function watch(
     path.join(recordDir, STATE_FILENAME),
     path.join(recordDir, CONSTRUCTION_DIRNAME),
     path.join(recordDir, AUDIT_DIRNAME),
+    path.join(recordDir, ".aidlc-engine", "audit"),
     ...REVIEW_DIRNAMES.map((directory) => path.join(recordDir, directory)),
   ];
 

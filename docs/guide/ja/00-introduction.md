@@ -56,7 +56,7 @@ AI-DLC を**使って**ソフトウェアを作る人向けです。
 | スコープ | 11（enterprise から express、workshop を含む）+ あなたの言葉からエージェントが提案するプラン |
 | 深度 | 3（Minimal / Standard / Comprehensive） |
 | テスト戦略 | 3（Minimal / Standard / Comprehensive） |
-| 監査イベントの種類 | 126 |
+| 監査イベントの種類 | 131 |
 
 ## 章立て
 

@@ -168,7 +168,7 @@ aidlc attest anchor [--commit <rev>] [--reconcile] [--max-commits <n>]
 | Resolver / anchor CLI | `tools/aidlc-attest.ts`（dispatcher: `aidlc attest …`） |
 | 記録の読み取り (`RecordView`) | 同ファイルの `treeRecordView`（既定、`ls-tree` + `cat-file`）、`worktreeRecordView`（fallback / anchor） |
 | セッション開始時の任意アンカー | `hooks/aidlc-session-start.ts`、`AIDLC_SESSION_ANCHOR=1`、既定 off |
-| 証拠の書き込み・解析・除外 | `aidlc-lib.ts`: `writeUnitSourceSnapshot`、`reviewedSourceEvidenceRelPath`、`reviewedSourceEvidencePath`、`parseUnitSourceListing`、`serializeSourceListing`、`parseAuditShardEvents`、`normalizeManifestSourcePath`、`sourcePathIsExcluded`、`gitCommitSourceListing` |
+| 証拠の書き込み・解析・除外 | `aidlc-lib.ts`: `writeUnitSourceSnapshot`、`reviewedSourceEvidenceRelPath`、`reviewedSourceEvidencePath`、`parseUnitSourceListing`、`serializeSourceListing`、`normalizeManifestSourcePath`、`sourcePathIsExcluded`、`gitCommitSourceListing`。`parseAuditShardEvents` は `aidlc-record-core.ts` |
 | Swarm の証拠転送 | `aidlc-swarm.ts`: `captureReviewedRecordSnapshot`（ハッシュ検査）、`mergeReviewedRecordSnapshot`（主記録へのトランザクション） |
 | イベント登録 | `aidlc-audit.ts` の `VALID_EVENT_TYPES` / `CLI_PROTECTED_EVENT_TYPES`、`knowledge/aidlc-shared/audit-format.md` |
 | テスト | `tests/unit/t311-committed-reviewed-source-evidence.test.ts`（文法・二重書き込み・除外）、`tests/unit/t312-attest-resolve-anchor.test.ts`（照合・決定性・信頼水準・曖昧さ・anchor・セッション処理） |

@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
-import { link, mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
+import { appendFile, link, mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { readAllAuditEvents } from "../src/audit/events.ts";
 import { buildMatrix, buildMatrixForUnit } from "../src/tree/matrix.ts";
 import {
   readReviewVerdicts,
@@ -669,3 +670,119 @@ describe.each([".aidlc-reviews", ".aidlc-engine/reviews"] as const)(
     });
   },
 );
+
+describe("team unit local audit record", () => {
+  let root: string;
+  let record: string;
+  beforeEach(async () => {
+    root = await mkdtemp(path.join(tmpdir(), "guide-local-audit-"));
+    record = path.join(root, "aidlc", "spaces", "default", "intents", "review-12345678");
+    await mkdir(path.join(record, "construction", "unit-alpha", "functional-design"), {
+      recursive: true,
+    });
+    await mkdir(path.join(record, "audit"), { recursive: true });
+    await writeFile(
+      path.join(record, "aidlc-state.md"),
+      "## Scope Configuration\n- **Change Control**: relaxed (set by you)\n\n## Runtime State\n- **Construction Iteration**: stage-major\n",
+    );
+  });
+  afterEach(async () => {
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("reads each row once and the unit of a review appended to the local shard", async () => {
+    const fixture = createReviewFixture();
+    const saved = path.join(record, fixture.relative);
+    await mkdir(path.dirname(saved), { recursive: true });
+    await writeFile(saved, fixture.bytes);
+    const header = "# AI-DLC Audit Log\n";
+    const neutral = (event: string, second: number) =>
+      `**Timestamp**: 2026-11-05T00:00:0${second}Z\n**Event**: ${event}\n`;
+    const copiedA = neutral("COPIED_A", 3);
+    const copiedB = neutral("COPIED_B", 4);
+    const trackedOnly = neutral("TRACKED_ONLY", 5);
+    const request = fixture.request.replace(/^---\n/, "");
+    const completion = fixture.completion.replace(/^---\n/, "");
+    await mkdir(path.join(record, ".aidlc-engine", "audit"), { recursive: true });
+    await writeFile(
+      path.join(record, "audit", "clone.md"),
+      [header + copiedA, copiedB, trackedOnly].join("\n---\n"),
+    );
+    const localPath = path.join(record, ".aidlc-engine", "audit", "clone.md");
+    await writeFile(
+      localPath,
+      [header + request, copiedA, copiedB, completion].join("\n---\n"),
+    );
+
+    const { value, warnings } = expectOk(await readAllAuditEvents(record));
+    expect(warnings).toBeUndefined();
+    expect(value.map((event) => [event.event, event.shard])).toEqual([
+      ["TRACKED_ONLY", "clone.md"],
+      ["COPIED_B", ".aidlc-engine/audit/clone.md"],
+      ["COPIED_A", ".aidlc-engine/audit/clone.md"],
+      ["REVIEW_COMPLETED", ".aidlc-engine/audit/clone.md"],
+      ["REVIEW_REQUESTED", ".aidlc-engine/audit/clone.md"],
+    ]);
+    expect(
+      expectOk(await buildMatrixForUnit(record, "unit-alpha", ["functional-design"])).value[0]
+        ?.verdict,
+    ).toBe("READY");
+
+    await appendFile(
+      localPath,
+      `\n${reviewAudit("REVIEW_REQUESTED", { Stage: "functional-design", Unit: "unit-beta" }, 9)}`,
+    );
+    expect(await reviewUnitsInAuditShard(record, localPath)).toEqual(["unit-alpha", "unit-beta"]);
+  });
+
+  it.each([
+    [".aidlc-engine", "plan.json"],
+    [".aidlc-engine/audit", "notes.txt"],
+    [".aidlc-engine/other", "clone.md"],
+    ["not-audit/audit", "clone.md"],
+  ])("ignores %s/%s as an audit shard path", async (directory, name) => {
+    expect(await reviewUnitsInAuditShard(record, path.join(record, directory, name))).toBeNull();
+  });
+
+  it("treats an unreadable local audit directory as an unreadable snapshot", async () => {
+    await writeFile(
+      path.join(record, "audit", "clone.md"),
+      reviewAudit("BOLT_STARTED", { "Bolt names": "unit-alpha" }, 3),
+    );
+    // A path through a file is ENOENT on Windows, so the directory itself is replaced by a file.
+    await mkdir(path.join(record, ".aidlc-engine"), { recursive: true });
+    await writeFile(path.join(record, ".aidlc-engine", "audit"), "not a directory");
+    expect((await readReviewVerdicts(record)).unavailable).toBe(true);
+    expect(
+      await reviewUnitsInAuditShard(record, path.join(record, "audit", "clone.md")),
+    ).toBeNull();
+  });
+
+  it("treats a shard symlink that leaves the record as an unreadable snapshot", async () => {
+    const outside = path.join(root, "outside.md");
+    await writeFile(
+      outside,
+      reviewAudit("REVIEW_REQUESTED", { Stage: "functional-design", Unit: "unit-alpha" }),
+    );
+    await symlink(outside, path.join(record, "audit", "link.md"));
+    expect((await readReviewVerdicts(record)).unavailable).toBe(true);
+  });
+
+  it("marks the snapshot unavailable when a local shard cannot be read", async () => {
+    await mkdir(path.join(record, ".aidlc-engine", "audit", "bad.md"), { recursive: true });
+    await writeFile(
+      path.join(record, "audit", "clone.md"),
+      reviewAudit("REVIEW_REQUESTED", {
+        Stage: "functional-design",
+        Unit: "unit-alpha",
+      }),
+    );
+    expect((await readReviewVerdicts(record)).unavailable).toBe(true);
+    expect(
+      await reviewUnitsInAuditShard(
+        record,
+        path.join(record, ".aidlc-engine", "audit", "bad.md"),
+      ),
+    ).toBeNull();
+  });
+});

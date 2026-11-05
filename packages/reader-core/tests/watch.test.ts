@@ -22,6 +22,14 @@ describe("classifyScope", () => {
     expect(classifyScope(RECORD, path.join(RECORD, "audit", "clone.md"))).toBe("audit");
   });
 
+  it("classifies a team unit local audit file and ignores other engine files", () => {
+    expect(classifyScope(RECORD, path.join(RECORD, ".aidlc-engine", "audit", "x.md"))).toBe(
+      "audit",
+    );
+    expect(classifyScope(RECORD, path.join(RECORD, ".aidlc-engine", "audit"))).toBe("audit");
+    expect(classifyScope(RECORD, path.join(RECORD, ".aidlc-engine", "plan.json"))).toBeNull();
+  });
+
   it.each([".aidlc-reviews", ".aidlc-engine/reviews"])(
     "classifies %s unit reviews without treating stage reviews as a unit",
     (directory) => {
@@ -274,6 +282,32 @@ describe("watch — real filesystem", () => {
     },
     25000,
   );
+
+  it("emits an audit change for a local record append and ignores other engine files", async () => {
+    const { events, dispose } = await untilLive(record, 30);
+    try {
+      await mkdir(path.join(record, ".aidlc-engine", "audit"), { recursive: true });
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      events.length = 0;
+      await writeFile(path.join(record, ".aidlc-engine", "audit", "x.md"), "log\n");
+      await writeFile(path.join(record, ".aidlc-engine", "plan.json"), "{}\n");
+      await vi.waitFor(
+        () => {
+          expect(events.some((event) => event.type === "change" && event.scope === "audit")).toBe(
+            true,
+          );
+        },
+        { timeout: 20000, interval: 20 },
+      );
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const changes = events.filter((event) => event.type === "change");
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.every((event) => event.scope === "audit")).toBe(true);
+      expect(changes.some((event) => event.path.endsWith("plan.json"))).toBe(false);
+    } finally {
+      dispose();
+    }
+  });
 
   it("fires no callback after dispose (R-RC-4)", async () => {
     const { events, dispose } = await untilLive(record, 30);

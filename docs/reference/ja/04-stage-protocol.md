@@ -133,7 +133,7 @@ Ideation と Inception のステージ（フェーズ 1–2）は、以前飛ば
 エンジンは、ステージのゲート（Unit ゲートではその Unit のゲート）でのその人の「Request Changes」を監査証跡から数え、その数をゲートを示す返答（`report --result awaiting-approval` または `revised`）に載せます。`revision_cycle` で、3 回目の依頼以降は `accept_as_is: "offered"`、2 回目では `accept_as_is: "next-revision"` を伴います。コンダクターは両方をその返答から読み、チャットの中で数えることはしないので、数はパークをまたいでも保たれます。`accept_as_is: "offered"` のとき、ゲートは 3 つ目を足します。
 
 ```
-{ label: "Accept as-is", description: "Archive current version and move on" }
+{ label: "Accept as-is", description: "Approve it as it is and move on" }
 ```
 
 質問文は回数を含めます。`[N]` は `revision_cycle` から取ります:
@@ -376,7 +376,7 @@ Progress: [done] of [planned] stages done. Next: [Next Stage Name].
 **強制:** これらの状態を付けるのはエンジンです。ステージ散文とコンダクターは付けません。ゲートと終端の結果は `aidlc engine orchestrate` 経由で報告します。
 
 **`[S]` の振る舞い:**
-- `report --stage <current> --result skipped --reason "<reason>"`、スコープ合成、または Stage/Phase Jump が付ける。unit-major の反復では、スキップはウォークの `directive.stage` と `--unit <directive.unit>` を名指しし、そのユニットだけを対象にし、どのユニットもそのステージを負わなくなった時点で `[S]` になる
+- `report --stage <current> --result skipped --reason '<reason>'`、スコープ合成、または Stage/Phase Jump が付ける。unit-major の反復では、スキップはウォークの `directive.stage` と `--unit <directive.unit>` を名指しし、そのユニットだけを対象にし、どのユニットもそのステージを負わなくなった時点で `[S]` になる
 - ステータスラインの進捗数から除外する（総数にも完了にも数えない）
 - エンジンが先へルーティングするあいだ残る。`STAGE_COMPLETED` と対にはならない
 - 再開時はタスク追跡上は完了扱い（タスクを作り、すぐ completed にする）
@@ -412,7 +412,7 @@ Progress: [done] of [planned] stages done. Next: [Next Stage Name].
 - ゲート以外の質問と応答: 選択肢を見せる前に `aidlc engine log decision`、応答のあとに `aidlc engine log answer`。
 - 承認ゲート: report の所有（`report --result awaiting-approval`、そのあと正確な利用者入力付きで `approved` か `rejected`）。
 - レビューとパイプラインリンクのレシート: `aidlc engine log review` と `aidlc engine log link`。ライフサイクルと設定のコマンドは自分のイベントを記録し、成果物とセッションのフックは観測した活動を記録する。
-- 所有するイベントの無い自由形式のメモ（回避したエラー、復旧、ワークフロー途中の変更依頼）: `aidlc engine audit append-raw "<heading>" "<body>"`。見出しは `Error: <brief>`、`Recovery: <brief>`、`Change Request: <brief>` のいずれかで、詳細は本文に `**Field**: value` 行で書く。ツールが時刻を刻み、分類体系のイベントを名指しする本文は拒否する。
+- 所有するイベントの無い自由形式のメモ（回避したエラー、復旧、ワークフロー途中の変更依頼）: `aidlc engine audit append-raw '<heading>' '<body>'`。見出しは `Error: <brief>`、`Recovery: <brief>`、`Change Request: <brief>` のいずれかで、詳細は本文に `**Field**: value` 行で書く。ツールが時刻を刻み、分類体系のイベントを名指しする本文は拒否する。
 - `ERROR_LOGGED` は、ツールの非ゼロ終了については `aidlc-lib.ts emitError` が、個別のエンジンエラーディレクティブの最初の配信については `aidlc-continue-workflow.ts` が所有する。`RECOVERY_COMPLETED` は `aidlc-state.ts acknowledge-compaction` が所有する。どちらも `aidlc-audit.ts append` で手書きしない。所有するツールかフックを使う。正規の状態遷移は状態 / ログ / bolt のツールを通る（§4 の "Silent bookkeeping writes" を見る）。
 - `--user-input`、`--details`、メモの本文で渡す利用者の言葉は、完全で未改変であること。
 - 以前の質問: `aidlc engine log answers --stage <slug>`（ユニット単位なら `--unit <unit>` を足す）。`answered`、`open`、`ambiguous`（前に質問のない答え、または同じ 1 秒に並んだ 2 つの書き手）を返す。`answered` がすでに持つ質問をその人に聞かない。
@@ -540,7 +540,7 @@ aidlc-quality-agent、aidlc-pipeline-deploy-agent、aidlc-operations-agent。
 2. 一方の解釈を選んで解消しない
 3. どちらが勝つか聞く
 4. 上書きした成果物を更新する
-5. 解消を `aidlc engine audit append-raw "Recovery: <brief>" "<body>"` で記録する
+5. 解消を `aidlc engine audit append-raw 'Recovery: <brief>' '<body>'` で記録する
 
 ### 重大度
 
@@ -574,7 +574,7 @@ aidlc-quality-agent、aidlc-pipeline-deploy-agent、aidlc-operations-agent。
 ### スコープ変更
 
 新しい要件、またはスコープ単位の修正:
-1. 依頼を `aidlc engine audit append-raw "Change Request: <brief>" "<body>"` で記録する
+1. 依頼を `aidlc engine audit append-raw 'Change Request: <brief>' '<body>'` で記録する
 2. Requirements Analysis (2.3) または Delivery Planning (2.9) へ戻る
 3. そこから計画し直す
 4. 変更がステージ選択に効くなら（例: `poc` -> `feature`）、スコープ / 再合成コマンドを使い、エンジンが計画を原子的に更新する
@@ -752,7 +752,7 @@ Mermaid 図を書く前に:
 
 1. 縮小した文脈（Inception を要約、いまのユニットだけ）で **一度再試行**
 2. 再試行も失敗したら、利用者へ出す: 「Run inline」（オーケストレータで実行）か「Skip and revisit」（未完了印で続ける）
-3. 失敗を `aidlc engine audit append-raw "Error: <brief>" "<body>"` で記録する
+3. 失敗を `aidlc engine audit append-raw 'Error: <brief>' '<body>'` で記録する
 
 ---
 
@@ -781,7 +781,7 @@ Mermaid 図を書く前に:
    どちらの場合も、定義、Q&A、成果物を読み、指定された検証ツールを実行し、`reviewFile` にレビューを 1 ファイルだけ書きます。内容には一致する Verdict と Reviewer の行が 1 つずつと Iteration の行が 1 つ（記録されるのはリクエストのラウンドです）、再確認した未解決の行についての Prior findings の報告、ID も状態も持たない New findings の報告が含まれ、2 つ目の H2 セクションは含めません。レビュアーが人の判断を書いたり、修正済みの指摘事項を繰り返したりすることは決してありません。レビュー対象の成果物を含め、ほかのファイルには書き込めません。リクエストはディスパッチ前のレビュー済み出力のバイト列とワークスペースソースに結び付き、再試行でどちらも基準を取り直せません。完了時も 1 つの安定したファイル同一性のスナップショットを使用します。
    レビュアーのターン予算は `maxTurns: 60` です。ペルソナのフロントマターに一度だけ定義し、対応機能があるハーネスではネイティブに強制します。Claude Code はこのキーをそのまま読み、上限でサブエージェントを途中停止します。最終メッセージ用のターンはありません。opencode のパッケージャーはエージェント単位の `steps: 60` に変換し、ランナーは最後にテキストのみの 1 ターンを許可します。要約は返せますが、ツールでレビューを書き込むことはできません。Codex TOML ペルソナ、Cursor、Copilot、Kiro CLI/IDE にはエージェント単位の上限キーがないため、予算はペルソナ本文で指示します。各ペルソナの `## Turn Budget` は、どのハーネスでも途中停止に備えた進め方を定めます。
 3. **判定と意思決定ブリーフ。** コンダクターは同じ `aidlc-log.ts review` コマンドに `--verdict` を付けて判定を記録します。ロガーはリクエストの `reviewFile` を読み（`--review-file <path>` は同じファイルを指定しなければなりません）、内容を検証します。現在の要約確認と出力の受け入れを再確認し、レビューマニフェストとリクエスト時のソース同一性が変わっていないことを確認し、レビュー記録を `<record>/.aidlc-engine/reviews/<stage>/stage/<attempt>/<iteration>.json` または `<record>/.aidlc-engine/reviews/<stage>/units/<unit>/<attempt>/<iteration>.json` に保存します。判定、指摘事項、レビュアー、リクエスト ID、成果物とソースのフィンガープリント、レビュー本文を含みます。この保存と、記録のパス・ダイジェストを持つ `REVIEW_COMPLETED` 行の追記は、同じロック付きトランザクション内で行います。この記録を書けるのは当該コマンドだけです。後から編集すると行のダイジェストと一致しなくなり、レビューとして扱われません。
-   `advisory` ではどちらの判定も通常フローの終端となり、learnings モジュールがある場合だけ学びの手続きを実施し、ゲートへ進みます。ゲート前に `aidlc-review-brief.ts review --stage <slug> --why <first|revision|stale>` を実行すると、対象ステージ、平易な言葉での結果、レビュー対象の成果物、エンジンが所有する指摘事項の一覧、判断の効果、上流・下流で無効になる具体的なパスを表示します。`reviewer_max_iterations` は 1 としてエンジンが強制します。ステージのゲートでは、指摘事項のあとの 1 行が、Approve が `Accepted risk` として記録する未解決の指摘事項を、それぞれ本文の冒頭とともに（複数の Unit にまたがる場合はその Unit も）名指しし、その人が代わりに、承認したうえで 1 つを直すよう求める（`--fix-finding`）ことも、理由を添えて当てはまらないものとして 1 つを却下する（Request Changes での `--reject-finding`。ほかに何も変わっていなければ、そのゲートは現状のレビューのまま戻ってくる）こともできると、平易な言葉で伝えます。そのとき Approve の選択肢はそれを繰り返しません。id は `GATE_APPROVED` が書き込みに使うビルダーから来ます。Unit 自身の承認（下の `--unit`）と、1 回の承認がそれ自身の未解決の指摘事項を持つ後続のステージもカバーするゲートには、そのような行はありません。Unit 単位ステージの最終ゲートでは、その 1 回の承認が対象とする全 Unit を表示します。Unit 自身の承認（Construction のチェックポイントやチームの Unit ゲート）は `--unit "<unit>"` を渡し、その Unit のレビューだけを表示します。レビュアーへ渡すコンテキストは常に Unit で絞り込みます。
+   `advisory` ではどちらの判定も通常フローの終端となり、learnings モジュールがある場合だけ学びの手続きを実施し、ゲートへ進みます。ゲート前に `aidlc-review-brief.ts review --stage <slug> --why <first|revision|stale>` を実行すると、対象ステージ、平易な言葉での結果、レビュー対象の成果物、エンジンが所有する指摘事項の一覧、判断の効果、上流・下流で無効になる具体的なパスを表示します。`reviewer_max_iterations` は 1 としてエンジンが強制します。ステージのゲートでは、指摘事項のあとの 1 行が、Approve が `Accepted risk` として記録する未解決の指摘事項を、それぞれ本文の冒頭とともに（複数の Unit にまたがる場合はその Unit も）名指しし、その人が代わりに、承認したうえで 1 つを直すよう求める（`--fix-finding`）ことも、理由を添えて当てはまらないものとして 1 つを却下する（Request Changes での `--reject-finding`。ほかに何も変わっていなければ、そのゲートは現状のレビューのまま戻ってくる）こともできると、平易な言葉で伝えます。そのとき Approve の選択肢はそれを繰り返しません。id は `GATE_APPROVED` が書き込みに使うビルダーから来ます。Unit の Construction チェックポイント、ステージごとのチームの Unit ゲート、1 回の承認がそれ自身の未解決の指摘事項を持つ後続のステージもカバーするゲートには、そのような行はありません。Unit 単位ステージの最終ゲートでは、その 1 回の承認が対象とする全 Unit を表示します。Unit 自身の承認（Construction のチェックポイントやチームの Unit ゲート）は `--unit "<unit>"` を渡し、その Unit のレビューだけを表示します。チームの Unit の Unit 終了ゲートでは、それは、未解決の指摘事項を持つ、または終わらなかった、ゲート付きの各ステージのレビューで、最後のステージ自身のものより前に並び、その 1 つの Approve が何を受け入れるかを行が名指しします（`teamUnitGateStages` はブリーフと承認の両方に同じステージを与えます）。Approve の後の行は、終わらなかった各レビューを名指しします。レビュアーへ渡すコンテキストは常に Unit で絞り込みます。
    `adversarial` では READY なら learnings モジュールがある場合だけ学びの手続きを経て、ゲートへ進みます。NOT-READY で `reviewer_max_iterations` の予算が残る場合は、主担当が指摘事項を修正し、レビュアーが再確認します。既定の上限は 2 です。予算を使い切った場合は、未解決の指摘事項を添えてゲートへ進みます。
    判定が有効になるのは、レビューファイルを、正規の識別フィールドが一致する単一のレビューとして解析できた場合だけです。ファイルの欠落、正規の判定行の欠落、判定の重複は INCOMPLETE の試行です。上限到達やクラッシュで書けなかった場合も同じです。リクエスト時に空の書き込み先を用意するため、古い下書きが代用されることはありません。コンダクターは、同じ未完了リクエストを `--retry-pending` で 1 回だけ再試行します。この再試行は反復を消費しません。advisory の通常予算は 1 回なので、中断を数えるとレビューしないまま予算を失うためです。2 回目も未完了なら、レビュー ファイルなしで終端の `--verdict NOT-READY` を記録します。ブリーフはそれを「The review did not finish, so there is no review result to rely on.」と名指しします（レビュアーの返答が理由を述べていれば、そのあとにコンダクターの `--fallback-finding` の理由が続きます）。判定の欠落を黙認したり、それによって停止し続けたりせず、具体的な指摘事項付きでゲートに到達します。この受領記録はレビュアーの判定ではありません。ロガーはその行に `Review Finished: no` の印を付け、Unit のチェックポイントは `review_not_finished.question` でそれについて尋ね、それを越えたその人の承認は `Review: not finished` を記録し、レビューが終わらなかったことを伝えます。再試行と代替は、人が関わらないまま止まったレビューのためのものです。ディスパッチ以降にその人が書き込んでいれば、コンダクターはまず `next` を再実行し、その人が頼んだことに従います。`adversarial` で予算が残る場合、この再呼び出しでは主担当をスキップします。成果物がまだレビューされておらず、作成担当者が修正できる指摘もないためです。
    レビューリクエストは、統合回答の確認が済み、検証可能な必須出力文書がすべて存在し、Unit の正本となる集合が解決できる Unit 単位ステージでは、その集合に含まれる Unit だけを指定している場合に受け付けます。集合を解決できないこと自体では拒否しません。その場合も指定した Unit の出力は必須ですが、ステージ単位のリクエストでは検証不能な全 Unit 出力の列挙を省略します。Unit 集合を解決できる場合のステージ単位リクエストは全 Unit を対象とするため、それぞれに適用される必須出力がすべて必要です。
@@ -792,6 +792,7 @@ Mermaid 図を書く前に:
 人間の指摘事項に対する判断は、終端レビュー済みの成果物を書き換えません。エンジンは、対になったレビュー記録、そのゲートの行、成果物の再利用の行を再生し、ステージのスコープごとに 1 つの一覧にします。新しい指摘事項に ID を割り当て、判断を正確に保ち、同じかより低い重大度のレビュアーのコメントは注記として示し、重大度の上昇は新しい指摘事項にし、言及されなかった未解決の行は再確認されていないものとして印を付けたままにします。修正済みの指摘事項がまだ当てはまると報告されると、再び未解決になるか、修正前に下された判断に戻ります。Redo の行は、その成果物が名指しする各ユニットの一覧を、何も名指ししない場合は全ユニットの一覧をリセットします。`GATE_APPROVED` は、現在の未解決の指摘事項について、その人が承認したものには `Accepted risk`、Construction が自ら承認したものには `Approved autonomously`、レビュー後にレビュー済みの仕事が変わり、それ以降に終わったレビューが無いものには `Changed after review` を原子的に記録します。承認が `--fix-finding <review-artifact>#R-NN` で名指しするもの（その人が直すよう求めたもの）には、代わりに `Fix requested` を記録します。`Accepted risk` 以外はどれも決定ではないので、その指摘事項は未解決のままで、次のレビューが再確認します。Unit のチェックポイントとスウォームのバッチの承認はその Unit の指摘事項を記録し、誰も出していないステージの承認は、Unit 自身の承認が記録したものを何も記録しません。Request Changes の報告、またはチェックポイントの `--action reject` が `Rejected: <reason>` を記録するのは、明示した `--reject-finding <review-artifact>#R-NN=<exact human reason>` だけです。その人が `Resolved (reviewer)` の指摘事項が直っていないと考える場合は `--reopen-finding <review-artifact>#R-NN=<exact human reason>` を使います。成果物はファイル名で指定してもよく、その id を持つ現在の指摘事項が 1 つだけなら省略できます。id を共有する指摘事項が 2 つあれば、それらを名指しして返します。同じ ID を両方のフラグに入れることはできません。一般的な改訂フィードバックでは、指摘事項の判断は変わりません。
 
 反復予算はエンジンが強制します。`aidlc-log.ts review` は、そのステージの実効予算を超える `--iteration` を拒否するため、コンダクターが数え間違えてもレビューを無制限に繰り返せません。例外は、後のレビュー済み出力への書き込みで終端受領記録が無効になった場合です。証拠が古くなってから最初のリクエストは、通常の adversarial 予算が残っていても、次の序数で明示する 1 回限りの復旧リクエストになります。復旧時はどちらの判定も終端です。再び無効になった場合は、追加リクエストではなく人間によるリセットが必要です。Construction のチェックポイントがオンの場合、レビュー後にコードや文書が変わった Unit は、その人がその Unit を承認するたびに、その復旧をもう一度受けます。そうした変更が受け入れられる `relaxed` と `off` では、その Unit のレビューが同じ 1 回の復旧になります。その人が求めたレビュー（コンダクターが `--person-asked` を渡し、最後の判断以降、かつそのレビューが最後に依頼されて以降にその人が発言したもの）は、どの Guard Policy でも決して拒否されません。コンダクターはその人が最初に求めたときに記録し、リクエスト行は `Person Asked` とその人の言葉を運び、予算と復旧の上限が縛るのは、コンダクターが自分から始めるパスだけです。その人が発言したのにフラグが無い場合、拒否はコンダクターの手順です。まずフラグを名指しし、続いてその人が求めていない場合の通常の進め方を示し、その人には何も質問しません。
+ステージゲートでの Request Changes の後、回数は通常、却下から改めて始まります。コンダクターは `revised` を報告する前に改訂を再レビューし、その間に `next` はありません。1 つのステージ単位のリクエストがそのステージをレビューする場合（各 Unit が自身のレビューを持つ場合、パイプラインステージ、レビューのないステージを除く）、却下の返答はそのリクエストの正確なコマンドを名指しします。
 Construction が 1 度に 1 つの Unit を実行し、ある Unit の終えた手順がその作業を失った場合、ウォークはその手順を差し戻し、Unit がそれを再び始めます（その `UNIT_COMPLETED` の後の `unit start`。ウェーブの完了を含みます）。その手順の実行は、ステージの予算と 1 回の古いレビューからの復旧をもう一度得るため、エンジンが求めたやり直しは、どのレビュー設定でも完了します。そのパスは番号を保ち（やり直しの最初のリクエストは次の序数）、チーム所有の Unit は Bolt の下限を保ちます。
 自律 Unit は `finalize` 前に停止し、人間の決定後にだけ Bolt 試行を再開します。レビュアーの判断が最終決定を妨げることはなく、人間がゲートで最終決定します。`reviewer` がないステージではレビューを実行しません。[ステージ定義](15-stage-definition.md) の `reviewer` / `reviewer_max_iterations` / `review_class` を参照してください。
 

@@ -172,7 +172,7 @@ flowchart TD
 
 同じステージで 3 回以上変更を依頼すると、3 つ目の選択肢が現れます。
 
-同じステージで **Request Changes** を 3 回行うと、質問には何回目の改訂サイクルかが示され、3 つ目の選択肢 **Accept as-is**（説明は "Archive current version and move on"）が加わります。
+同じステージで **Request Changes** を 3 回行うと、質問には何回目の改訂サイクルかが示され、3 つ目の選択肢 **Accept as-is**（説明は "Approve it as it is and move on"）が加わります。
 
 **Accept as-is** は、ステージをその文書のままの状態で承認し、ワークフローを先へ進めます。これにより、「より良い」が「十分に良い」の敵になるときに、終わりのない改訂ループに陥るのを防ぎます。
 

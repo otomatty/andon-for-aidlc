@@ -1,5 +1,5 @@
 /**
- * Local translations of the core doctor messages shipped with AI-DLC 2.8.x–2.11.2.
+ * Local translations of the core doctor messages shipped with AI-DLC 2.8.x–2.11.3.
  * Keep templates anchored: captures are paths, commands, names, counts, or explicitly
  * marked original OS/parser details. Unknown explanations stay available verbatim.
  */
@@ -177,6 +177,9 @@ const labels: Readonly<Record<string, string>> = {
     "Windows の起動ファイル（Git Bash）: Git Bash で `aidlc` だけで実行できます",
   'settings/cli.json pins "chat.agentEngine": "v3" and "chat.defaultAgent": "aidlc" (Kiro CLI hooks run only on v3)':
     'settings/cli.json で "chat.agentEngine": "v3" と "chat.defaultAgent": "aidlc" を指定しています（Kiro CLI のフックは v3 でのみ実行されます）',
+  // 2.11.3
+  'settings/cli.json sets "chat.agentEngine": "v3" and "chat.defaultAgent": "aidlc" (Kiro CLI hooks run only on v3: start it with `kiro-cli --v3`)':
+    'settings/cli.json で "chat.agentEngine": "v3" と "chat.defaultAgent": "aidlc" を設定しています（Kiro CLI のフックは v3 でのみ実行されます。`kiro-cli --v3` で起動してください）',
   "Copilot CLI has not trusted this folder: `copilot -p` runs skip the hooks, interactive runs ask first (VS Code does not use this list)":
     "Copilot CLI がこのフォルダーを信頼していません。`copilot -p` での実行はフックを省き、対話実行では最初に確認されます（VS Code はこの一覧を使いません）",
   "project is in a git repository (Cursor may skip project hooks outside one)":
@@ -316,8 +319,19 @@ const fixes: Readonly<Record<string, string>> = {
     'このフォルダーで Copilot のチャットを始める前は、この表示になります。すでに始めている場合は、VS Code でこのフォルダーの Chat: Use Hooks を有効にしてください（.vscode/settings.json の "chat.useHooks": true。組織で無効にされている場合は管理者に有効化を依頼してください）。Copilot CLI では、確認されたときにこのフォルダーを信頼してください。そのあとメッセージを送り、doctor をもう一度実行してください。',
   'This is expected before your first Kiro CLI chat in this folder. If you already started one, type /agent and pick aidlc; if Kiro says agent "aidlc" needs upgrading for this agent engine, quit Kiro and start it again in this folder with: kiro-cli chat --agent-engine v2 --agent aidlc. Then run doctor again.':
     'このフォルダーで Kiro CLI のチャットを始める前は、この表示になります。すでに始めている場合は、/agent と入力して aidlc を選んでください。Kiro が agent "aidlc" needs upgrading for this agent engine と表示した場合は、Kiro を終了し、このフォルダーで kiro-cli chat --agent-engine v2 --agent aidlc を実行して起動し直してください。そのあと doctor をもう一度実行してください。',
+  // 2.11.3
+  'This is expected before your first Kiro CLI chat in this folder. If you already started one, type /agent and pick aidlc; if Kiro says agent "aidlc" needs upgrading for this agent engine, quit Kiro and start it again in this folder with: kiro-cli --v2 --agent aidlc (Kiro CLI 2.21.4 or later; for an older one, see the AI-DLC Kiro CLI guide). Then run doctor again.':
+    'このフォルダーで Kiro CLI のチャットを始める前は、この表示になります。すでに始めている場合は、/agent と入力して aidlc を選んでください。Kiro が agent "aidlc" needs upgrading for this agent engine と表示した場合は、Kiro を終了し、このフォルダーで kiro-cli --v2 --agent aidlc を実行して起動し直してください（Kiro CLI 2.21.4 以降。それより古い場合は AI-DLC の Kiro CLI ガイドを参照してください）。そのあと doctor をもう一度実行してください。',
   "This is expected before your first chat message here. If you already sent one, trust this folder in Kiro IDE: choose Trust Folder & Continue when Kiro asks whether you trust it, or select Manage on the Restricted Mode banner, then Trust. Then run Developer: Reload Window from the Command Palette (Ctrl+Shift+P, or Cmd+Shift+P on macOS), send a message and run doctor again. In Kiro CLI, quit Kiro and start `kiro-cli` again in this folder.":
     "ここで最初のメッセージを送る前は、この表示になります。すでに送っている場合は、Kiro IDE でこのフォルダーを信頼してください。信頼するかを尋ねられたら Trust Folder & Continue を選ぶか、制限モードのバナーで Manage を選んでから Trust を選びます。そのあとコマンドパレット（Ctrl+Shift+P、macOS では Cmd+Shift+P）から Developer: Reload Window を実行し、メッセージを送ってから doctor をもう一度実行してください。Kiro CLI では、Kiro を終了し、このフォルダーで `kiro-cli` を起動し直してください。",
+  // 2.11.2
+  "This is expected before your first chat message here. If you already sent one, trust this folder in Kiro IDE: choose Trust Folder & Continue when Kiro asks whether you trust it, or select Manage on the Restricted Mode banner, then Trust. Then run Developer: Reload Window from the Command Palette (Ctrl+Shift+P, or Cmd+Shift+P on macOS), send a message and run doctor again. If AI-DLC was installed while Kiro IDE was open, quit Kiro IDE fully and reopen it instead: it keeps the PATH it started with, so its hooks cannot find aidlc, and Reload Window does not change that. In Kiro CLI, quit Kiro and start `kiro-cli` again in this folder.":
+    "ここで最初のメッセージを送る前は、この表示になります。すでに送っている場合は、Kiro IDE でこのフォルダーを信頼してください。信頼するかを尋ねられたら Trust Folder & Continue を選ぶか、制限モードのバナーで Manage を選んでから Trust を選びます。そのあとコマンドパレット（Ctrl+Shift+P、macOS では Cmd+Shift+P）から Developer: Reload Window を実行し、メッセージを送ってから doctor をもう一度実行してください。Kiro IDE を開いたまま AI-DLC をインストールした場合は、代わりに Kiro IDE を完全に終了して開き直してください。起動時の PATH を保持するため、フックが aidlc を見つけられず、Reload Window では変わりません。Kiro CLI では、Kiro を終了し、このフォルダーで `kiro-cli` を起動し直してください。",
+  // 2.11.3
+  "This is expected before your first chat message here. If you already sent one, trust this folder in Kiro IDE: choose Trust Folder & Continue when Kiro asks whether you trust it, or select Manage on the Restricted Mode banner, then Trust. Then run Developer: Reload Window from the Command Palette (Ctrl+Shift+P, or Cmd+Shift+P on macOS), send a message and run doctor again. If AI-DLC was installed while Kiro IDE was open, quit Kiro IDE fully and reopen it instead: it keeps the PATH it started with, so its hooks cannot find aidlc, and Reload Window does not change that. In Kiro CLI, quit Kiro and start `kiro-cli --v3` again in this folder (if Kiro asks whether you trust this workspace and you know what is in this folder, choose 'Trust, continue').":
+    "ここで最初のメッセージを送る前は、この表示になります。すでに送っている場合は、Kiro IDE でこのフォルダーを信頼してください。信頼するかを尋ねられたら Trust Folder & Continue を選ぶか、制限モードのバナーで Manage を選んでから Trust を選びます。そのあとコマンドパレット（Ctrl+Shift+P、macOS では Cmd+Shift+P）から Developer: Reload Window を実行し、メッセージを送ってから doctor をもう一度実行してください。Kiro IDE を開いたまま AI-DLC をインストールした場合は、代わりに Kiro IDE を完全に終了して開き直してください。起動時の PATH を保持するため、フックが aidlc を見つけられず、Reload Window では変わりません。Kiro CLI では、Kiro を終了し、このフォルダーで `kiro-cli --v3` を起動し直してください（このワークスペースを信頼するか尋ねられ、フォルダーの中身を把握している場合は 'Trust, continue' を選びます）。",
+  "Install or upgrade opencode to 1.18.29 or later; OpenCode 2 works too.":
+    "opencode を 1.18.29 以降にインストールまたは更新してください。OpenCode 2 でも動作します。",
   "Select the intended Amazon Bedrock chat model in the Kiro IDE model picker or with /model in Kiro CLI.":
     "Kiro IDE のモデル選択、または Kiro CLI の /model で、使用する Amazon Bedrock のチャットモデルを選んでください。",
 };
@@ -482,6 +496,12 @@ const labelPatterns: readonly TranslationPattern[] = [
   [
     /^Kiro IDE ignore sources: none hide ([\w.-]+)\/ \((\d+) file\(s\) checked\)$/,
     "Kiro IDE の除外設定: $1/ を隠す設定はありません（$2 件のファイルを確認）",
+  ],
+  // 2.11.3 renamed the prefix from "Kiro IDE ignore sources".
+  [/^Kiro ignore sources: none present$/, "Kiro の除外設定: ありません"],
+  [
+    /^Kiro ignore sources: none hide ([\w.-]+)\/ \((\d+) file\(s\) checked\)$/,
+    "Kiro の除外設定: $1/ を隠す設定はありません（$2 件のファイルを確認）",
   ],
   [
     /^Session model: (\S+), from your personal Kiro settings$/,
@@ -784,7 +804,7 @@ const labelPatterns: readonly TranslationPattern[] = [
     "プロジェクトの固定バージョン: エンジン起動前に $1 を解決できます",
   ],
   [
-    /^Hooks DISABLED via "disableAllHooks": true in (.+) — AI-DLC cannot run \(audit, state sync, sensors, and stage-graph rebuild are all silently skipped even though the hook files are present\)$/,
+    /^Hooks DISABLED via "disableAllHooks": true in (.+) (?:—|-) AI-DLC cannot run \(audit, state sync, sensors, and stage-graph rebuild are all silently skipped even though the hook files are present\)$/,
     'フックが $1 の "disableAllHooks": true で無効です。AI-DLC は動作できません。フックのファイルが存在しても、監査・状態同期・センサー・ステージグラフの再構築が実行されません',
   ],
   [

@@ -534,14 +534,17 @@ AIDLC_PLUGIN_ROOT="<project>/.kiro/aidlc-plugins/<name>" AIDLC_PROJECT_DIR="<pro
 # fallback: run the composer explicitly:
 AIDLC_PLUGIN_ROOT="<project>/.kiro/aidlc-plugins/<name>" AIDLC_PROJECT_DIR="<project>" \
   AIDLC_HARNESS_DIR=.kiro bun "<project>/.kiro/aidlc-plugins/<name>/hooks/compose.ts"
-# open in Kiro IDE or kiro-cli chat → /aidlc
+# open in Kiro IDE or start kiro-cli --v3 (kiro-cli --v2 for the kiro projection, on Kiro CLI 2.21.4 or later) → /aidlc
 ```
 
 > **Kiro の注記。** Kiro IDE 1.x または Kiro CLI v3 では `kiro-ide` の投影を使ってください。そのフォルダ
 > 配置には `version: "v1"` の `.kiro/hooks/aidlc-<plugin>-compose.json` の SessionStart 登録が含まれ、
 > ワークスペースルートから `aidlc engine plugin sync --harness-dir .kiro --plugin-root ./.kiro/aidlc-plugins/<name>` を実行します。
 > `aidlc` がインストールされていない場所では、そのプラグインフォルダのクロスプラットフォームの
-> `hooks/aidlc-plugin-compose.ts` Bun ランチャーを実行します。`kiro` の投影はフック登録を出力しないため、上記の
+> `hooks/aidlc-plugin-compose.ts` Bun ランチャーを実行します。
+> 登録は 1800 秒を要求します。`timeout` のないフックを Kiro は 60 秒で止めるためです。AI-DLC は、
+> プロジェクトにすでにある登録へはこれを足しません。このリリース以降でビルドした投影がそれを持ちます。
+> `kiro` の投影はフック登録を出力しないため、上記の
 > 明示的なコンポーザーのコマンドのいずれかを実行してください。どちらの投影も、退役した
 > `.kiro.hook` のプラグイン登録を出力しません。
 
@@ -629,9 +632,10 @@ bun <tools-dir>/aidlc-plugin-validate.ts <plugin-root> --with <base-root>
   バイト単位で同一であること。不在は妥当です。プラグインのビルドが最新のテンプレートを
   注入するためです。
 
-ユーザー向けの `aidlc plugin validate` と `aidlc plugin build` の動詞は、これら出荷ツールへ
-委譲します。`aidlc plugin create` と `aidlc plugin test` は
-[RFC #723 §2e](https://github.com/awslabs/aidlc-workflows/issues/723) へ延期されたままです。
+ユーザー向けの `aidlc plugin validate`、`aidlc plugin build`、`aidlc plugin test` の動詞は、
+ネイティブ導入でもコピー経路でも同じように、これら出荷ツールへ委譲します（コピー経路での動詞は
+`bun <harness-dir>/tools/aidlc.ts plugin ...` です）。`aidlc plugin create` は
+[RFC #723 section 2e](https://github.com/awslabs/aidlc-workflows/issues/723) へ延期されたままです。
 出荷されている Bun のツールを直接呼び出してください。
 
 リポジトリのテストヘルパーの `validatePluginContent()` は、これら共有の規則を同じツールへ
@@ -675,49 +679,73 @@ bun <tools-dir>/aidlc-plugin-build.ts <plugin-root> cursor --json
 変更せずに答えます。
 
 ```bash
-bun <tools-dir>/aidlc-plugin-test.ts <plugin-root> \
-  --install <project-root> [--harness <name>] [--with <base-root>] [--json]
+aidlc plugin test [path] --install <project-root> [--harness <name>] [--with <base-root>] [--json]
 ```
+
+`[path]` はプラグインのルートで、`aidlc plugin validate` と同じく、既定は現在のフォルダです。
+この動詞は出荷の `aidlc-plugin-test.ts` を実行します。コピーされたツールフォルダでは、
+`bun <tools-dir>/aidlc-plugin-test.ts <plugin-root> --install <project-root> ...` として実行します。
 
 このツールはまず検証とビルドを行い、選択されたインストールの面を一時的な候補へコピーし、
 実際に出力された `hooks/compose.ts` を実行し、候補のグラフを再コンパイルし、プラグインの
 ステージとスコープが存在することを確認し、冪等性を証明するために合成をもう一度実行します。
 合成のドロップ、グラフの失敗、プラグインノードの欠落、2 回目でのファイル変化があれば、
-終了コード `1` になります。生きたインストールは前後でハッシュされ、決して合成の対象には
-なりません。
+終了コード `1` になります。不正なコマンドの使い方は `2` で終了します。生きたインストールは
+前後でハッシュされ、決して合成の対象にはなりません。
 
 インストールが曖昧なとき — `.kiro`（Kiro CLI か Kiro IDE か）や `.aidlc`（Copilot か
 OpenCode か）を含みます — は `--harness` を渡してください。ベースの上に構築されたプラグインでは、
 `--with <base-root>` が、sync がベースを先に合成するのと同じように、あなたのベースのチェックアウトを
-先に候補へ合成するため、インストールにベースは必要ありません。`--dist <version>` は、
+先に候補へ合成するため、インストールにベースは必要ありません。単体のツールは、
 RFC #722 のマイルストーン 2 がリリース済みランタイムバンドルの経路を定義するまで
-予約されています。
+`--dist <version>` を予約しています。
 
 1. **コンテンツ検証**は、常時オンのベースラインです。作成したプラグインのルートに対して
-   `aidlc-plugin-validate.ts` を実行します。速く、作成上の指摘が正確ですが、パッケージングや
+   `aidlc plugin validate` を実行します。速く、作成上の指摘が正確ですが、パッケージングや
    合成が成功することは証明しません。
 2. **合成の統合**は、既定の CI 検査です。実際のインストールに対して
-   `aidlc-plugin-test.ts` を実行します。このリポジトリの内部では、
-   `composePluginFixture()` が、フックのサブプロセスとドロップの読み取りを同じ出荷実装へ
-   委譲しつつ、テスト専用のフィクスチャ API を保持しています。このティアは決定論的であり、
+   `aidlc plugin test` を実行します。このティアは決定論的であり、
    実際のビルダーとコンポーザーを動かしますが、モデルを伴うハーネスは起動しません。
-3. **実機ハーネスの e2e** は、オプトインの互換性の証拠です。`invokeHarness()` を呼ぶのは、
-   `liveGateFor()` が返すゲートの裏側だけにしてください。実機のゲートは
-   `AIDLC_CLAUDE_SDK_LIVE`、`AIDLC_KIRO_ACP_LIVE`、`AIDLC_CODEX_EXEC_LIVE`、
-   `AIDLC_COPILOT_EXEC_LIVE`、`AIDLC_OPENCODE_RUN_LIVE`、`AIDLC_CURSOR_RUN_LIVE` です。
-   実機の実行は、ホストが合成済みプラグインを発見して呼び出せることを証明しますが、
-   インストール済みの CLI、認証情報、そしてより多くの時間を必要とします。ゲートが未設定なら
-   スキップの結果を返すため、テストが green でも実機の検査が走らなかった可能性があります。
+3. **実機ハーネスの e2e** は、オプトインの互換性の証拠です。ビルドしたプラグインを
+   ホストに導入し、そこで実行します。実機の実行は、ホストが合成済みプラグインを発見して
+   呼び出せることを証明しますが、インストール済みの CLI、認証情報、そしてより多くの時間を
+   必要とします。
+
+#### 自分のプラグインリポジトリでは
+
+プラグインリポジトリの CI は、人がいないマシンの場合と同じように
+（[インストールとライフサイクル](../guide/18-install-and-lifecycle.md#automation)）、
+ジョブの中で aidlc をインストールし、3 つの動詞を実行します。テストが合成する先の
+インストールは、公開するハーネス向けに、一時フォルダの中で `aidlc config` が用意する
+使い捨てのプロジェクトです。
+
+```bash
+install_root="$(mktemp -d)"
+aidlc config --project-dir "$install_root" --harness claude --yes
+aidlc plugin validate
+aidlc plugin test --install "$install_root"
+aidlc plugin build claude
+```
+
+各コマンドは指摘があると 0 以外で終了するので、ジョブは最初の指摘で止まります。
+公開するハーネスがさらにあるときは、同じようにその使い捨てのインストールを用意し、
+それに対して `aidlc plugin test --install <that install>` と
+`aidlc plugin build <harness>` を実行します。
+
+#### このリポジトリの内部
 
 `plugins/<name>/tests/*.test.ts` 配下のプラグインのテストは自動的に発見され、統合ティアに
 加わります。1 つのプラグインのテストを実行するには:
 
 ```bash
-bash tests/run-tests.sh --integration --filter "plugin-<name>"
+bash tests/run-tests.sh --integration --filter 'plugin-<name>'
 ```
 
-このリポジトリの内部では、このコンテンツのテストが、コピーできる最小の形です。ヘルパーは、
-共有の規則を出荷ツールへ委譲します。
+これらのテストは、`tests/harness/plugin-kit.ts` にあるこのリポジトリ自身のヘルパーを
+相対パスで import するので、ここでしか動きません。自身のリポジトリにあるプラグインは、
+代わりに上の動詞を実行します。`validatePluginContent()` は共有の規則を出荷のバリデーターへ
+委譲し、`composePluginFixture()` はフックのサブプロセスとドロップの読み取りを出荷の合成テストへ
+委譲しつつ、テスト専用のフィクスチャ API を保ちます。最小のコンテンツテストは次のとおりです。
 
 ```ts
 import { expect, test } from "bun:test";
@@ -755,6 +783,12 @@ test("plugin composes into a Claude install", () => {
   expect(graph.some((stage) => stage.slug === "your-plugin-stage")).toBe(true);
 });
 ```
+
+ここでの実機ティアでは、`invokeHarness()` を呼ぶのは、`liveGateFor()` が返すゲートの
+裏側だけにしてください。実機のゲートは `AIDLC_CLAUDE_SDK_LIVE`、`AIDLC_KIRO_ACP_LIVE`、
+`AIDLC_CODEX_EXEC_LIVE`、`AIDLC_COPILOT_EXEC_LIVE`、`AIDLC_OPENCODE_RUN_LIVE`、
+`AIDLC_CURSOR_RUN_LIVE` です。ゲートが未設定ならスキップの結果を返すため、テストが green でも
+実機の検査が走らなかった可能性があります。
 
 ## 作成時のルール
 

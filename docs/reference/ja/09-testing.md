@@ -219,7 +219,7 @@ bun tests/run-tests.ts [--ci | --all --debug -P 8]
 
 **Windows で手動実行する場合:**
 
-1. Bun **1.3.14 以降**、スイートの他のツール用の Node.js、Claude Code CLI をインストールする。
+1. Bun **1.4.4 以降**、スイートの他のツール用の Node.js、Claude Code CLI をインストールする。
 2. フルスイートまたは POSIX ラッパー互換のスモークを実行する場合は Git for Windows をインストールする。ネイティブランナーの経路自体には Bash は不要。
 3. Bun が `@xterm/headless` を解決できるよう、リポジトリの開発依存関係をインストールする。Windows の既定の TUI バックエンドは Bun のネイティブ PTY を使う。
 4. ライブの Claude TUI カバレッジには `AIDLC_TUI_LIVE=1` を設定する。`AIDLC_TUI_BACKEND` は未設定のままにするか `auto`/`bun` に設定する。必要に応じて `AIDLC_BUN_BIN` で具体的な `bun.exe` を選ぶ。
@@ -287,7 +287,7 @@ SSM の観測処理は、API の照会とポーリングにまたがって 1 つ
 | 選択 | プラットフォームと前提条件 |
 |-----------|----------------------------|
 | 未設定または `auto` | Linux、Windows、macOS ではネイティブの `bun` |
-| `bun` | Linux、Windows、macOS。**Bun >=1.3.14**、`Bun.Terminal`、`bun:ffi`、`@xterm/headless` が必要。ネイティブの封じ込めは x64/arm64 に対応する。Linux は pidfd によるシグナル送信と待機のために glibc、procfs、カーネル >=5.4 が必要。Windows は ConPTY が必要。macOS は libSystem のプロセスの識別子と継承された所有トークンを使う（環境変数を消す場合の制限は[クロスプラットフォーム対応](#クロスプラットフォーム対応)を参照） |
+| `bun` | Linux、Windows、macOS。**Bun >=1.4.4**、`Bun.Terminal`、`bun:ffi`、`@xterm/headless` が必要。ネイティブの封じ込めは x64/arm64 に対応する。Linux は pidfd によるシグナル送信と待機のために glibc、procfs、カーネル >=5.4 が必要。Windows は ConPTY が必要。macOS は libSystem のプロセスの識別子と継承された所有トークンを使う（環境変数を消す場合の制限は[クロスプラットフォーム対応](#クロスプラットフォーム対応)を参照） |
 | `tmux` | Linux/macOS での明示的な代替。ドライバーの実行に Bun が、`PATH` に `tmux` が必要 |
 
 `auto` はプラットフォームで選び、前提条件が欠けていても別のバックエンドへフォールバックしません。空文字を含む未知の値は構成エラーです。`AIDLC_BUN_BIN` は `bun` と `tmux` のバックエンドの Bun 実行ファイルを上書きします。1 つのセッションでは、コマンド間で同じバックエンドの選択を保ってください。ネイティブの Bun バックエンドは tmux を必要としません。
@@ -311,14 +311,14 @@ Windows はルート／セッションの所有者と DACL を検証しますが
 
 取得は、キューに入った出力が解析された後の、現在のアクティブなビューポートを読みます。プレーンテキストはソフトラップされた行を結合し、末尾の空行を取り除きます。ANSI の取得は、パレットと RGB の色を含め、現在のセルとその属性から再構築されます。スクロールバックと以前に消去された出力は除外されます。JSON は、空のセルや全角文字の幅ゼロの継続セルを含め、物理的なグリッド全体を保持します。
 
-既存の `start`、`send`、プレーンな `capture`、`startup`、`wait` のコマンドは、呼び出し規約を保ちます。`send --keys "<text>" --literal` はリテラルのテキストを送ります。`--literal` がない場合は名前付きのキーが解釈され、`1`/`2` のような任意のテキストはリテラルのままです。`--no-enter` が設定されていなければ Enter が追加されます。`wait --stable-ms N` は画面の安定条件を保ち、`startup --ready-pattern "<regex>"` は起動時のナビゲーションの振る舞いを保ちます。
+既存の `start`、`send`、プレーンな `capture`、`startup`、`wait` のコマンドは、呼び出し規約を保ちます。`send --keys '<text>' --literal` はリテラルのテキストを送ります。`--literal` がない場合は名前付きのキーが解釈され、`1`/`2` のような任意のテキストはリテラルのままです。`--no-enter` が設定されていなければ Enter が追加されます。`wait --stable-ms N` は画面の安定条件を保ち、`startup --ready-pattern '<regex>'` は起動時のナビゲーションの振る舞いを保ちます。
 
 Bun バックエンドは次の取得と入力のコマンドをサポートします。
 
 | コマンド | 振る舞い |
 |---------|----------|
 | `resize --session <name> --width N --height N` | PTY とエミュレーターの両方のサイズを変える。列 2〜500、行 1〜200、最大 40,000 セル |
-| `paste --session <name> --text "<text>"` | **暗黙の Enter なし**でテキストを貼り付ける。ブラケットペーストのマーカーは、アプリケーションがそのモードを有効にしている場合だけ使う。CRLF と単独の LF は CR になり、既存の単独の CR は保持される |
+| `paste --session <name> --text '<text>'` | **暗黙の Enter なし**でテキストを貼り付ける。ブラケットペーストのマーカーは、アプリケーションがそのモードを有効にしている場合だけ使う。CRLF と単独の LF は CR になり、既存の単独の CR は保持される |
 | `capture --session <name> --physical` | 物理的な表示行のプレーンテキストを返す。既定の論理的な取得の API は保たれる |
 | `capture --session <name> --json` | 完全なセルのデータを持つ一貫した `TuiSnapshot` を返す |
 | `capture --session <name> --ansi` | セルの色とスタイルを ANSI シーケンスとして持つ現在のビューポートを返す |
@@ -442,7 +442,7 @@ stable の昇格は、公開済みの preview のソースを選び、バージ�
 リリース目的のディスパッチは `ref` 入力もキーにし、preview が呼び出した Full Suite の実行がこの方法で取り消されることはありません。
 
 `ci.yml` と `full-suite.yml` は、同じ再利用可能な `.github/workflows/deterministic-tests.yml` を呼び出します。呼び出し側は、不変の `ref`、ランナー、層、ユニットまたは integration のシャード、任意のファイルの `filter` と `exclude`（どちらも既定は空なので、層全体が実行される）、成果物のラベルを選びます。どちらも integration を 6 つのジョブに分けます。スコープ実行（`filter`、`t-scope-run-*`。classic の own-file ファイルを `exclude`）、それらの classic の own-file ファイル（`own-file-moves`）、スコープとホストの実行（`filter`、`t-scope-host-*`）、所要時間を均衡させた 2 つのシャードのガードマトリクス（`filter: ^t-guard-matrix-`、`integration-shard: 1/2` または `2/2`）、それ以外のすべて（3 つすべての `exclude`）です。PR CI は Linux のスモーク、10 の重み付きユニットシャード、そして `own-file-moves` 以外のすべての integration のジョブを選びます。`own-file-moves` はマージキューだけが加えます。`full_verification` の Full Suite は、Linux/macOS/Windows でスモーク、OS ごとに 16 のユニットシャード、6 つの integration のジョブ、隔離された E2E を選びます。毎晩の Full Suite は決定論的な層を実行せず、その `scope_runs` ジョブが、3 つすべての OS でスコープ実行、`own-file-moves`、スコープとホストの実行、ガードマトリクスのために共有ワークフローを呼び出します。integration と E2E は OS ごとに独立したジョブとして、それぞれ新しい Bun のランナープロセスで実行されます。
-各呼び出しは新しいチェックアウトを持ち、Bun 1.4.2 の下で固定された依存関係をインストールし、配布物を 1 回だけ再生成し、`--debug -P 8 --no-llm` で Bash ラッパーを呼び出します。E2E の実行は `--isolated-e2e` を保ち、スモークは各チェックアウト内で直列のままで、ユニットも macOS のシャードを除いて直列のままです（[ユニットテストのシャード分割](#ユニットテストのシャード分割)）。ワークフローの共有は、コマンドとセットアップを共有するものであり、以前のテスト結果を共有するものではありません。
+各呼び出しは新しいチェックアウトを持ち、Bun 1.4.4 の下で固定された依存関係をインストールし、配布物を 1 回だけ再生成し、`--debug -P 8 --no-llm` で Bash ラッパーを呼び出します。E2E の実行は `--isolated-e2e` を保ち、スモークは各チェックアウト内で直列のままで、ユニットも macOS のシャードを除いて直列のままです（[ユニットテストのシャード分割](#ユニットテストのシャード分割)）。ワークフローの共有は、コマンドとセットアップを共有するものであり、以前のテスト結果を共有するものではありません。
 
 CI は、コードの契約、インストーラーの ShellCheck、カバレッジのラチェット、PR の変更履歴の保持、Linux のスモーク、production-guard の検査を 1 つのジョブにまとめます。スモークと production guard は別々のランナープロセスとログディレクトリを使い、共有するのは依存関係のインストールと生成された配布物だけです。macOS と Windows は独自のスモークのジョブを保ちます。Linux のスモークは、マージキューの再試行と不安定なテストの報告の方針を保ちます。各検査は独自のステップと失敗を保ち、独立した検査は前の検査が失敗した後も続きます。カバレッジは引き続き最初の親と比較し、変更履歴の保持は固定された PR のベースを使います。必須の `Tests (smoke + unit)` ステータスは、この統合されたジョブの合格を要求します。PR CI は 17 のランナーを割り当て、マージキューは既存のプラットフォームの選択のまま 51 を割り当てます。ライブのハーネスとネイティブビルドのマトリクスは変わりません。
 
@@ -580,7 +580,7 @@ AI-DLC が尋ねるすべての質問に人が返すものです。その質問�
 | `AIDLC_TUI_BACKEND` | `auto` | 端末ドライバー: Linux/Windows/macOS ではネイティブの `bun`。明示的な値: `bun`、`tmux`。[ターミナルドライバー](#ターミナルドライバー)を参照 |
 | `AIDLC_TUI_BUN_ROOT` | `<os.tmpdir()>/aidlc-bun-tui` | ネイティブの記録／スナップショット。コマンド間で同じルートを使う。ユーザーが所有する非公開のもの（POSIX では 0700、Windows では現在のユーザーが所有者で Everyone/Users/Authenticated Users への許可 ACE がない）でなければならず、シンボリックリンク／リパースポイントは不可。欠けているルートは非公開で作成され、安全でない既存のルートや識別子が置き換えられたセッションディレクトリは拒否される |
 | `AIDLC_TUI_ALLOW_UNTRUSTED_ANCESTORS` | 未設定 | 一時ディレクトリの祖先がサンドボックスの uid（root でも現在のユーザーでもない）の所有である管理されたテストホスト、たとえば `/` が `nobody` に属するオーバーレイファイルシステムでだけ `1` を設定する。これがないと、ネイティブルートを使うすべてのライブ層がセットアップで失敗し、エラーがこの変数を示す。飛ばすのは POSIX の明示的なルートの祖先の所有権検査だけで、sticky ビットなしに他のユーザーが書き込める祖先やシンボリックリンク／リパースポイントは引き続き拒否され、非公開のルートの所有者、モード、世代のハンドシェイクは引き続き強制される |
-| `AIDLC_BUN_BIN` | 現在の Bun 実行ファイル、なければ `PATH` 上の `bun` | Bun と tmux の TUI バックエンドの実行ファイルの上書き。Linux/Windows/macOS でネイティブの PTY を使うには Bun >=1.3.14 が必要 |
+| `AIDLC_BUN_BIN` | 現在の Bun 実行ファイル、なければ `PATH` 上の `bun` | Bun と tmux の TUI バックエンドの実行ファイルの上書き。Linux/Windows/macOS でネイティブの PTY を使うには Bun >=1.4.4 が必要 |
 | `AIDLC_NODE_BIN` | 未設定 | 隔離されたライブのツール環境とテストフィクスチャに提供される Node の実行ファイル。TUI バックエンドは選ばない |
 | `AIDLC_TEST_GUARD_PROFILE` | `fixture`（ランナーが設定） | テスト向けにランナーが提供する診断用の値: `fixture` または `production`。ランナーの CLI が選ぶ。継承された値はプロファイルを選ばず、ランナーがすべてのテストの子プロセスでそれを置き換える |
 | `AIDLC_TEST_COMPILED_DIR` | `<runner log dir>/compiled`（ランナーが設定） | t238 から t249 への実行所有の引き継ぎ。検証済みのネイティブの `aidlc` / `aidlc.exe` と隣接する `runtime/`。ランナーはすべての子プロセスで継承された値を置き換え、成果物をファイルごとの一時ディレクトリのクリーンアップの外に保ち、他の実行から隔離する |
@@ -1003,7 +1003,7 @@ Linux のスモークと production-guard の証拠は、代わりに `tmp/ci-sm
 Kiro ACP/TUI/IDE のライブの系統は、毎晩のフルスイートでの宣言された除外で、警告として出力され、`complete: false` のままにします。それらには、別の低権限の識別子で Kiro を実行する、専用の隔離された Windows デスクトップのホストが必要です。
 `AIDLC_KIRO_ACP_LIVE=1`、`AIDLC_KIRO_TUI_LIVE=1`、`AIDLC_KIRO_IDE_LIVE=1` でのローカルの実行が、引き続きカバレッジの経路です。ホスト型のレーンは後続の課題で追跡されています。
 
-stable の昇格のために preview を選ぶ前に、メンテナーは選んだソース SHA について記録された Kiro CLI のリリースのジャーニーの結果を、Kiro のツリーごとに 1 つずつ確認します。セットアップが "Kiro CLI (V2)" と表示する `kiro` と、セットアップが "Kiro" と表示し、その `.kiro/settings/cli.json` が Kiro CLI を v3 エンジンに固定する `kiro-ide` です。どちらも Kiro CLI で実行され、どちらも Kiro IDE を駆動しません。その SHA についての結果がなければ、サインイン済みの Kiro CLI があるマシンで、preview のソースのコミット上でジャーニー（`tests/e2e/t-tui-kiro-release-journey.serial.test.ts`。Copilot のレーンと同じジャーニーを、対話型の `kiro-cli chat` のターミナルで、ツリーごとに 1 回）を実行します。
+stable の昇格のために preview を選ぶ前に、メンテナーは選んだソース SHA について記録された Kiro CLI のリリースのジャーニーの結果を、Kiro のツリーごとに 1 つずつ確認します。セットアップが "Kiro CLI (V2)" と表示する `kiro` と、セットアップが "Kiro" と表示し、Kiro CLI の v3 エンジン向けに作られた `kiro-ide` です。ジャーニーはそれぞれをそのエンジンで始めます（`--v2`、`--v3`）。どちらも Kiro CLI で実行され、どちらも Kiro IDE を駆動しません。その SHA についての結果がなければ、サインイン済みの Kiro CLI があるマシンで、preview のソースのコミット上でジャーニー（`tests/e2e/t-tui-kiro-release-journey.serial.test.ts`。Copilot のレーンと同じジャーニーを、対話型の `kiro-cli chat` のターミナルで、ツリーごとに 1 回）を実行します。
 
 ```bash
 bun scripts/package.ts
@@ -1012,7 +1012,7 @@ AIDLC_KIRO_TUI_LIVE=1 AIDLC_TUI_LIVE=1 bun tests/run-tests.ts --e2e --production
 ```
 
 `--require-coverage` は、どちらかのツリーのジャーニーがスキップされたときに実行を失敗させます。一方のツリーにはその SHA についての結果がすでにあり、もう一方が欠けているか失敗している場合は、コマンドの前に `AIDLC_KIRO_RELEASE_TREE=kiro` または `AIDLC_KIRO_RELEASE_TREE=kiro-ide` を置きます。そのツリーのジャーニーだけが実行され、`--require-coverage` はそのツリーだけを覆います。Linux では Kiro にスクラッチのホームを与えつつマシンのサインインを保つため、`~/.kiro` には触れません。各ジャーニーは約 5 分かかり、クレジットは Kiro CLI が使うモデルに従います（Kiro CLI 2.32.0 の `claude-opus-5.5` でそれぞれ約 33）。ツリーごとに 1 行を出力します。例えば `Kiro CLI 2.32.0 (kiro-ide) release journey on <commit>: PASS (5.1 min of
-turns, 33.23 credits, 3 permission prompts)` で、両方の行は完全なソース SHA を含めて、昇格の前に選んだ preview の GitHub のリリースノートに記録されます。そのソースについての既存の結果は再利用され、昇格のワークフローが新しいメタデータのコミット上でジャーニーを再実行することはありません。ワークフローの中にこれらの手動の結果を読むものはありません。メンテナーが [preview を本番に昇格する](../../DEVELOPERS.md#4-promote-a-preview-to-production) の手順 2 でそれらを確認します。修正は、昇格のために選ばれる前に別の preview で出荷されます。
+turns, 33.23 credits, 3 permission prompts)` です。`<commit>` は、チェックアウトにそのコミットに入っていない変更があった場合（実行はその時点のチェックアウトをパッケージします）、`<commit> plus uncommitted changes` と読み、git が答えられなかった場合は `<commit> (git status failed)` と読みます。ソースのコミットのきれいなチェックアウトから実行してください。両方の行は完全なソース SHA を含めて、昇格の前に選んだ preview の GitHub のリリースノートに記録されます。そのソースについての既存の結果は再利用され、昇格のワークフローが新しいメタデータのコミット上でジャーニーを再実行することはありません。ワークフローの中にこれらの手動の結果を読むものはありません。メンテナーが [preview を本番に昇格する](../../DEVELOPERS.md#4-promote-a-preview-to-production) の手順 2 でそれらを確認します。修正は、昇格のために選ばれる前に別の preview で出荷されます。
 
 ライブのジョブは既存の `ai-pr-review` 環境とロールを使います。Full Suite を実行する前に、次の前提条件を確認してください。
 

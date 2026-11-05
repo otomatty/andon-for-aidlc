@@ -13,7 +13,7 @@ opencode は `.opencode/tools/` と `.opencode/tool/` の下のすべての `*.t
 
 ## 前提条件
 
-- **opencode ≥ 1.17** — この導入が頼るプラグインフック面（`tool.execute.before`、`tool.execute.after`、`chat.message`、`session.idle`、`experimental.session.compacting`、`shell.env`）と、プロジェクトローカルのスキル／エージェント発見。確認は `opencode --version`。
+- **opencode 1.18.29 以降、または OpenCode 2** — アダプタプラグインは、どちらの系統も読み込むオブジェクトを 1 つ default-export します。opencode 1 はその `server()` を呼びます（`tool.execute.before`、`tool.execute.after`、`chat.message`、`session.idle`、`experimental.session.compacting`、`shell.env` のフック。オブジェクトのエントリポイントには 1.18.29 が必要です）。OpenCode 2 はその `setup()` を呼びます（[OpenCode 2 では](#opencode-2-では) を参照）。プロジェクトローカルのスキルとエージェントの発見は、どちらでも動きます。確認は `opencode --version`。
 - **bun** は、ソース／開発用の `dist/` 投影を生成または実行するときだけです。ネイティブ導入と版付きリリースランタイムは、入れた `aidlc` 実行ファイル経由で配送します。
 - **モデルプロバイダー** — プロジェクトの `opencode.json` とagent定義はモデルを固定しません。グローバル設定からプロバイダーとセッションモデルを継承します。balanced reviewerはmediumのreasoning variantだけを持ちます。
 
@@ -92,6 +92,32 @@ config は管理対象のルートブロックとユーザー所有ファイル�
 - **セッション終了の瞬間はありません** — `SESSION_ENDED` 監査イベントは出ません。コンパクション前の検証は発火します（`experimental.session.compacting`）。
 - **ステータスライン／ウェルカムメッセージはありません** — `/aidlc --status` と、ゲートの進捗行を使ってください。
 - **MCP サーバー**: 同梱はありません。必要なら `opencode.json` の `mcp:` の下に自分で設定してください。
+
+## OpenCode 2 では
+
+OpenCode 2 は opencode 1 のプラグイン関数を実行しないので、アダプタは V2 のエントリポイント `setup(ctx)` も持ちます。V2 のプラグイン API から、同じフックのロジックを駆動します（2.0.24 で実機確認済み）:
+
+| OpenCode 2 の瞬間 | 動かすもの |
+| --- | --- |
+| `session.hook("prompt")` | 存在の mint とセッション開始（`chat.message`） |
+| `tool.hook("execute.before")` / `("execute.after")` | bash 境界、ガード、レビュアー読み取り範囲、監査、センサー、ステージグラフ、サブエージェント記録 |
+| `session.hook("compaction")` | コンパクション前の状態検証 |
+| `session.execution.succeeded` イベント | Stop フックとその nudge（`session.idle`） |
+| `session.execution.interrupted`、`permission.replied` イベント | Esc のあと、または拒否したコマンドのあとは nudge しない |
+| `shell.hook("create.before")` | 各シェルコマンドは、それ自身のチャットの作業に作用する（`shell.env`） |
+
+V2 は組み込みツールの名前を変えます（`bash` → `shell`、`task` → `subagent`、`apply_patch` → `patch`）。アダプタはそれらを元へ写し戻します。ツールイベントは呼び出し元のエージェントを名指すので、レビュアーの識別はイベント自身から得ます。nudge は合成メッセージとして送られ、V2 はそれをプロンプトフックへ渡さないので、人のターンとして数えられることはありません。サブエージェントのプロンプトはプロンプトフックに届きます。アダプタは親から子セッションを見分け、それらを飛ばします。
+
+OpenCode 2 のシェルイベントはコマンドの環境を運びますが、セッションは運びません。そのためアダプタは、その直前のシェルツール呼び出しからセッションを取ります。opencode 自身のターミナルで入力したコマンドにはそのような呼び出しがなく、どのチャットも名指しません。opencode 1 と同じです。
+
+出荷の `opencode.json`、エージェントファイル、`/aidlc` コマンドは opencode 1 の形のままです。OpenCode 2 はそれを変えずに読みます。その形のままにしてください。`aidlc doctor` と `aidlc config` がその形を検査します。
+
+opencode 1 と比べた劣化:
+
+- **ステータスラインの同期はありません。** OpenCode 2 には todo ツールがないので、`aidlc-sync-workflow-state.ts` を実行する `todowrite` の瞬間は起きません。ワークフロー状態は、エンジン自身のコマンドを通じて進みます。欠けているのは、todo が駆動するステータスラインの写しだけです。`/aidlc --status` を使ってください。
+- **`/aidlc` はテンプレートを表示します。** OpenCode 2 には `command.execute.before` フックがないので、チャットは入力した行ではなく、コマンドのテンプレートを表示します。アダプタはテンプレートから、入力した行を読み戻すので、`/aidlc --review none` のような切り替えは残り、素の `/aidlc` は opencode 1 と同じくコマンドとして数えます。
+- **エンジンエラーのトーストはありません。** OpenCode 2 はプラグインに TUI のトースト経路を与えません。コンダクタースキルは、エンジンのエラーメッセージをそのまま出力します。
+- **既定のシェル方言。** OpenCode 2 はプラグインに `shell` 設定を見せないので、bash 境界はプラットフォームの既定シェルの読み方でコマンドを読みます（Linux と macOS では POSIX の `sh`）。
 
 ## 導入の確認
 

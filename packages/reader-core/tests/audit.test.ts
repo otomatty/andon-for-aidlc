@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 import { readAllAuditEvents, readAuditEvents } from "../src/audit/events.ts";
 import { expectOk, fixture, REAL_RECORD } from "./paths.ts";
 
@@ -83,4 +86,99 @@ describe("readAuditEvents", () => {
     const { warnings } = expectOk(await readAllAuditEvents(RECORD));
     expect(warnings).toEqual(["audit shard skipped: unreadable-shard.md (not-a-file)"]);
   });
+});
+
+const HEADER = "# AI-DLC Audit Log\n";
+function auditRow(event: string, timestamp: string): string {
+  return `**Timestamp**: ${timestamp}\n**Event**: ${event}\n`;
+}
+
+/** Header rides on the first block, the way an engine shard is written. */
+function shard(first: string, ...rest: string[]): string {
+  return [HEADER + first, ...rest].join("\n---\n");
+}
+
+describe("local audit record", () => {
+  const roots: string[] = [];
+  afterEach(async () => {
+    await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
+  });
+  async function record(): Promise<string> {
+    const root = await mkdtemp(path.join(tmpdir(), "audit-local-"));
+    roots.push(root);
+    await mkdir(path.join(root, "audit"), { recursive: true });
+    return root;
+  }
+
+  it("reads each row once, from the local record when both shards hold it", async () => {
+    const root = await record();
+    const copiedA = auditRow("COPIED_A", "2026-11-05T00:00:02Z");
+    const copiedB = auditRow("COPIED_B", "2026-11-05T00:00:03Z");
+    const trackedOnly = auditRow("TRACKED_ONLY", "2026-11-05T00:00:04Z");
+    const localA = auditRow("LOCAL_A", "2026-11-05T00:00:01Z");
+    const localB = auditRow("LOCAL_B", "2026-11-05T00:00:05Z");
+    await mkdir(path.join(root, ".aidlc-engine", "audit"), { recursive: true });
+    await writeFile(path.join(root, "audit", "clone.md"), shard(copiedA, copiedB, trackedOnly));
+    await writeFile(
+      path.join(root, ".aidlc-engine", "audit", "clone.md"),
+      shard(localA, copiedA, copiedB, localB),
+    );
+
+    const { value, warnings } = expectOk(await readAllAuditEvents(root));
+    expect(warnings).toBeUndefined();
+    expect(value.map((event) => [event.event, event.timestamp, event.shard])).toEqual([
+      ["LOCAL_B", "2026-11-05T00:00:05Z", ".aidlc-engine/audit/clone.md"],
+      ["TRACKED_ONLY", "2026-11-05T00:00:04Z", "clone.md"],
+      ["COPIED_B", "2026-11-05T00:00:03Z", ".aidlc-engine/audit/clone.md"],
+      ["COPIED_A", "2026-11-05T00:00:02Z", ".aidlc-engine/audit/clone.md"],
+      ["LOCAL_A", "2026-11-05T00:00:01Z", ".aidlc-engine/audit/clone.md"],
+    ]);
+  });
+
+  it("reads a local shard when the tracked audit directory is absent", async () => {
+    const root = await record();
+    await rm(path.join(root, "audit"), { recursive: true });
+    await mkdir(path.join(root, ".aidlc-engine", "audit"), { recursive: true });
+    await writeFile(
+      path.join(root, ".aidlc-engine", "audit", "clone.md"),
+      shard(auditRow("LOCAL_A", "2026-11-05T00:00:01Z")),
+    );
+    const { value, warnings } = expectOk(await readAllAuditEvents(root));
+    expect(warnings).toBeUndefined();
+    expect(value.map((event) => [event.event, event.shard])).toEqual([
+      ["LOCAL_A", ".aidlc-engine/audit/clone.md"],
+    ]);
+  });
+
+  it("skips an unreadable local shard and keeps the tracked row", async () => {
+    const root = await record();
+    await mkdir(path.join(root, ".aidlc-engine", "audit", "bad.md"), { recursive: true });
+    await writeFile(
+      path.join(root, "audit", "clone.md"),
+      shard(auditRow("TRACKED_ONLY", "2026-11-05T00:00:04Z")),
+    );
+    const { value, warnings } = expectOk(await readAllAuditEvents(root));
+    expect(warnings).toContain("audit shard skipped: .aidlc-engine/audit/bad.md (not-a-file)");
+    expect(value.map((event) => event.event)).toEqual(["TRACKED_ONLY"]);
+  });
+
+  it.each(["audit", path.join(".aidlc-engine", "audit")])(
+    "reports an unreadable %s directory the same way and returns no rows",
+    async (directory) => {
+      const root = await record();
+      await writeFile(
+        path.join(root, "audit", "clone.md"),
+        shard(auditRow("TRACKED_ONLY", "2026-11-05T00:00:04Z")),
+      );
+      await rm(path.join(root, directory), { recursive: true, force: true });
+      // A path through a file is ENOENT on Windows, so the directory itself is replaced by a file.
+      await mkdir(path.dirname(path.join(root, directory)), { recursive: true });
+      await writeFile(path.join(root, directory), "not a directory");
+      expect(await readAllAuditEvents(root)).toEqual({
+        ok: true,
+        value: [],
+        warnings: ["audit directory could not be read"],
+      });
+    },
+  );
 });

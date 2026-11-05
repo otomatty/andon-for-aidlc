@@ -4,6 +4,7 @@ import { lstat, open, readdir } from "node:fs/promises";
 import path from "node:path";
 import { canonicalPath, guardPath, mapBounded, readBounded } from "@andon/core-utils";
 import type { Verdict } from "@andon/shared-types";
+import { LOCAL_AUDIT_DIRNAME, withoutLocalRecordCopies } from "../audit/local-record.ts";
 import { stageJumpReaches, stageOrderOf } from "../audit/stage-jump.ts";
 import { createReviewFreshnessReader } from "./review-freshness.ts";
 
@@ -129,10 +130,11 @@ export async function reviewUnitsInAuditShard(
   const guarded = await guardPath(recordDir, changedPath);
   if (!("ok" in guarded)) return null;
   const rel = path.relative(path.resolve(recordDir), guarded.value).split(path.sep);
-  if (rel.length !== 2 || rel[0] !== "audit" || !rel[1]?.endsWith(".md")) return null;
+  const shard = auditShardKey(rel);
+  if (shard === null) return null;
   const read = await readBounded(guarded.value);
   if (!read.ok) return null;
-  const changed = parseRows(read.value, rel[1]);
+  const changed = parseRows(read.value, shard);
   const units = new Set(
     changed.flatMap(({ fields }) =>
       fields.Event?.startsWith("REVIEW_") && fields.Unit && SEGMENT.test(fields.Unit)
@@ -347,32 +349,77 @@ function matches(request: Row, completion: Row): boolean {
   );
 }
 
-async function auditRows(recordDir: string): Promise<{ rows: Row[]; unavailable: boolean }> {
-  let shards: string[];
+type ShardList = { names: string[] } | { missing: true } | { unreadable: true };
+
+async function listMarkdownShards(dir: string): Promise<ShardList> {
   try {
-    shards = (await readdir(path.join(recordDir, "audit")))
-      .filter((name) => name.endsWith(".md"))
-      .sort();
+    return {
+      names: (await readdir(dir)).filter((name) => name.endsWith(".md")).sort(),
+    };
   } catch (error) {
-    return { rows: [], unavailable: (error as { code?: string }).code !== "ENOENT" };
+    return (error as { code?: string }).code === "ENOENT"
+      ? { missing: true }
+      : { unreadable: true };
   }
+}
+
+/** Tracked `audit/<name>.md` or the local record `.aidlc-engine/audit/<name>.md`. */
+function auditShardKey(rel: string[]): string | null {
+  const [engineDir, auditDir] = LOCAL_AUDIT_DIRNAME.split("/");
+  const [head, next, file] = rel;
+  if (rel.length === 2 && head === "audit" && next?.endsWith(".md")) return next;
+  if (rel.length === 3 && head === engineDir && next === auditDir && file?.endsWith(".md"))
+    return `${LOCAL_AUDIT_DIRNAME}/${file}`;
+  return null;
+}
+
+async function auditRows(recordDir: string): Promise<{ rows: Row[]; unavailable: boolean }> {
+  const tracked = await listMarkdownShards(path.join(recordDir, "audit"));
+  const local = await listMarkdownShards(path.join(recordDir, ".aidlc-engine", "audit"));
+  // A missing directory contributes no shards. Any other listing failure hides
+  // the snapshot, the same way an unreadable `audit/` directory does.
+  if ("unreadable" in tracked || "unreadable" in local) return { rows: [], unavailable: true };
+  const specs = [
+    ...("names" in tracked ? tracked.names : []).map((name) => ({
+      name,
+      key: name,
+      relative: `audit/${name}`,
+      local: false,
+    })),
+    ...("names" in local ? local.names : []).map((name) => ({
+      name,
+      key: `${LOCAL_AUDIT_DIRNAME}/${name}`,
+      relative: `${LOCAL_AUDIT_DIRNAME}/${name}`,
+      local: true,
+    })),
+  ];
   let unavailable = false;
-  const reads = await mapBounded(shards, 4, async (shard) => {
-    const guarded = await guardPath(recordDir, `audit/${shard}`);
+  const reads = await mapBounded(specs, 4, async (spec) => {
+    const guarded = await guardPath(recordDir, spec.relative);
     if (!("ok" in guarded)) {
       unavailable = true;
-      return [];
+      return null;
     }
     const read = await readBounded(guarded.value);
     if (!read.ok) {
       unavailable = true;
-      return [];
+      return null;
     }
-    return parseRows(read.value, shard);
+    return read.value;
   });
-  const rows = reads
-    .flat()
-    .sort((a, b) => a.time - b.time || a.shard.localeCompare(b.shard) || a.position - b.position);
+  const localText = new Map<string, string>();
+  for (const [index, text] of reads.entries()) {
+    const spec = specs[index];
+    if (spec?.local && text !== null) localText.set(spec.name, text);
+  }
+  const rows = specs.flatMap((spec, index) => {
+    const text = reads[index];
+    if (text === undefined || text === null) return [];
+    const twin = spec.local ? undefined : localText.get(spec.name);
+    const body = twin === undefined ? text : withoutLocalRecordCopies(text, twin);
+    return parseRows(body, spec.key);
+  });
+  rows.sort((a, b) => a.time - b.time || a.shard.localeCompare(b.shard) || a.position - b.position);
   return { rows, unavailable };
 }
 

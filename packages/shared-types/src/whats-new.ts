@@ -13,6 +13,13 @@ import type { WhatsNewEntry } from "./onboarding.ts";
  */
 export const WHATS_NEW: readonly WhatsNewEntry[] = [
   {
+    id: "workflows-2-11-3",
+    date: "2026-11-05",
+    title: "aidlc-workflows 2.11.3 に対応しました",
+    body: "同梱ドキュメントと導入・更新の対象を 2.11.3 にそろえ、変更のあった日本語ページも更新しました。対応版が変わるため、各プロジェクトの更新が必要です。2.11.3 はネイティブの aidlc のセキュリティ問題（Bun 1.4.4）を修正しているため、更新を推奨します。Doctor の新しい診断（Kiro CLI の起動コマンドなど）も日本語で表示します。",
+    action: { label: "ドキュメントを開く", target: "docs" },
+  },
+  {
     id: "chat-customize",
     date: "2026-10-30",
     title: "AI チャットでカスタマイズを相談できるようにしました",

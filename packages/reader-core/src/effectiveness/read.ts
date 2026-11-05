@@ -2,6 +2,7 @@ import { readdir } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import { guardPath, mapBounded, readBounded, withResult } from "@andon/core-utils";
 import type { EffectivenessPayload, IntentEffectiveness, ReadResult } from "@andon/shared-types";
+import { LOCAL_AUDIT_DIRNAME, withoutLocalRecordCopies } from "../audit/local-record.ts";
 import { indexIntentRecords, intentRecord, sortIntentNames } from "../intents/order.ts";
 import { parseState } from "../parse/state.ts";
 import { deriveEffectiveness } from "./derive.ts";
@@ -97,24 +98,53 @@ async function auditEvents(
   warnings: string[],
 ): Promise<MeasurementEvent[] | null> {
   const directoryWarnings: string[] = [];
-  const shards = (await directory(root, "audit", directoryWarnings)).filter((name) =>
+  const trackedNames = (await directory(root, "audit", directoryWarnings)).filter((name) =>
     name.endsWith(".md"),
+  );
+  const localNames = (await directory(root, LOCAL_AUDIT_DIRNAME, directoryWarnings)).filter(
+    (name) => name.endsWith(".md"),
   );
   warnings.push(...directoryWarnings);
   if (directoryWarnings.length) return null;
-  if (shards.length > MAX_SHARDS) {
+  if (trackedNames.length + localNames.length > MAX_SHARDS) {
     warnings.push("audit shard limit reached; audit measurements withheld");
     return null;
   }
+  const specs = [
+    ...trackedNames.map((name) => ({
+      name,
+      key: name,
+      relative: `audit/${name}`,
+      local: false,
+    })),
+    ...localNames.map((name) => ({
+      name,
+      key: `${LOCAL_AUDIT_DIRNAME}/${name}`,
+      relative: `${LOCAL_AUDIT_DIRNAME}/${name}`,
+      local: true,
+    })),
+  ];
   let incomplete = false;
-  const reads = await mapBounded(shards, 2, async (shard) => {
-    const read = await readFile(root, `audit/${shard}`, budget);
+  const reads = await mapBounded(specs, 2, async (spec) => {
+    const read = await readFile(root, spec.relative, budget);
     if (!read.ok) {
-      warnings.push(`audit ${shard}: ${read.reason}`);
+      warnings.push(`audit ${spec.key}: ${read.reason}`);
       incomplete = true;
-      return [];
+      return null;
     }
-    const parsed = parseMeasurementEvents(read.value, shard);
+    return read.value;
+  });
+  const localText = new Map<string, string>();
+  for (const [index, text] of reads.entries()) {
+    const spec = specs[index];
+    if (spec?.local && text !== null) localText.set(spec.name, text);
+  }
+  const events = specs.flatMap((spec, index) => {
+    const text = reads[index];
+    if (text === undefined || text === null) return [];
+    const twin = spec.local ? undefined : localText.get(spec.name);
+    const body = twin === undefined ? text : withoutLocalRecordCopies(text, twin);
+    const parsed = parseMeasurementEvents(body, spec.key);
     warnings.push(...parsed.warnings.slice(0, 50));
     if (
       parsed.warnings.some(
@@ -125,7 +155,6 @@ async function auditEvents(
       incomplete = true;
     return parsed.events;
   });
-  const events = reads.flat();
   if (events.length > MAX_EVENTS) {
     warnings.push("audit event limit reached; audit measurements withheld");
     return null;
