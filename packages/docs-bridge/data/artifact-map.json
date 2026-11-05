@@ -1,5 +1,5 @@
 {
-  "sourceVersion": "aidlc 2.11.2 (State Version 8)",
+  "sourceVersion": "aidlc 2.11.3 (State Version 8)",
   "generator": "scripts/build-artifact-map.ts",
   "stages": {
     "workspace-scaffold": {

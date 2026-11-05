@@ -41,7 +41,6 @@
 
 import { createHash, randomUUID } from "node:crypto";
 import {
-  type Dirent,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -70,73 +69,6 @@ import { aidlcInvocation, knownActiveSpace } from "../tools/aidlc-runtime-paths.
 import { TRUSTED_ROUTE_NAMESPACE } from "../tools/aidlc-command.ts";
 
 const HOOKS_DIR = dirname(fileURLToPath(import.meta.url));
-
-// --- AIDLC Guide local patch (PR #43), re-applied on each engine upgrade ---
-// Cursor fires preToolUse on EVERY tool call, and its guard chain is
-// fail-closed. Without this short-circuit an ordinary package edit is denied
-// whenever a guard subprocess crashes, even though no workflow is live.
-// Pinned by aidlc-cursor-adapter.test.ts.
-const SPACE_NAME_RE = /^[a-z0-9][a-z0-9._-]*$/;
-const STATUS_FIELD_RE = /^- \*\*Status\*\*:[ \t]*(.+?)[ \t]*$/m;
-
-function resolveSpace(projectDir: string): string {
-  try {
-    const pointer = join(projectDir, "aidlc", "active-space");
-    const raw = existsSync(pointer) ? readFileSync(pointer, "utf-8").trim() : "default";
-    return SPACE_NAME_RE.test(raw) ? raw : "default";
-  } catch {
-    return "default";
-  }
-}
-
-/**
- * Record directory of the active intent (cursor, then lone-intent), or null.
- * Mirrors `activeIntent()` in aidlc-lib.ts without loading that module on
- * every preToolUse.
- */
-export function resolveActiveRecordDir(projectDir: string): string | null {
-  const intentsDir = join(projectDir, "aidlc", "spaces", resolveSpace(projectDir), "intents");
-  try {
-    const raw = readFileSync(join(intentsDir, "active-intent"), "utf-8").trim();
-    if (raw.length > 0 && !raw.includes("/") && !raw.includes("\\")) {
-      const record = join(intentsDir, raw);
-      if (existsSync(join(record, "aidlc-state.md"))) return record;
-    }
-  } catch {
-    // no cursor → lone-intent
-  }
-  try {
-    const withState = readdirSync(intentsDir, { withFileTypes: true })
-      .filter((entry: Dirent) => entry.isDirectory() && !entry.name.startsWith("."))
-      .map((entry: Dirent) => entry.name)
-      .filter((name: string) => existsSync(join(intentsDir, name, "aidlc-state.md")));
-    if (withState.length === 1) {
-      const name = withState[0];
-      return name === undefined ? null : join(intentsDir, name);
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
-/**
- * Whether preToolUse guards should run. Cursor fires this hook on every tool
- * call; enforcement is only for a live (not Completed) workflow record.
- */
-export function workflowEnforcementActive(projectDir: string): boolean {
-  const record = resolveActiveRecordDir(projectDir);
-  if (record === null) return false;
-  try {
-    const match = STATUS_FIELD_RE.exec(readFileSync(join(record, "aidlc-state.md"), "utf-8"));
-    return match?.[1]?.trim() !== "Completed";
-  } catch {
-    // Record exists but the state file is unreadable — treat as live so
-    // guards stay on (same posture as a missing Status field).
-    return true;
-  }
-}
-// --- end AIDLC Guide local patch ---
 
 interface CursorHookInput {
   hook_event_name?: string;
@@ -170,14 +102,6 @@ export async function run(
       if (rawInput.length > 0) cursor = JSON.parse(rawInput) as CursorHookInput;
     } catch {
       if (target === "guards") {
-        // AIDLC Guide local patch (PR #43): ordinary edits have no workflow to enforce.
-        const dirRaw = process.env.AIDLC_PROJECT_DIR ?? process.env.CURSOR_PROJECT_DIR ??
-          process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
-        const dir = isAbsolute(dirRaw) ? dirRaw : resolve(process.cwd(), dirRaw);
-        if (!workflowEnforcementActive(dir)) {
-          process.stdout.write(`${JSON.stringify({ permission: "allow" })}\n`);
-          return 0;
-        }
         process.stdout.write(`${JSON.stringify({
           permission: "deny",
           agent_message:
@@ -853,6 +777,42 @@ export async function run(
     }
     push();
     return { words, ambiguous: quote !== null };
+  }
+
+  // What the host's shell reads as its own in a command: everything outside
+  // quotes, and the "$" and backtick it still expands inside double quotes.
+  // Each shell's quoting is read its own way (shellWords keeps one quote state
+  // for both, and ends a double-quoted word at \" where a POSIX shell goes on):
+  // a POSIX shell escapes with a backslash; PowerShell escapes with a backtick,
+  // keeps a doubled quote inside the word and reads typographic quotes as
+  // quotes. Null when a quote is left open.
+  function shellActiveText(command: string, flavor: PathFlavor): string | null {
+    const singles = flavor === "win32" ? "'\u2018\u2019\u201a\u201b" : "'";
+    const doubles = flavor === "win32" ? '"\u201c\u201d\u201e' : '"';
+    const escapeChar = flavor === "win32" ? "`" : "\\";
+    let active = "";
+    let quote = "";
+    for (let i = 0; i < command.length; i++) {
+      const ch = command[i];
+      if (quote === "") {
+        if (singles.includes(ch)) quote = singles;
+        else if (doubles.includes(ch)) quote = doubles;
+        else {
+          active += ch;
+          if (ch === escapeChar) active += command[++i] ?? "";
+        }
+        continue;
+      }
+      if (quote.includes(ch)) {
+        const next = command[i + 1];
+        if (flavor === "win32" && next !== undefined && quote.includes(next)) i++;
+        else quote = "";
+      } else if (quote === doubles) {
+        if (ch === "$" || ch === "`") active += ch;
+        if (ch === escapeChar) i++;
+      }
+    }
+    return quote === "" ? active : null;
   }
 
   interface ShellCommandPart {
@@ -2619,14 +2579,19 @@ export async function run(
     // A POSIX shell reads a line that ends in a backslash as going on (the
     // stage writes its publish that way); PowerShell ends the command there.
     const joined = process.platform === "win32" ? command : command.replace(/\\\r?\n/g, " ");
-    if (agent === AMBIGUOUS_REVIEWER || /[;&|<>(){}[\]`$%*?\r\n]/.test(joined)) return false;
+    const flavor: PathFlavor = process.platform === "win32" ? "win32" : "posix";
+    // These stay refused inside quotes too: on a native Windows install
+    // aidlc.cmd's cmd.exe reads "&" and "%" again whatever the quotes, and a
+    // repo name holds none of them.
+    if (agent === AMBIGUOUS_REVIEWER || /[&|<>%*?\r\n]/.test(joined)) return false;
+    const active = shellActiveText(joined, flavor);
+    if (active === null || /[;(){}[\]`$]/.test(active)) return false;
     // A call this cannot read keeps the denies.
     try {
       const parsed = shellWords(joined);
       if (parsed.ambiguous) return false;
       // The host's own shell reads the words: PowerShell keeps a backslash, a
       // POSIX shell reads it as an escape.
-      const flavor: PathFlavor = process.platform === "win32" ? "win32" : "posix";
       const words = parsed.words.map(({ variants }) =>
         variants.find((variant) => variant.flavor === flavor)?.value ?? ""
       );
@@ -3011,11 +2976,6 @@ export async function run(
     }
 
     case "guards": {
-      // AIDLC Guide local patch (PR #43): only enforce live workflow records.
-      if (!workflowEnforcementActive(projectDir)) {
-        writeAllow();
-        return 0;
-      }
       // preToolUse: the state-transition, reviewer read-scope, and review-freeze
       // guards (the Claude settings.json registration order). The core hooks
       // self-filter by tool; plan approval runs for both workspace mutations

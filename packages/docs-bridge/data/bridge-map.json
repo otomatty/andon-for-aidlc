@@ -1,5 +1,5 @@
 {
-  "sourceVersion": "aidlc 2.11.2 (State Version 8)",
+  "sourceVersion": "aidlc 2.11.3 (State Version 8)",
   "stages": {
     "workspace-scaffold": {
       "purpose": "ワークフローが書き込む先のディレクトリ構造（intent レコード・空間ナレッジ・ステージ成果物置き場）を先に用意する。初期化フェーズの最初のステージで、人間の入力は不要。",
