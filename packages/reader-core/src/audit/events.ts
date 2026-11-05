@@ -2,6 +2,7 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { mapBounded, readBounded } from "@andon/core-utils";
 import type { AuditEvent, ReadResult } from "@andon/shared-types";
+import { LOCAL_AUDIT_DIRNAME, withoutLocalRecordCopies } from "./local-record.ts";
 import { parseMeasurementBlocks, TIMING_FIELDS } from "./measurement-events.ts";
 
 /**
@@ -79,29 +80,63 @@ function compareByTimeDescending(a: AuditEvent, b: AuditEvent): number {
   return compareCore(a, b, -1);
 }
 
-/**
- * Newest-first merge across shards, unbounded.
- *
- * A shard that cannot be read is skipped and reported in `warnings` — the
- * remaining shards still produce a usable timeline (failure mode 5 / BR-RC-5).
- */
-export async function readAllAuditEvents(recordDir: string): Promise<ReadResult<AuditEvent[]>> {
-  const dir = path.join(recordDir, AUDIT_DIRNAME);
+type ShardList = { names: string[] } | { missing: true } | { unreadable: true };
 
-  let shards: string[];
+async function listMarkdownShards(dir: string): Promise<ShardList> {
   try {
     const entries = await readdir(dir, { withFileTypes: true });
     // Selected by name only, not by `isFile()`: anything occupying a shard name
     // that turns out not to be a readable file becomes a visible warning below
     // rather than a silent omission from the timeline.
-    shards = entries
-      .filter((e) => e.name.endsWith(".md"))
-      .map((e) => e.name)
-      .sort(); // R-RC-5
+    return {
+      names: entries
+        .filter((entry) => entry.name.endsWith(".md"))
+        .map((entry) => entry.name)
+        .sort(), // R-RC-5
+    };
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return { ok: true, value: [] }; // no audit dir = no events, not an error
+    return (error as NodeJS.ErrnoException).code === "ENOENT"
+      ? { missing: true }
+      : { unreadable: true };
+  }
+}
+
+interface ShardRef {
+  key: string;
+  file: string;
+  name: string;
+  local: boolean;
+}
+
+/**
+ * Newest-first merge across shards, unbounded.
+ *
+ * A shard that cannot be read is skipped and reported in `warnings` — the
+ * remaining shards still produce a usable timeline (failure mode 5 / BR-RC-5).
+ * A missing directory is no shards. Any other directory failure drops the
+ * timeline, for the tracked `audit/` folder and the local record alike.
+ */
+export async function readAllAuditEvents(recordDir: string): Promise<ReadResult<AuditEvent[]>> {
+  const tracked = await listMarkdownShards(path.join(recordDir, AUDIT_DIRNAME));
+  const local = await listMarkdownShards(path.join(recordDir, ".aidlc-engine", "audit"));
+  if ("unreadable" in tracked || "unreadable" in local) {
     return { ok: true, value: [], warnings: ["audit directory could not be read"] };
   }
+
+  const refs: ShardRef[] = [
+    ...("names" in tracked ? tracked.names : []).map((name) => ({
+      key: name,
+      file: path.join(recordDir, AUDIT_DIRNAME, name),
+      name,
+      local: false,
+    })),
+    ...("names" in local ? local.names : []).map((name) => ({
+      key: `${LOCAL_AUDIT_DIRNAME}/${name}`,
+      file: path.join(recordDir, ".aidlc-engine", "audit", name),
+      name,
+      local: true,
+    })),
+  ];
 
   const events: AuditEvent[] = [];
   const warnings: string[] = [];
@@ -110,23 +145,28 @@ export async function readAllAuditEvents(recordDir: string): Promise<ReadResult<
   // a shard can be ~10MB and this runs nested inside the per-intent read —
   // then assemble in sorted-name order so the result stays deterministic
   // (R-RC-5).
-  const reads = await mapBounded(shards, SHARD_READ_CONCURRENCY, (shard) =>
-    readBounded(path.join(dir, shard)),
-  );
+  const reads = await mapBounded(refs, SHARD_READ_CONCURRENCY, (ref) => readBounded(ref.file));
+  const localText = new Map<string, string>();
   for (const [index, read] of reads.entries()) {
-    const shard = shards[index] as string;
+    const ref = refs[index] as ShardRef;
+    if (ref.local && read.ok) localText.set(ref.name, read.value);
+  }
+  for (const [index, read] of reads.entries()) {
+    const ref = refs[index] as ShardRef;
     if (!read.ok) {
-      warnings.push(`audit shard skipped: ${shard} (${read.reason})`);
+      warnings.push(`audit shard skipped: ${ref.key} (${read.reason})`);
       continue;
     }
-    const parsed = parseMeasurementBlocks(read.value, shard, TIMING_FIELDS);
+    const twin = ref.local ? undefined : localText.get(ref.name);
+    const text = twin === undefined ? read.value : withoutLocalRecordCopies(read.value, twin);
+    const parsed = parseMeasurementBlocks(text, ref.key, TIMING_FIELDS);
     warnings.push(...parsed.warnings);
     for (const entry of parsed.events) {
       events.push({
         event: entry.event,
         stage: entry.fields.Stage ?? entry.fields["Stage slug"] ?? null,
         timestamp: entry.timestamp,
-        shard,
+        shard: ref.key,
         workflow: entry.fields.Workflow ?? null,
         position: entry.position,
         fields: entry.fields,

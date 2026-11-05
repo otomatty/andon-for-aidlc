@@ -1504,4 +1504,69 @@ describe("effectiveness reader boundaries", () => {
       usage: { source: "claude-ledger", inputTokens: 50 },
     });
   });
+
+  it("reads a team unit local record once, including rows copied into the tracked shard", async () => {
+    const { root, record } = await workspace();
+    const header = "# AI-DLC Audit Log\n";
+    const row = (event: string, second: number) =>
+      `**Timestamp**: ${new Date(BASE + second * 1000).toISOString()}\n**Event**: ${event}\n`;
+    const copiedA = row("COPIED_A", 2);
+    const copiedB = row("COPIED_B", 3);
+    const trackedOnly = row("TRACKED_ONLY", 4);
+    const localA = row("LOCAL_A", 1);
+    const localB = row("LOCAL_B", 5);
+    const shard = (first: string, ...rest: string[]) => [header + first, ...rest].join("\n---\n");
+    await mkdir(path.join(record, ".aidlc-engine", "audit"), { recursive: true });
+    await writeFile(path.join(record, "audit/a.md"), shard(copiedA, copiedB, trackedOnly));
+    await writeFile(
+      path.join(record, ".aidlc-engine/audit/a.md"),
+      shard(localA, copiedA, copiedB, localB),
+    );
+    const result = await getEffectiveness(root, BASE + 60_000);
+    if (!("ok" in result)) throw new Error("expected measurements");
+    expect(result.value.intents[0]?.auditEventCount).toBe(5);
+    expect(result.value.intents[0]?.warnings.join(" ")).not.toContain("withheld");
+  });
+
+  it("counts tracked and local shards toward the same shard cap", async () => {
+    const { root, record } = await workspace();
+    const localDir = path.join(record, ".aidlc-engine", "audit");
+    await mkdir(localDir, { recursive: true });
+    await Promise.all(
+      Array.from({ length: 127 }, (_, index) =>
+        writeFile(path.join(localDir, `local-${index}.md`), ""),
+      ),
+    );
+    const kept = await getEffectiveness(root, BASE + 20_000);
+    expect("ok" in kept && kept.value.intents[0]?.auditEventCount).toBe(2);
+    await writeFile(path.join(localDir, "local-127.md"), "");
+    const withheld = await getEffectiveness(root, BASE + 20_000);
+    expect("ok" in withheld && withheld.value.intents[0]?.auditEventCount).toBeNull();
+    expect("ok" in withheld && withheld.value.intents[0]?.warnings).toContain(
+      "audit shard limit reached; audit measurements withheld",
+    );
+  }, 30_000);
+
+  it("withholds measurements when an audit field conflicts with itself", async () => {
+    const { root, record } = await workspace();
+    await writeFile(
+      path.join(record, "audit/a.md"),
+      "**Event**: STAGE_STARTED\n**Event**: STAGE_COMPLETED\n**Timestamp**: 2026-09-01T00:00:00.000Z\n",
+    );
+    const result = await getEffectiveness(root, BASE + 20_000);
+    expect("ok" in result && result.value.intents[0]?.auditEventCount).toBeNull();
+    expect("ok" in result && result.value.intents[0]?.warnings.join(" ")).toContain(
+      "conflicting audit",
+    );
+  });
+
+  it("withholds measurements when the local audit directory is unreadable", async () => {
+    const { root, record } = await workspace();
+    await writeFile(path.join(record, ".aidlc-engine"), "not a directory");
+    const result = await getEffectiveness(root, BASE + 20_000);
+    expect("ok" in result && result.value.intents[0]?.auditEventCount).toBeNull();
+    expect("ok" in result && result.value.intents[0]?.warnings.join(" ")).toContain(
+      ".aidlc-engine/audit: unreadable directory",
+    );
+  });
 });
